@@ -1,0 +1,17 @@
+{
+  "name": "smart-helpdesk-reports",
+  "private": true,
+  "description": "Builds the CACS452 university report and the internship report (DOCX) from Markdown sources.",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node tools/build-docx.js university && node tools/build-docx.js internship",
+    "build:university": "node tools/build-docx.js university",
+    "build:internship": "node tools/build-docx.js internship"
+  },
+  "dependencies": {
+    "docx": "^9.7.1"
+  },
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.17.0"
+  }
+}

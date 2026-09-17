@@ -1,0 +1,17 @@
+{
+  "output": "smart-helpdesk-project-report",
+  "title": "Smart Helpdesk: A Multi-Tenant Support Ticket Management System with Automated Prioritization, Agent Assignment, Duplicate Detection, SLA Monitoring, Integrations, and Analytics",
+  "short_title": "Smart Helpdesk",
+  "author": "<<Student Name>>",
+  "roll": "<<Symbol / Roll Number>>",
+  "registration": "<<TU Registration Number>>",
+  "author2": "<<Second Member Name or remove>>",
+  "supervisor": "<<Supervisor Name>>",
+  "supervisor_designation": "<<Designation>>",
+  "college": "<<College Name>>",
+  "college_address": "<<College Address>>",
+  "hod": "<<Head of Department / Program Coordinator>>",
+  "internal_examiner": "<<Internal Examiner>>",
+  "external_examiner": "<<External Examiner>>",
+  "month_year": "<<Month, Year>>"
+}

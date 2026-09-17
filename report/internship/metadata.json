@@ -1,0 +1,20 @@
+{
+  "output": "internship-report",
+  "title": "Internship Report",
+  "author": "<<Student Name>>",
+  "roll": "<<Symbol / Roll Number>>",
+  "registration": "<<TU Registration Number>>",
+  "organization": "<<Organisation Name>>",
+  "organization_address": "<<Organisation Address>>",
+  "org_supervisor": "<<Organisation Supervisor, Designation>>",
+  "college": "<<College Name>>",
+  "college_address": "<<College Address>>",
+  "college_supervisor": "<<College Supervisor>>",
+  "hod": "<<Head of Department / Program Coordinator>>",
+  "course_code": "<<Internship Course Code>>",
+  "start_date": "<<Start Date>>",
+  "end_date": "<<End Date>>",
+  "duration": "<<Duration, e.g. 8 weeks / 180 hours>>",
+  "position": "<<Position, e.g. Software Development Intern>>",
+  "month_year": "<<Month, Year>>"
+}

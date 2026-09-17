@@ -1,0 +1,89 @@
+# Selected versions and compatibility
+
+Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see the ecosystem pages for URLs). Pin exactly in lockfiles; the constraint column is what goes in `composer.json` / `package.json` / images. Re-verify before milestone 1 day 1 and record changes here.
+
+## Runtime and platform
+
+| Component | Version at research | Constraint / image | Notes |
+|---|---|---|---|
+| PHP | 8.5.10 | `serversideup/php:8.5-fpm-nginx` (Debian trixie) | Active support to 2027-12; required by Pest 5 / PHPUnit 13 |
+| Laravel | 13.32.0 | `^13.0` | Bug fixes to Q3 2027, security to 2028-03 |
+| Node.js | 24.x (Active LTS) | `>=24 <25`; bump to 26 after 2026-10-28 | Vite 8 needs ≥ 20.19 |
+| pnpm | 12.4.2 | `packageManager` field | |
+| PostgreSQL | 18.6 | `postgres:18-trixie` | 19 is beta; `pgvector/pgvector:pg18` for V1 |
+| Valkey | 9.1.2 | `valkey/valkey:9-alpine` | Redis 8.10 compatible alternative |
+| RustFS | 1.0.0 | pinned exact tag | released 2026-09-16; Garage 2.4.1 alternative |
+| Caddy | 2.11.4 | `caddy:2` | |
+| Mailpit | 1.31.1 | `axllent/mailpit` | dev only |
+| Stalwart Mail Server | 0.16.22 | `stalwartlabs/stalwart` pinned tag | profile `mail`; docker-mailserver 14.0.0 alternative |
+| Docker Engine / Compose | 29.8 / v5.5 | Compose spec with `include`, profiles, `develop.watch` | local machine has 29.6 / v5.2 |
+| OpenTofu | 1.12.6 | pinned via mise | Terraform 1.16 is BUSL |
+| ansible-core | 2.21.4 | + community.docker 5.3, ansible.posix 2.2, community.general 13.4 | `geerlingguy.docker` role |
+| mise / just | 2026.9 / 1.58 | | tool pinning + task runner |
+
+## Backend packages
+
+| Package | Version | Constraint | Class |
+|---|---|---|---|
+| laravel/sanctum | 4.3.3 | `^4.3` | Required |
+| laravel/passport | 13.8.0 | `^13.8` | Useful (time-boxed) |
+| spatie/laravel-permission | 8.3.0 | `^8.3` | Required |
+| stancl/tenancy | 3.10.1 | `^3.10` | Required |
+| laravel/horizon | 5.49.0 | `^5.49` | Required |
+| laravel/telescope | 5.24.0 | `^5.24` (dev) | Useful |
+| laravel/reverb | 1.11.1 | `^1.11` | Should-have |
+| dedoc/scramble | 0.13.43 | `0.13.*` | Required |
+| league/flysystem-aws-s3-v3 | 3.35.3 | `^3.35` | Required |
+| spatie/laravel-health | 1.40.2 | `^1.40` | Required |
+| spatie/laravel-backup | 10.3.3 | `^10.3` | Useful (on-prem) |
+| opcodesio/log-viewer | 3.24.2 | `^3.24` | Useful (staff) |
+| laravel/boost | 2.9.1 | dev | Useful (agents) |
+| pestphp/pest | 5.2.0 | `^5.2` (dev) | Required |
+| larastan/larastan | 3.12.1 | `^3.12` (dev) | Required |
+| laravel/pint | 1.32.1 | `^1.32` (dev) | Required |
+| intervention/image | 4.3.2 | `^4.3` | Required (media variants) |
+| webklex/laravel-imap | 6.2.0 | `^6.2` | Useful (inbound email) |
+| openspout/openspout | 5.11.3 (PHP 8.4/8.5) | `^5.11` | Required (XLSX report export) |
+| Deferred | pulse 1.8.1, pennant 1.26.0, octane 2.19.1, scout 11.7.0, activitylog 5.1.1, rector-laravel 2.6.2, spatie/laravel-medialibrary 11.23.8 | — | V1 / Rejected |
+
+## Frontend packages
+
+| Package | Version | Constraint | Class |
+|---|---|---|---|
+| react, react-dom | 19.3.0 | `^19.3` | Required |
+| vite | 8.3.0 | `^8.3` | Required |
+| @vitejs/plugin-react + oxc-transform-react | 6.1.1 | `^6.1` | Required |
+| typescript | 7.0.2 | `^7.0` | Required |
+| tailwindcss, @tailwindcss/vite | 4.3.3 | `^4.3` | Required |
+| shadcn (CLI) | 4.21.0 | dlx latest | Required |
+| @base-ui/react | 1.8.0 | `^1.8` | Required |
+| @tanstack/react-router, router-plugin, zod-adapter | 1.170.38 / 1.168.40 / 1.167.0 | `^1.170` | Required |
+| @tanstack/react-query | 5.103.1 | `^5.103` | Required |
+| @tanstack/react-table | 9.2.4 | `^9.2` (fallback `^8`) | Required |
+| @tanstack/react-form | 1.33.5 | `^1.33` | Required |
+| zod | 4.6.5 | `^4.6` | Required |
+| date-fns, @date-fns/tz | 4.4.0 / 1.5.0 | `^4.4` / `^1.5` | Required |
+| recharts | 3.10.1 | `^3.10` | Required |
+| lucide-react | 1.47.0 | `^1.47` | Required |
+| sonner | 2.0.8 | `^2.0` | Required |
+| react-day-picker | 10.0.1 | `^10.0` | Useful |
+| openapi-typescript / openapi-fetch | 7.13.0 / 0.17.0 | `^7.13` / `^0.17` | Required |
+| @biomejs/biome | 2.5.14 | `^2.5` (dev) | Required |
+| vitest, @vitest/browser, vitest-browser-react | 5.0.1 / 5.0.1 / 2.3.0 | `^5.0` (dev) | Required |
+| @playwright/test, @axe-core/playwright | 1.63.0 / 4.13.0 | `^1.63` / `^4.13` (dev) | Required |
+| msw | 2.15.0 | `^2.15` (dev) | Useful |
+| culori (token contrast check script) | latest 4.x | dev | Useful |
+| docx (report builder, `report/` only) | 9.7.1 | `^9.7` | Required for report generation; not part of the product |
+| laravel-echo, @laravel/echo-react | 2.5.0 | `^2.5` | Should-have |
+| Deferred | @tanstack/react-virtual 3.14, zustand 5.0, storybook 10.6, i18next 26 | — | V1 |
+
+## Compatibility notes
+
+- PHP 8.5 is required by Pest 5 / PHPUnit 13; Laravel 13 supports 8.3–8.5.
+- Vite 8's React plugin uses Oxc; Babel plugin config is invalid; React Compiler via `compiler: true`.
+- TypeScript 7 lacks a stable programmatic API until 7.1; typescript-eslint is therefore not used (Biome).
+- shadcn defaults to Base UI; copying Radix-era snippets is a hazard.
+- TanStack Table v9 API differs from the v8 tutorials.
+- stancl/tenancy single-DB mode disables the database bootstrapper; Redis bootstrapper needs phpredis.
+- Scramble introspects the DB: export after migrations.
+- PG18 virtual generated columns cannot be indexed: use `STORED` for `search_vector`.

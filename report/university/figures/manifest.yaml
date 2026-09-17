@@ -1,0 +1,31 @@
+# Figures referenced by the report. Mermaid sources live in ../../docs; render with
+#   pnpm dlx @mermaid-js/mermaid-cli -i <file>.mmd -o <id>.png -b white -s 2
+# (tools/export-figures.js extracts the blocks into .mmd files). Screenshots and plots are added by hand/pipeline.
+figures:
+  - { id: uc-01, caption: "Use cases: ticket handling and automation", source: docs/02-product/use-cases.md, block: 0 }
+  - { id: uc-02, caption: "Use cases: administration, contacts and reporting", source: docs/02-product/use-cases.md, block: 1 }
+  - { id: class-domain, caption: "Class diagram of the domain model", source: docs/03-architecture/diagrams.md, block: 3 }
+  - { id: object-ticket, caption: "Object diagram of a seeded ticket", source: docs/03-architecture/diagrams.md, block: 5 }
+  - { id: state-ticket, caption: "Ticket lifecycle", source: docs/04-domain/tickets.md, block: 0 }
+  - { id: state-sla, caption: "SLA timer", source: docs/05-algorithms/sla-evaluation.md, block: 0 }
+  - { id: seq-create-ticket, caption: "Ticket creation", source: docs/02-product/user-flows.md, block: 2 }
+  - { id: seq-login, caption: "Login and tenant resolution", source: docs/02-product/user-flows.md, block: 1 }
+  - { id: seq-sla-sweep, caption: "SLA sweep", source: docs/02-product/user-flows.md, block: 3 }
+  - { id: seq-webhook, caption: "Webhook delivery", source: docs/07-api/webhooks.md, block: 0 }
+  - { id: seq-inbound-email, caption: "Inbound email", source: docs/04-domain/email.md, block: 1 }
+  - { id: act-assignment, caption: "Agent assignment", source: docs/05-algorithms/agent-assignment.md, block: 0 }
+  - { id: act-duplicates, caption: "Duplicate detection", source: docs/05-algorithms/duplicate-detection.md, block: 0 }
+  - { id: act-reevaluate, caption: "Hourly re-evaluation", source: docs/03-architecture/diagrams.md, block: 2 }
+  - { id: act-inbound, caption: "Inbound routing", source: docs/04-domain/email.md, block: 0 }
+  - { id: class-automation, caption: "Replaceable algorithm strategies", source: docs/03-architecture/diagrams.md, block: 4 }
+  - { id: er-full, caption: "Entity relationship diagram", source: docs/08-database/entities.md, block: 0 }
+  - { id: component, caption: "Component diagram", source: docs/03-architecture/overview.md, block: 2 }
+  - { id: deployment, caption: "Deployment diagram", source: docs/03-architecture/overview.md, block: 1 }
+  - { id: screen-ticket-list, caption: "Ticket list screen", source: screenshot }
+  - { id: screen-ticket-detail, caption: "Ticket detail", source: screenshot }
+  - { id: screen-automation-settings, caption: "Automation settings", source: screenshot }
+  - { id: screen-dashboard, caption: "Dashboard", source: screenshot }
+  - { id: plot-assignment-loads, caption: "Loads per agent", source: experiments/results/v1/e1-loads.png }
+  - { id: plot-load-spread, caption: "Load spread over time", source: experiments/results/v1/e1-spread.png }
+  - { id: plot-pr-curve, caption: "Precision-recall curve", source: experiments/results/v1/e2-pr-curve.png }
+  - { id: plot-ageing, caption: "Ageing curve", source: experiments/results/v1/e3-ageing.png }

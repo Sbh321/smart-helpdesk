@@ -1,0 +1,120 @@
+# API authentication
+
+Decision: [ADR-0007](../adr/0007-authentication-and-oauth.md). Two guards on disjoint principals, one permission vocabulary. Security controls: [03-architecture/security.md](../03-architecture/security.md).
+
+| Principal | Guard | Mechanism | Routes |
+|---|---|---|---|
+| Tenant user in the SPA | `auth:sanctum` | session cookie + CSRF | `/v1/*` |
+| Tenant API client (integration) | `auth:api` (Passport) | bearer access token, `client_credentials` | `/v1/*` subset marked **C** in [conventions.md](conventions.md) |
+| Platform super admin | `auth:platform` | host-only session cookie on `admin.{PLATFORM_DOMAIN}` | `/platform-api/*` |
+
+Route groups use `auth:sanctum,api` (multi-guard) so one route definition serves both; `EnsureTenantMembership` runs afterwards for both principals.
+
+## 1. SPA session flow (Sanctum)
+
+Hosts per [ADR-0021](../adr/0021-host-layout-and-tenant-resolution.md): the SPA runs on `app.{PLATFORM_DOMAIN}` and calls `api.{PLATFORM_DOMAIN}` with credentials. Both hosts are same-site, so Sanctum's stateful mode works with `SESSION_DOMAIN=.{PLATFORM_DOMAIN}`, `SANCTUM_STATEFUL_DOMAINS=app.{PLATFORM_DOMAIN}` and CORS on `api` allowing that origin with `supports_credentials`. The workspace is chosen at login and stored in the session; it is never sent again.
+
+```mermaid
+sequenceDiagram
+    participant SPA as SPA (app.shp…/acme)
+    participant API as Laravel (api.shp…)
+    SPA->>API: GET /sanctum/csrf-cookie
+    API-->>SPA: Set-Cookie XSRF-TOKEN, shp_session (domain .shp…)
+    SPA->>API: POST /v1/auth/login {workspace: "acme", email, password} + X-XSRF-TOKEN
+    API->>API: find active tenant "acme" → initialise tenancy → find user by (tenant_id, email) → verify
+    API->>API: regenerate session; session.tenant_id = acme
+    API-->>SPA: 200 {data: {user, tenant, permissions}}
+    SPA->>API: GET /v1/me (cookie)
+    API->>API: ResolveTenantFromPrincipal (session.tenant_id) → auth:sanctum → EnsureTenantMembership
+    API-->>SPA: 200 {data: {...}}
+    SPA->>SPA: URL workspace == tenant.slug? else redirect to /{tenant.slug}
+```
+
+Rules:
+
+- Login looks the user up **within the named workspace** (`users` unique on `(tenant_id, email)`); an unknown or suspended workspace and a wrong password return the same `401 invalid_credentials` (no workspace enumeration).
+- `POST /v1/auth/workspaces/lookup {email}` (Should) emails the user the workspaces their address belongs to, so nobody has to remember a slug.
+- Session cookie: `HttpOnly`, `Secure`, `SameSite=Lax`, lifetime 12 h idle, regenerated on login; session driver `database`; the session row stores `tenant_id`.
+- A session whose user no longer matches `session.tenant_id` is destroyed (401).
+- Failed logins: `429 rate_limited` after 5/min per workspace+email+IP; account lockout 15 min after 10 failures (`403 account_locked`).
+- Logout: `POST /v1/auth/logout` invalidates the session and CSRF token (204).
+- `GET /v1/me` returns `user`, `tenant` (slug, name, branding, settings subset, features), `permissions` (flat list), `unread_notifications`.
+
+```bash
+curl -c jar -b jar https://api.shp.localhost/sanctum/csrf-cookie -H 'Origin: https://app.shp.localhost'
+curl -c jar -b jar -H 'Origin: https://app.shp.localhost' -H 'Referer: https://app.shp.localhost/' \
+  -H "X-XSRF-TOKEN: $(grep XSRF jar | awk '{print $7}' | sed 's/%3D/=/g')" \
+  -H 'Content-Type: application/json' -d '{"workspace":"acme","email":"priya@acme.test","password":"..."}' \
+  https://api.shp.localhost/v1/auth/login
+```
+
+## 2. Invitation and password reset
+
+Both use Laravel signed URLs that point at the **SPA** route, which posts the token back to the API.
+
+| Flow | Endpoint | Token | Expiry |
+|---|---|---|---|
+| Invitation | `POST /v1/auth/invitations/{token}/accept` `{password, password_confirmation, name?}` | random 64-char token stored hashed in `invitations`; URL `https://app.shp…/acme/accept-invitation?token=…&signature=…` | 48 h, single use |
+| Forgot | `POST /v1/auth/password/forgot` `{email}` | always 200 (no user enumeration); token in `password_reset_tokens` (hashed) | 60 min |
+| Reset | `POST /v1/auth/password/reset` `{token, email, password, password_confirmation}` | | single use; all other sessions invalidated |
+
+Invitation and reset tokens are stored with `tenant_id`; the API initialises the tenant from the token row, and the workspace in the link must match it.
+
+## 3. API clients (Passport client credentials)
+
+```mermaid
+sequenceDiagram
+    participant Ext as External system
+    participant API as Laravel (api.shp…)
+    Ext->>API: POST /oauth/token grant_type=client_credentials&client_id&client_secret&scope=tickets:read tickets:write
+    API->>API: client exists and not revoked? tenant active? scopes ⊆ client.scopes?
+    API-->>Ext: {access_token (JWT), token_type: Bearer, expires_in: 3600}
+    Ext->>API: GET /v1/tickets  Authorization: Bearer …
+    API->>API: ResolveTenantFromPrincipal (client.tenant_id) → auth:api → scope check → permission mapping
+    API-->>Ext: 200 {data: [...]}
+```
+
+- Clients are created in Settings → Developer (`POST /v1/api-clients` with `name`, `scopes[]`); the secret is shown once and stored hashed by Passport.
+- `oauth_clients` carries `tenant_id`; every request made with the token runs in that tenant only. There is no request parameter that can select another tenant, so a leaked secret exposes exactly one tenant's granted scopes until it is revoked.
+- Access tokens: 60 minutes, no refresh tokens (re-request). Revocation: `POST /v1/api-clients/{client}/revoke` marks the client revoked; Passport's `CheckClientCredentials` rejects tokens of revoked clients on every request (no grace period).
+- Token requests are rate limited 10/min per client id; API calls 120/min per client.
+- Actor recorded in audit and history as `api_client:{id}`; `created_via = api` on tickets.
+
+### Scopes → permissions
+
+| Scope | Grants permissions | Typical use |
+|---|---|---|
+| `tickets:read` | `tickets.view` | polling ticket state |
+| `tickets:write` | `tickets.create`, `tickets.update`, `tickets.resolve`, `tickets.close` | monitoring tools creating tickets |
+| `contacts:read` | `contacts.view` | |
+| `contacts:write` | `contacts.manage` | CRM sync |
+| `catalog:read` | `agents.view` (read-only agents, teams, categories, tags, SLA policies) | populating pickers |
+| `webhooks:manage` | `integrations.manage` (webhook routes only) | self-service subscriptions |
+
+Scopes never grant `tickets.assign`, `comments.internal`, settings, users, roles or audit access. The mapping is a static array in `Integrations\Domain\ScopeMap` and is unit-tested against the permission catalogue.
+
+```bash
+curl -X POST https://api.shp.localhost/oauth/token \
+  -d grant_type=client_credentials -d client_id=$ID -d client_secret=$SECRET -d 'scope=tickets:write contacts:read'
+curl -H "Authorization: Bearer $TOKEN" -H 'Idempotency-Key: 2b7e…' -H 'Content-Type: application/json' \
+  -d '{"title":"Disk full on db-01","description":"...","contact":{"email":"ops@globex.test","create":true},"category_id":"019…","impact":3,"urgency":4}' \
+  https://api.shp.localhost/v1/tickets
+```
+
+## 4. Middleware order (tenant-api group)
+
+`ResolveTenantFromPrincipal` → `EnsureTenantActive` → `auth:sanctum,api` → `EnsureTenantMembership` → `SetPermissionsTeam` → `SubstituteBindings` → `throttle:{group}` → `can:` (per route) → controller.
+
+`EnsureTenantMembership`: for a user principal, `user.tenant_id === tenant.id` else 401; for a client principal, `client.tenant_id === tenant.id` else 401; platform sessions use a different cookie on the `admin` host and are never accepted on `api`.
+
+## 5. Fallback plan (Sanctum tokens)
+
+If Passport integration exceeds its one-day box in milestone 3: `ApiClient` model with `HasApiTokens`; `POST /v1/api-clients` returns a plain token once; abilities use the same scope names; `auth:sanctum` accepts the token; `tokenCan('tickets:write')` replaces the scope middleware. `/oauth/token` does not exist in that variant; the developer docs describe a static bearer token. The REST contract, scopes and audit actor are unchanged, so integrations written against either variant behave the same except for token acquisition.
+
+## 6. Platform admins
+
+Separate `platform_users` table and `platform` guard (session, host-only cookie `shp_platform_session` on `admin.{PLATFORM_DOMAIN}`), platform API same-origin at `/platform-api/*`, same login/CSRF mechanics, no tenancy initialised. MFA is V1.
+
+## 7. Errors
+
+`401 unauthenticated`, `401 invalid_client`, `403 forbidden`, `403 tenant_suspended`, `403 account_locked`, `429 rate_limited` — see [errors.md](errors.md).

@@ -1,0 +1,40 @@
+# Settable schedule for the MVP build. Edit these values and run
+#   python3 roadmap/tools/schedule.py            # dated plan, critical chain
+#   python3 roadmap/tools/schedule.py --ready    # tasks that can start now
+# Nothing else in the roadmap hard-codes dates.
+#
+# Default profile: "sprint" — continuous development sessions every day, the owner as the only
+# human developer steering four coding-agent tracks (owner reviews and merges everything).
+
+start_date: 2026-09-18          # first working day (YYYY-MM-DD)
+timezone: Asia/Kathmandu
+
+# Working days by weekday name. Sprint profile: every day. Normal week: [sun, mon, tue, wed, thu, fri]
+working_days: [sun, mon, tue, wed, thu, fri, sat]
+
+# Hours of active development per working day across a day's sessions. One effort-day = 8 hours.
+hours_per_day: 16
+
+# Informational: session windows (agents run inside them; the owner reviews at the end of each).
+shifts:
+  - { start: "06:00", end: "14:00" }
+  - { start: "15:00", end: "23:00" }
+
+# Dates with no work (exams, festivals). Example: [2026-10-02]
+holidays: []
+
+# Parallel development tracks: A backend platform, B frontend, C infrastructure/mail/media/quality/academic,
+# D algorithm cores and reporting. Each track is a coding agent in its own git worktree.
+parallel_tracks: 4
+
+# Fraction of the calendar reserved as buffer (added after the last task).
+buffer_ratio: 0.15
+
+# Effort-days per task size, calibrated for AI-assisted development (agent writes, owner reviews).
+# Raise these after the first session if tasks take longer; the calendar recomputes.
+size_days:
+  XS: 0.1
+  S: 0.25
+  M: 0.5
+  L: 1.0
+  XL: 1.5
