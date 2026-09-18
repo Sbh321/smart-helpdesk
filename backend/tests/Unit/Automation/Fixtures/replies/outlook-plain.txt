@@ -1,0 +1,9 @@
+Yes, restarting fixed it.
+
+-----Original Message-----
+From: Smart Helpdesk [mailto:support@shp.example]
+Sent: Thursday, September 17, 2026 10:15 AM
+To: Chen Li
+Subject: [#1043] VPN drops every hour
+
+Please try restarting the VPN client.

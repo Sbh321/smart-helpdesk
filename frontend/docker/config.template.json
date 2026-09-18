@@ -1,0 +1,7 @@
+{
+  "apiBaseUrl": "${API_BASE_URL}",
+  "appMode": "${APP_MODE}",
+  "platformDomain": "${PLATFORM_DOMAIN}",
+  "storagePublicEndpoint": "${STORAGE_PUBLIC_ENDPOINT}",
+  "realtime": { "enabled": ${REALTIME_ENABLED} }
+}

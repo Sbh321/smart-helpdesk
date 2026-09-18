@@ -218,7 +218,7 @@ Passport 13 defaults; `oauth_clients` gains `tenant_id uuid NOT NULL FK`, `scope
 | tag_id | uuid | FK tags CASCADE |
 | taggable_type | varchar(64) | `ticket`/`contact`/`organization` |
 | taggable_id | uuid | |
-| PK | `(tag_id, taggable_type, taggable_id)` | |
+| PK | `(tenant_id, tag_id, taggable_type, taggable_id)`; `(tenant_id, tag_id)` is a composite FK to tags; every unique key leads with `tenant_id` (isolation suite rule) | |
 
 ## Agents
 
@@ -243,7 +243,7 @@ Passport 13 defaults; `oauth_clients` gains `tenant_id uuid NOT NULL FK`, `scope
 
 ### category_skill
 
-`tenant_id uuid NOT NULL, category_id uuid FK CASCADE, skill_id uuid FK CASCADE, PK (category_id, skill_id)`.
+`tenant_id uuid NOT NULL, category_id uuid, skill_id uuid, PK (tenant_id, category_id, skill_id)`; both ids are composite FKs with `tenant_id`, CASCADE.
 
 ### teams
 
@@ -589,7 +589,7 @@ Quota: `tenants.storage_quota_bytes` (bigint, default from platform settings) an
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | | UUID v7 generated in the trigger (`uuidv7()`, PostgreSQL 18) |
-| tenant_id | uuid | | from the changed row |
+| tenant_id | uuid | FK tenants CASCADE | from the changed row; a delete caused by the tenant's own deletion is not recorded |
 | entity_type | varchar(64) | | table name |
 | entity_id | uuid | | |
 | version | integer | U `(entity_type, entity_id, version)` | consecutive per entity |
@@ -598,9 +598,23 @@ Quota: `tenants.storage_quota_bytes` (bigint, default from platform settings) an
 | actor_type | varchar(12) | N | `user, api_client, system, email, platform` |
 | actor_id | uuid | N | |
 | request_id | varchar(64) | N | correlates with logs and audit |
-| occurred_at | timestamptz | | `clock_timestamp()` |
+| occurred_at | timestamptz(6) | | `clock_timestamp()`, microseconds so changes in one transaction keep their order |
 
-Append-only: the application role has `INSERT` (through the trigger) and `SELECT` only.
+Append-only: the application role has `INSERT` (through the trigger) and `SELECT` only (`UPDATE`,
+`DELETE` and `TRUNCATE` are revoked in the migration). Indexes as in [indexing.md](indexing.md):
+UNIQUE `(entity_type, entity_id, version)`, `(tenant_id, entity_type, entity_id, occurred_at DESC)`,
+`(tenant_id, occurred_at DESC)`, `(tenant_id, actor_id, occurred_at DESC)`.
+
+**As built (M1-23).** Rows are written only by `record_entity_change()`
+(docs/05-algorithms/history-and-time-analytics.md §2), which a table's own migration attaches with
+`App\Modules\Reporting\Support\ReportableTables::captureChanges($table)` — the registry of reportable
+tables and of the columns that are never recorded. `updated_at` is excluded everywhere; `users`
+additionally excludes `password` and `remember_token`; `tenant_settings` excludes nothing. Captured so
+far: `users`, `tenant_settings` (the rest of the ADR-0022 list follows with its tables in M2).
+`tenant_id` is taken from the changed row and falls back to `app.current_tenant`; `actor_type`,
+`actor_id` and `request_id` come from the session settings that `RlsTenancyBootstrapper` sets, and an
+unset actor is stored as `system`, so the column is nullable but never null in practice. Rows are read
+through `App\Modules\Reporting\Models\EntityChange` (tenant-scoped, append-only).
 
 ### report_ticket_intervals
 

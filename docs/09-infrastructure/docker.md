@@ -152,8 +152,8 @@ monitor.{$PLATFORM_DOMAIN} {
 	basic_auth { {$MONITOR_USER} {$MONITOR_PASSWORD_HASH} }
 	handle /mail/* { uri strip_prefix /mail
 		reverse_proxy mail:8080 }
-	handle /storage/* { uri strip_prefix /storage
-		reverse_proxy rustfs:9001 }
+	redir /storage /rustfs/console/        # the RustFS console uses absolute /rustfs/... paths
+	handle /rustfs/* { reverse_proxy rustfs:9001 }
 	handle { reverse_proxy app:8080 }      # /horizon, /health, /log-viewer, /telescope (dev)
 }
 
@@ -183,35 +183,36 @@ In development `mail.shp.localhost` points at the Mailpit UI instead. **Single-h
 
 ## Compose architecture
 
+As built in M1-04. The files below are authoritative; the YAML excerpts further down show the design intent and may differ in detail.
+
 ```text
-compose.yaml                 # root: include + project name
-infra/compose/base.yaml      # every service, no ports, no bind mounts
-infra/compose/dev.yaml       # profiles dev: bind mounts, published ports, mailpit, telescope
-infra/compose/prod.yaml      # restart policies, resource limits, logging, secrets
-infra/compose/demo.yaml      # profile demo: webhook-echo, seeded fixtures
+compose.yaml                 # every service; dev defaults are off; includes infra/compose/tools.yaml
+compose.override.yaml        # dev only, loaded automatically: bind mounts, dev image target, 127.0.0.1 ports, TLS internal
+infra/compose/tools.yaml     # profile dev: mailpit (later: webhook-echo, playwright)
+infra/compose/prod.yaml      # restart policies and memory limits
 ```
 
-```yaml
-# compose.yaml
-name: smart-helpdesk
-include:
-  - path: infra/compose/base.yaml
-    env_file: .env
-  - path: infra/compose/dev.yaml     # harmless in prod: all its services carry `profiles: [dev]`
-  - path: infra/compose/prod.yaml
-  - path: infra/compose/demo.yaml
-```
+Plain `docker compose up` in the repository loads `compose.yaml` and `compose.override.yaml`. Servers never have the override file and run `docker compose -f compose.yaml -f infra/compose/prod.yaml up -d`. The first design used `include` overlays, but `include` cannot override services that the root file defines, so the standard override file replaced it.
 
-Profiles: `dev` (mailpit, telescope, published DB/Valkey ports, bind mounts), `storage` (rustfs), `realtime` (reverb), `demo` (webhook-echo), `e2e` (playwright runner). Production on-prem typically runs `COMPOSE_PROFILES=storage`, cloud runs no profile (managed storage), and both add `realtime` when enabled.
+Profiles: `dev` (mailpit), `storage` (rustfs), `realtime` (reverb), later `demo` (webhook-echo) and `e2e` (playwright runner). The root `.env` sets `COMPOSE_PROFILES=dev,storage` for development. Production on-prem typically runs `COMPOSE_PROFILES=storage`, cloud runs no profile (managed storage), and both add `realtime` when enabled.
+
+Image sources are variables (`POSTGRES_IMAGE`, `VALKEY_IMAGE`, `MAILPIT_IMAGE`, `NODE_IMAGE`, `CADDY_IMAGE`), so a host that hits the Docker Hub pull limit can use mirrors such as `public.ecr.aws/docker/library/postgres:18-trixie`, `public.ecr.aws/valkey/valkey:9-alpine` and `ghcr.io/axllent/mailpit:v1.31.1`.
 
 ### Networks and port rules
 
 | Network | Members | Published ports |
 |---|---|---|
-| `edge` | proxy | `80`, `443` (and `443/udp` for HTTP/3) |
-| `internal` | proxy, app, horizon, scheduler, reverb, postgres, valkey, rustfs, mailpit | none in prod; `dev` profile publishes 5432, 6379, 9000/9001, 8025 on `127.0.0.1` only |
+| `edge` | proxy | `${HTTP_PORT:-80}`, `${HTTPS_PORT:-443}` (tcp and udp) |
+| `internal` | proxy, app, horizon, scheduler, reverb, postgres, valkey, rustfs, mailpit | none in prod; dev publishes PostgreSQL on `127.0.0.1:${DEV_DB_PORT:-55439}` and Valkey on `127.0.0.1:${DEV_VALKEY_PORT:-56379}` |
 
-Only `proxy` is ever published in production. The RustFS console and Mailpit are dev conveniences.
+Only `proxy` is ever published. The RustFS console and Mailpit are reached through the proxy (`monitor.…/storage`, `mail.…`), never through their own ports. The dev ports are unusual on purpose, so the stack does not collide with a PostgreSQL, Redis or Mailpit already running on the developer's machine. The proxy carries network aliases for every `*.${PLATFORM_DOMAIN}` host on `internal`, so containers reach the public hostnames without leaving Docker.
+
+### PostgreSQL bootstrap
+
+- The `postgres` superuser password comes from `secrets/db_superuser_password`. The data volume mounts at `/var/lib/postgresql`, which is the layout the PostgreSQL 18 image expects.
+- `infra/postgres/entrypoint.sh` wraps the official entrypoint. It runs as root, reads the role passwords from the Compose secrets, and exports them for the init script. The host secret files can therefore stay mode 600.
+- `infra/postgres/init/10-roles-and-databases.sh` runs once on an empty volume. It creates `helpdesk_owner`, `helpdesk_app` (`NOBYPASSRLS`) and `helpdesk_backup` (`BYPASSRLS`), and the `helpdesk` and `helpdesk_test` databases. Each database gets `pg_trgm`, `btree_gist` and `citext`, and default privileges so tables created by the owner are usable by the app role.
+- A failed first init leaves a half-initialised volume. Remove the `pg-data` volume and start again.
 
 ### Services (`base.yaml`)
 
@@ -441,16 +442,20 @@ services:
 Migrations and seeding are Compose `run` invocations, not init containers, so they are explicit and logged:
 
 ```sh
-docker compose run --rm app php artisan migrate --force        # DB_USERNAME=helpdesk_owner via env override
-docker compose run --rm app php artisan db:seed --class=DemoSeeder
+docker compose exec -e DB_CONNECTION=pgsql_owner app php artisan migrate --force   # just migrate
+docker compose exec app php artisan storage:ensure-bucket                           # just bucket
+docker compose exec app php artisan db:seed --class=DemoSeeder                      # just seed
 ```
 
-The `app` service itself connects as `helpdesk_app` (no ownership, no `BYPASSRLS`); `migrate` runs with `DB_USERNAME`/`DB_PASSWORD` overridden to the owner role ([03-architecture/tenancy.md](../03-architecture/tenancy.md)).
+The `app` service itself connects as `helpdesk_app` (no ownership, no `BYPASSRLS`). Migrations use the `pgsql_owner` connection, which reads `DB_OWNER_USERNAME` and `DB_OWNER_PASSWORD_FILE` ([03-architecture/tenancy.md](../03-architecture/tenancy.md)). `storage:ensure-bucket` creates the bucket and applies CORS for `CORS_ALLOWED_ORIGINS`; `--check` only reports.
 
 ## Environment and secrets
 
 - `.env` (mode 0600) holds everything non-secret plus app-level secrets (`APP_KEY`, `REDIS_PASSWORD`, S3 keys, SMTP password). It is generated by Ansible in production ([ansible.md](ansible.md)) and copied from `.env.example` in dev.
-- `secrets/db_owner_password` and `secrets/db_app_password` are Compose file secrets; PostgreSQL reads `POSTGRES_PASSWORD_FILE`; the backend entrypoint exports `DB_PASSWORD` from `/run/secrets/db_app_password` when present.
+- `backend/.env` holds the Laravel settings and is copied from `backend/.env.example` by `just setup`. The backend services load it through `BACKEND_ENV_FILE`.
+- `secrets/db_superuser_password`, `db_owner_password`, `db_app_password` and `db_backup_password` are Compose file secrets generated by `just setup` with mode 600. PostgreSQL reads them through the entrypoint wrapper above. Laravel reads `DB_PASSWORD_FILE` and `DB_OWNER_PASSWORD_FILE` in `config/database.php`.
+- In development the backend runs as the host user (`PUID`/`PGID`), so it can read the mode-600 files. On servers, Ansible sets the secret files' owner to the container user (see [ansible.md](ansible.md)).
+- Presigned URLs are signed by the `s3-presign` disk against `AWS_PRESIGN_ENDPOINT` (`https://files.<domain>`), because the signature covers the Host header. The `s3` disk talks to the internal endpoint. Caddy forwards the Host header unchanged. Single-host mode strips `/files`, which breaks signatures, so single-host installs should give storage its own hostname (V1 backlog).
 - Images never contain secrets; CI builds with no `.env`.
 
 ## Image tagging

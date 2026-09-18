@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Run a PHP/Composer/Artisan command for backend/ in the PHP 8.5 image, before the Compose stack exists
+# (or without starting it). Usage: infra/scripts/php composer require foo/bar | infra/scripts/php php artisan list
+set -euo pipefail
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+mkdir -p "${HOME}/.cache/composer"
+tty=""; [ -t 0 ] && tty="-it"
+exec docker run --rm $tty --user "$(id -u):$(id -g)" \
+  -e SHOW_WELCOME_MESSAGE=false -e COMPOSER_HOME=/tmp/composer -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
+  -v "${HOME}/.cache/composer:/tmp/composer-cache" \
+  -v "$root/backend:/var/www/html" -w /var/www/html \
+  ${PHP_DOCKER_ARGS:-} \
+  serversideup/php:8.5-cli "$@"

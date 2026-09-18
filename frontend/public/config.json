@@ -1,0 +1,7 @@
+{
+  "apiBaseUrl": "https://api.shp.localhost",
+  "appMode": "tenant",
+  "platformDomain": "shp.localhost",
+  "storagePublicEndpoint": "https://files.shp.localhost",
+  "realtime": { "enabled": false }
+}

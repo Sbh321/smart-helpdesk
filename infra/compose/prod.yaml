@@ -1,0 +1,10 @@
+# Production settings: docker compose -f compose.yaml -f infra/compose/prod.yaml up -d
+services:
+  proxy: { restart: unless-stopped, deploy: { resources: { limits: { memory: 256M } } } }
+  app: { restart: unless-stopped, deploy: { resources: { limits: { memory: 768M, cpus: "1.0" } } } }
+  horizon: { restart: unless-stopped, deploy: { resources: { limits: { memory: 768M } } } }
+  scheduler: { restart: unless-stopped, deploy: { resources: { limits: { memory: 256M } } } }
+  reverb: { restart: unless-stopped, deploy: { resources: { limits: { memory: 256M } } } }
+  postgres: { restart: unless-stopped, deploy: { resources: { limits: { memory: 1G } } } }
+  valkey: { restart: unless-stopped }
+  rustfs: { restart: unless-stopped }

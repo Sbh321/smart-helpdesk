@@ -11,17 +11,24 @@ Three modes: `light`, `dark`, `system`. The stored preference is the *choice*; t
 
 ## No-flash boot script
 
-Inline in `frontend/index.html`, before any stylesheet or module, so the attribute exists at first paint:
+The boot script is inline in `frontend/index.html`, in `<head>` before any stylesheet or module. The attributes therefore exist at first paint:
 
 ```html
 <script>
-  (function () {
-    var KEY = 'sh.theme', DKEY = 'sh.density';
-    var stored = null, density = 'comfortable';
-    try { stored = localStorage.getItem(KEY); density = localStorage.getItem(DKEY) || density; } catch (e) {}
-    var choice = stored === 'light' || stored === 'dark' ? stored : 'system';
-    var dark = choice === 'dark' || (choice === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    var root = document.documentElement;
+  (() => {
+    let stored = null;
+    let density = null;
+    try {
+      stored = window.localStorage.getItem('sh.theme');
+      density = window.localStorage.getItem('sh.density');
+    } catch {
+      // Blocked storage: fall back to the system theme.
+    }
+    const choice = stored === 'light' || stored === 'dark' ? stored : 'system';
+    const dark =
+      choice === 'dark' ||
+      (choice === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches === true);
+    const root = document.documentElement;
     root.setAttribute('data-theme', dark ? 'dark' : 'light');
     root.setAttribute('data-theme-choice', choice);
     root.setAttribute('data-density', density === 'compact' ? 'compact' : 'comfortable');
@@ -29,36 +36,76 @@ Inline in `frontend/index.html`, before any stylesheet or module, so the attribu
 </script>
 ```
 
-The script is allowed by the CSP through a hash (`script-src 'self' 'sha256-…'`), generated at build by a Vite plugin step and written into the Caddy config template ([security](../03-architecture/security.md)).
+| Rule | Value |
+|---|---|
+| Storage keys | `sh.theme`, `sh.density` |
+| Unknown or missing theme | `system` |
+| Unknown or missing density | `comfortable` |
+| No `matchMedia` | light |
+| Mirrors | `parseThemeChoice`, `parseDensity`, `resolveTheme` in `src/lib/theme/theme.ts`; change both together |
+
+`index.html` also sets `<meta name="color-scheme" content="light dark">`.
+
+The script is meant to be allowed by the CSP through a hash (`script-src 'self' 'sha256-…'`), written into the Caddy config template ([security](../03-architecture/security.md)). The hash must change whenever the script changes. The hash generation step and the CSP header are not implemented yet.
 
 ## ThemeProvider
 
-`src/lib/theme/ThemeProvider.tsx` (about 60 lines, no library):
+The theme code lives in `frontend/src/lib/theme/`. File names are kebab-case. No library is used.
+
+| File | Contents |
+|---|---|
+| `theme.ts` | types, storage keys, attribute names, pure functions `parseThemeChoice`, `parseDensity`, `resolveTheme`, `themeAttributes` |
+| `theme-dom.ts` | guarded `localStorage` read and write, `systemPrefersDark`, reading the initial state, `applyThemeAttributes` |
+| `theme-context.ts` | `ThemeContext` and `useTheme()` |
+| `theme-provider.tsx` | `ThemeProvider` |
+| `contrast.ts` | WCAG contrast for oklch colours ([tokens](tokens.md) §Contrast pairs to verify) |
+| `index.ts` | public exports |
+
+`ThemeProvider` wraps the app in `src/app/main.tsx`.
 
 ```ts
 type ThemeChoice = 'light' | 'dark' | 'system';
-type Resolved = 'light' | 'dark';
+type ResolvedTheme = 'light' | 'dark';
 type Density = 'comfortable' | 'compact';
 
 interface ThemeContextValue {
-  theme: ThemeChoice;          // the stored choice
-  resolvedTheme: Resolved;     // what is applied now
-  setTheme(next: ThemeChoice): void;
+  theme: ThemeChoice;            // the stored choice
+  resolvedTheme: ResolvedTheme;  // the theme applied now
+  setTheme: (next: ThemeChoice) => void;
   density: Density;
-  setDensity(next: Density): void;
+  setDensity: (next: Density) => void;
 }
 ```
 
+`<html>` carries three attributes:
+
+| Attribute | Meaning |
+|---|---|
+| `data-theme` | the applied theme, `light` or `dark` |
+| `data-theme-choice` | the stored choice, `light`, `dark` or `system` |
+| `data-density` | `comfortable` or `compact` |
+
 Behaviour:
 
-1. Initial state is read from the attributes the boot script set (single source of truth; no re-resolution on mount, so no flicker).
-2. `setTheme` writes `localStorage['sh.theme']`, updates `data-theme-choice`, resolves and updates `data-theme`.
-3. In `system` mode the provider subscribes to `matchMedia('(prefers-color-scheme: dark)').addEventListener('change', …)` and re-resolves live; the listener is removed when the choice becomes explicit.
-4. Cross-tab consistency: a `storage` event listener applies changes made in another tab.
-5. When the session loads (`/v1/me`), if `user.preferences.theme` exists and differs from local storage, the server value wins once and is written locally; `setTheme` also PATCHes `/v1/me/preferences` when logged in (fire-and-forget, debounced). Logged-out pages use local storage only.
-6. `useTheme()` is the only consumer API. `ThemeToggle` (topbar and settings) renders a three-option segmented control: Light / Dark / System, with the resolved theme announced via `aria-live="polite"` on change.
+1. Initial state is read from the attributes the boot script set. If the script did not run (tests), it falls back to storage. The first render does not change the page.
+2. `setTheme` writes `localStorage['sh.theme']` and updates state. An effect then writes all three attributes, touching only the ones that changed. `setDensity` works the same way with `sh.density`.
+3. In `system` mode the provider subscribes to `matchMedia('(prefers-color-scheme: dark)')` change events and re-resolves live. The listener is removed when the choice becomes explicit.
+4. Cross-tab consistency: a `storage` event listener applies theme and density changes made in another tab.
+5. Server sync is not implemented. `MVP-SHORTCUT: preference is local only; V1: sync with /v1/me preferences.` The planned V1 behaviour: when the session loads (`/v1/me`) and `user.preferences.theme` differs from local storage, the server value wins once and is written locally; `setTheme` also PATCHes `/v1/me/preferences` when logged in (fire-and-forget, debounced).
+6. `useTheme()` is the only consumer API. It throws outside `<ThemeProvider>`.
 
-Reads and writes to storage are wrapped in `try/catch`; a blocked storage falls back to `system` for the session.
+Storage reads and writes are wrapped in `try/catch`. A failed read counts as "no stored value", so the theme falls back to `system`. A failed write is ignored, so a choice lasts for the current page only.
+
+## ThemeToggle
+
+`src/components/shared/theme-toggle.tsx` renders a Light / Dark / System segmented control. It is meant for the topbar and settings; today it appears on the home placeholder.
+
+| Aspect | Implementation |
+|---|---|
+| Group | `<fieldset>` with a visually hidden `<legend>` from `copy.theme.label` |
+| Options | three shadcn `Button`s with an icon (Sun, Moon, Monitor) and a visible label |
+| Selected state | `aria-pressed="true"`, `outline` variant with a `border-input` border so the state indicator reaches 3:1 (WCAG 1.4.11) |
+| Announcement | a visually hidden `role="status"` `aria-live="polite"` region; for `system` it names the resolved theme (`copy.theme.announcement.systemDark` / `systemLight`) |
 
 ## Charts
 
@@ -81,9 +128,11 @@ Same provider, attribute `data-density`; see [tokens.md](tokens.md) §Density an
 
 ## Tests
 
-| Level | Test |
-|---|---|
-| Unit (Vitest node) | `resolveTheme(choice, prefersDark)` truth table; foreground computation for tenant primary |
-| Component (Vitest browser) | `ThemeToggle` updates `data-theme`, persists to storage, announces change; system mode reacts to a mocked `matchMedia` change |
-| E2E (Playwright) | `theme-persistence.spec.ts`: set dark → reload → `html[data-theme=dark]` present before hydration (assert via `page.evaluate` on `DOMContentLoaded`); system mode with `emulateMedia({ colorScheme: 'dark' })`; no-flash check by screenshotting the first frame with `page.route` delaying the JS bundle |
-| E2E (axe) | axe scan of dashboard and ticket page in both themes |
+| Level | Test | Status |
+|---|---|---|
+| Unit (Vitest node) | `theme.test.ts`: `resolveTheme` truth table, `parseThemeChoice` and `parseDensity` fallbacks, `themeAttributes` | done |
+| Unit (Vitest node) | `contrast.test.ts`: oklch parsing, conversion to sRGB, gamut clipping, WCAG ratio, `pickForeground` | done |
+| Token check | `pnpm tokens:check`: 104 contrast checks | done |
+| Component (Vitest browser) | `theme-toggle.browser.test.tsx`: switching updates `data-theme`, `data-theme-choice` and storage, and announces the change; system mode follows a mocked `matchMedia` change and the listener is dropped for an explicit choice; initial state comes from the boot-script attributes; blocked storage still switches the theme | done |
+| E2E (Playwright) | `theme-persistence.spec.ts`: set dark → reload → `html[data-theme=dark]` present before hydration (assert via `page.evaluate` on `DOMContentLoaded`); system mode with `emulateMedia({ colorScheme: 'dark' })`; no-flash check by screenshotting the first frame with `page.route` delaying the JS bundle | M3-12 |
+| E2E (axe) | axe scan of dashboard and ticket page in both themes | M3-12 |

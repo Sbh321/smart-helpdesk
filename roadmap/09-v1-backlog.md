@@ -117,6 +117,16 @@ Filled by the weekly risk review ([07-risk-register.md](07-risk-register.md)) an
 - Email-to-ticket and reply-by-email → M3-19 (Should) via [ADR-0018](../docs/adr/0018-mail-server.md).
 - Business-hour calendars → M2-03 via [ADR-0020](../docs/adr/0020-business-calendars.md).
 
+## Added to V1 during milestone 1 (2026-09-18)
+
+Items referenced by `MVP-SHORTCUT` markers written while building milestone 1.
+
+| ID | Item | Why deferred | Seam | Size |
+|---|---|---|---|---|
+| V1-PL-13 | Platform console SPA on the admin host | the platform API, guard and `platform:*` commands cover the MVP | `/platform-api/*`, `platform` guard, `_platform` route | M |
+| V1-FE-07 | Server-side option search in list filters (organisations, tags) | filters load the first 100 options once | `GET /v1/organizations?search=`, `EntityCombobox` | S |
+| V1-FE-08 | "Load older" paging on ticket history | the detail page shows the newest 50 entries | `GET /v1/tickets/{id}/history?cursor=` | S |
+
 ## Added to V1 on 2026-09-17 (second round)
 
 | ID | Item | Why deferred | Seam | Size |

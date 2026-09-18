@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <!--
+      Theme boot script: sets data-theme, data-theme-choice and data-density before first paint so there is
+      no flash (docs/06-design-system/themes.md). Mirrors src/lib/theme/theme.ts; keep it small and
+      dependency-free. The CSP allows it by hash, so the hash must be updated when this script changes.
+    -->
+    <script>
+      (() => {
+        let stored = null;
+        let density = null;
+        try {
+          stored = window.localStorage.getItem('sh.theme');
+          density = window.localStorage.getItem('sh.density');
+        } catch {
+          // Blocked storage: fall back to the system theme.
+        }
+        const choice = stored === 'light' || stored === 'dark' ? stored : 'system';
+        const dark =
+          choice === 'dark' ||
+          (choice === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches === true);
+        const root = document.documentElement;
+        root.setAttribute('data-theme', dark ? 'dark' : 'light');
+        root.setAttribute('data-theme-choice', choice);
+        root.setAttribute('data-density', density === 'compact' ? 'compact' : 'comfortable');
+      })();
+    </script>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Smart Helpdesk</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/app/main.tsx"></script>
+  </body>
+</html>

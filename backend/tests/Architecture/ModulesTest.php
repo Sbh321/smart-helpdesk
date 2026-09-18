@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+use App\Support\Modules\ModuleServiceProvider;
+
+// Module boundaries (docs/03-architecture/backend.md §Dependency rules, docs/10-quality/code-quality.md).
+
+arch('code uses strict types')
+    ->expect('App')
+    ->toUseStrictTypes();
+
+arch('no debugging helpers are left behind')
+    ->expect(['dd', 'dump', 'ray', 'var_dump', 'print_r'])
+    ->not->toBeUsed();
+
+arch('env() is only called in config files')
+    ->expect('env')
+    ->not->toBeUsed()
+    ->ignoring('config');
+
+arch('domain and strategy classes stay framework-free')
+    ->expect(['App\Modules\Automation\Strategies', 'App\Modules\Sla\Strategies', 'App\Modules\Reporting\Domain'])
+    ->not->toUse(['Illuminate\Database', 'Illuminate\Http', 'Illuminate\Support\Facades']);
+
+arch('contacts do not depend on tickets or automation')
+    ->expect('App\Modules\Contacts')
+    ->not->toUse(['App\Modules\Tickets', 'App\Modules\Automation', 'App\Modules\Sla']);
+
+arch('tickets depend only on contacts, agents and media among domain modules')
+    ->expect('App\Modules\Tickets')
+    ->not->toUse(['App\Modules\Integrations', 'App\Modules\Reporting', 'App\Modules\Mail', 'App\Modules\Notifications']);
+
+arch('reporting is never imported by other modules')
+    ->expect([
+        'App\Modules\Platform', 'App\Modules\Tenancy', 'App\Modules\Identity', 'App\Modules\Contacts',
+        'App\Modules\Agents', 'App\Modules\Tickets', 'App\Modules\Sla', 'App\Modules\Automation',
+        'App\Modules\Media', 'App\Modules\Mail', 'App\Modules\Integrations', 'App\Modules\Audit',
+    ])
+    ->not->toUse('App\Modules\Reporting');
+
+arch('algorithm implementations are only referenced through their contracts')
+    ->expect(['App\Modules\Automation\Strategies', 'App\Modules\Sla\Strategies'])
+    ->toOnlyBeUsedIn(['App\Modules\Automation', 'App\Modules\Sla', 'App\Providers']);
+
+it('gives every module a provider that extends the module base provider and is registered', function (): void {
+    $registered = require __DIR__.'/../../bootstrap/providers.php';
+
+    foreach (glob(__DIR__.'/../../app/Modules/*', GLOB_ONLYDIR) as $directory) {
+        $module = basename($directory);
+        $provider = "App\\Modules\\{$module}\\{$module}ServiceProvider";
+
+        expect(class_exists($provider))->toBeTrue("{$module} has no {$module}ServiceProvider")
+            ->and(is_subclass_of($provider, ModuleServiceProvider::class))->toBeTrue()
+            ->and($registered)->toContain($provider);
+    }
+});

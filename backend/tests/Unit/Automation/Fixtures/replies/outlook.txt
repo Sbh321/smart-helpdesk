@@ -1,0 +1,15 @@
+Hello,
+
+The printer on floor 2 still shows ERR-17.
+Can someone look at it today?
+
+Regards,
+Bikram
+
+________________________________
+From: Smart Helpdesk <support@shp.example>
+Sent: Thursday, September 17, 2026 10:15 AM
+To: Bikram Thapa <bikram@example.com>
+Subject: RE: [#1042] Printer offline
+
+Hello Bikram, could you check whether the printer is switched on?

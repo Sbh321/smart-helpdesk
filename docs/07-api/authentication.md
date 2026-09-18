@@ -48,6 +48,31 @@ curl -c jar -b jar -H 'Origin: https://app.shp.localhost' -H 'Referer: https://a
   https://api.shp.localhost/v1/auth/login
 ```
 
+### As built (M1-08)
+
+| Piece | Where |
+|---|---|
+| Endpoints | `POST /v1/auth/login`, `POST /v1/auth/invitations/{token}/accept`, `POST /v1/auth/password/forgot`, `POST /v1/auth/password/reset` (pre-authentication group), `POST /v1/auth/logout`, `GET /v1/me`, `PATCH /v1/me/preferences` (tenant group) |
+| Controllers and actions | `App\Modules\Identity\Http\Controllers\{AuthController, MeController}` over `Actions\{AuthenticateUser, AcceptInvitation, SendPasswordResetLink, ResetUserPassword}` |
+| Session rows | `App\Modules\Identity\Session\TenantAwareDatabaseSessionHandler` replaces the built-in database driver and writes `tenant_id` and `guard` |
+| Throttling | `throttle:login` (5 a minute per workspace, address and client) plus `LoginThrottle` (10 failures lock the account for 15 minutes) |
+| Audit | `user.logged_in`, `user.login_failed`, `user.logged_out`, `user.invitation_accepted`, `user.password_reset` |
+
+Deviations:
+
+- **Invitation and reset links carry a token only, not a Laravel signature.** The link points at the
+  SPA, so the API would have to verify a signature for a URL it never issued. The token is 64 random
+  characters, stored as a SHA-256 hash, single use, and expires (48 hours for invitations, 60 minutes
+  for resets). The workspace in the link must still match the token's tenant.
+- **Password resets do not use Laravel's password broker**, because the broker looks tokens up by
+  email alone while ours are keyed by `(tenant_id, email)`.
+- The lockout counter lives in the rate limiter rather than the cache, so per-tenant cache tagging
+  cannot hide it from the next request.
+- `GET /v1/me` returns an empty `permissions` list and `unread_notifications: 0` until M1-09 and M2.
+- Roles named on an invitation are stored but not assigned yet (M1-09).
+- Guests that do not ask for JSON are redirected to `https://app.<domain>/login`; `/v1/*` always
+  answers with problem details.
+
 ## 2. Invitation and password reset
 
 Both use Laravel signed URLs that point at the **SPA** route, which posts the token back to the API.

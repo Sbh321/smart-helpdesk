@@ -119,3 +119,27 @@ Never cut: tenant isolation tests, RLS, the four algorithms with explanations an
 3. Apply the cut list if the buffer is consumed; record cuts in [09-v1-backlog.md](09-v1-backlog.md) with date and reason.
 4. Update [08-decisions-open-questions.md](08-decisions-open-questions.md).
 5. Write a five-line week note in `roadmap/notes/<date>.md` (built, measured, deviated, next).
+
+## Review log
+
+### 2026-09-18 — milestone 1 exit
+
+| ID | Status | Note |
+|---|---|---|
+| R02 | retired | tenancy core, provisioning and the isolation suite landed on day 2; no hand-rolled fallback needed |
+| R05 | reduced | isolation suite v1 green (model reflection, data isolation, schema, queue context); row-level security still pending in M3-07 |
+| R09 | on track | 601 backend tests, 121 frontend unit and 75 browser tests; coverage not measured locally (no pcov in the dev image, measured by CI) |
+| R13 | retired | presigned PUT from the SPA origin with bucket CORS works on RustFS 1.0 |
+| R14 | retired | TanStack Table v9.2.4 works; two v9 quirks are documented in components.md (compiler opt-out, stable state objects) |
+| R15 | watch | `openapi-typescript` needs TypeScript 5.9 through `pnpm dlx`; nothing else affected |
+| R16 | watch | Scramble needed `#[Response]`/`#[QueryParameter]` attributes on a few endpoints and emits `allOf` shapes; `--empty-objects-unknown` keeps the generated types usable |
+| R21 | retired | shared `.shp.localhost` cookie, CORS with credentials and `tls internal` work in Chromium and Firefox |
+| R22 | reduced | queue workers restore the tenant from the payload; tested in the tenancy and isolation suites |
+
+New risks:
+
+| ID | Risk | P | I | Trigger | Mitigating artefact |
+|---|---|---|---|---|---|
+| R23 | CI has never run on GitHub | M | M | first push shows red workflows | every workflow step was run locally; fix on first push (M1-05) |
+| R24 | Parallel agents share `helpdesk_test` and break each other's runs | M | L | spurious "relation does not exist" failures | one backend test run at a time (CLAUDE.md); re-run before judging |
+| R25 | Docker Hub anonymous pull limits | M | L | `toomanyrequests` during `just setup` | mirror image variables in `.env.example` |

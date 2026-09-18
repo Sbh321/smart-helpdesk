@@ -38,7 +38,7 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | spatie/laravel-backup | 10.3.3 | `^10.3` | Useful (on-prem) |
 | opcodesio/log-viewer | 3.24.2 | `^3.24` | Useful (staff) |
 | laravel/boost | 2.9.1 | dev | Useful (agents) |
-| pestphp/pest | 5.2.0 | `^5.2` (dev) | Required |
+| pestphp/pest | 5.2.1 | `^5.2` (dev) | Required |
 | larastan/larastan | 3.12.1 | `^3.12` (dev) | Required |
 | laravel/pint | 1.32.1 | `^1.32` (dev) | Required |
 | intervention/image | 4.3.2 | `^4.3` | Required (media variants) |
@@ -52,27 +52,30 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 |---|---|---|---|
 | react, react-dom | 19.3.0 | `^19.3` | Required |
 | vite | 8.3.0 | `^8.3` | Required |
-| @vitejs/plugin-react + oxc-transform-react | 6.1.1 | `^6.1` | Required |
+| @vitejs/plugin-react + oxc-transform-react | 6.1.1 / 0.145.x | `^6.1` / `~0.145.0` (peer range) | Required |
 | typescript | 7.0.2 | `^7.0` | Required |
 | tailwindcss, @tailwindcss/vite | 4.3.3 | `^4.3` | Required |
 | shadcn (CLI) | 4.21.0 | dlx latest | Required |
 | @base-ui/react | 1.8.0 | `^1.8` | Required |
-| @tanstack/react-router, router-plugin, zod-adapter | 1.170.38 / 1.168.40 / 1.167.0 | `^1.170` | Required |
+| @tanstack/react-router, router-plugin | 1.170.38 / 1.168.40 | `^1.170` | Required (zod-adapter not used: it supports Zod 3 only; Zod 4 schemas are passed to `validateSearch` directly) |
 | @tanstack/react-query | 5.103.1 | `^5.103` | Required |
-| @tanstack/react-table | 9.2.4 | `^9.2` (fallback `^8`) | Required |
+| @tanstack/react-table | 9.2.4 | `^9.2` (fallback `^8`) | Required: v9 is published and used (M1-14, `useTable` + `tableFeatures`); the v8 fallback was not needed |
 | @tanstack/react-form | 1.33.5 | `^1.33` | Required |
 | zod | 4.6.5 | `^4.6` | Required |
 | date-fns, @date-fns/tz | 4.4.0 / 1.5.0 | `^4.4` / `^1.5` | Required |
 | recharts | 3.10.1 | `^3.10` | Required |
 | lucide-react | 1.47.0 | `^1.47` | Required |
-| sonner | 2.0.8 | `^2.0` | Required |
-| react-day-picker | 10.0.1 | `^10.0` | Useful |
-| openapi-typescript / openapi-fetch | 7.13.0 / 0.17.0 | `^7.13` / `^0.17` | Required |
+| cn, class-variance-authority | 0.3 / 0.7 | added by `shadcn init` | Required by shadcn components (`@fontsource-variable/geist`, also added by `shadcn init`, was removed in M1-11: the system font stack is used, see typography.md) |
+| @vitest/browser-playwright | 5.0.1 | `^5.0` (dev) | Required (Vitest browser provider) |
+| sonner | 2.0.8 | `^2.0` | Required (the generated `ui/sonner.tsx` reads the theme from `next-themes`; it was rewritten to use our own `useTheme()` and `next-themes` was uninstalled again — M1-12) |
+| react-day-picker | 10.0.1 | `^10.0` | Useful: added in M1-14 by `shadcn add calendar` for the `DateRangeFilter` (ticket `filter[created_between]`, audit logs); the shadcn `calendar` for Base UI is written against it, and Base UI has no date picker of its own |
+| openapi-typescript / openapi-fetch | 7.13.0 / 0.17.0 | run via `pnpm dlx` with TypeScript 5.9.3 / `^0.17` | Required (openapi-typescript needs the TypeScript 5 compiler API) |
 | @biomejs/biome | 2.5.14 | `^2.5` (dev) | Required |
 | vitest, @vitest/browser, vitest-browser-react | 5.0.1 / 5.0.1 / 2.3.0 | `^5.0` (dev) | Required |
 | @playwright/test, @axe-core/playwright | 1.63.0 / 4.13.0 | `^1.63` / `^4.13` (dev) | Required |
+| axe-core | 4.13.0 | `4.13.0` (dev, pinned) | Required: the Vitest browser project runs the same engine in-process (`src/test/accessibility.browser.test.tsx`), so accessibility regressions fail in `pnpm test:browser` rather than only in the slower E2E run. It is already present transitively through `@axe-core/playwright`; the direct entry pins both to one version so the two suites cannot report differently (M1-12) |
 | msw | 2.15.0 | `^2.15` (dev) | Useful |
-| culori (token contrast check script) | latest 4.x | dev | Useful |
+| culori (token contrast check script) | not installed | — | Not needed: `scripts/check-contrast.ts` uses the dependency-free `src/lib/theme/contrast.ts` (M1-11) |
 | docx (report builder, `report/` only) | 9.7.1 | `^9.7` | Required for report generation; not part of the product |
 | laravel-echo, @laravel/echo-react | 2.5.0 | `^2.5` | Should-have |
 | Deferred | @tanstack/react-virtual 3.14, zustand 5.0, storybook 10.6, i18next 26 | — | V1 |
@@ -83,7 +86,8 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 - Vite 8's React plugin uses Oxc; Babel plugin config is invalid; React Compiler via `compiler: true`.
 - TypeScript 7 lacks a stable programmatic API until 7.1; typescript-eslint is therefore not used (Biome).
 - shadcn defaults to Base UI; copying Radix-era snippets is a hazard.
-- TanStack Table v9 API differs from the v8 tutorials.
+- TanStack Table v9 API differs from the v8 tutorials. Two traps found in M1-14: controlled slices passed in `state` must keep their identity between renders (`useTable` publishes a changed slice back into its store, so a new array on every render is a render loop), and row/header methods read state the React Compiler cannot see, so a component rendering rows from them opts out with `'use no memo'`.
+- Vitest 5 browser matchers: `toHaveTextContent` compares the whole text exactly; `toMatchTextContent` is the substring/RegExp form.
 - stancl/tenancy single-DB mode disables the database bootstrapper; Redis bootstrapper needs phpredis.
 - Scramble introspects the DB: export after migrations.
 - PG18 virtual generated columns cannot be indexed: use `STORED` for `search_vector`.

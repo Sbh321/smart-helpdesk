@@ -26,7 +26,7 @@ One developer steering coding agents on four parallel tracks, one-week sprint MV
 
 ## Commands (once scaffolded)
 
-`just setup | up | down | test | test-backend | test-frontend | e2e | lint | types | demo-reset | demo-tick | reproduce` — see `docs/09-infrastructure/local-development.md`.
+`just setup | up | down | smoke | migrate | bucket | test | test-backend | test-frontend | e2e | lint | fmt | types | api-docs | api-drift | plan | demo-reset | demo-tick | reproduce | report` — see `docs/09-infrastructure/local-development.md`. Host tools come from `mise install` (`mise exec -- just …` if `just` is not on the PATH); PHP runs in the `app` container. Backend checks run inside it: `docker compose exec -T app vendor/bin/pest`, `vendor/bin/pint`, `vendor/bin/phpstan analyse`. Only one test run at a time: they share the `helpdesk_test` database.
 
 ## Vocabulary (never substitute)
 

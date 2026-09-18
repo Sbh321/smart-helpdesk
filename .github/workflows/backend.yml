@@ -1,0 +1,114 @@
+name: backend
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'infra/postgres/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', 'infra/postgres/**', '.github/workflows/backend.yml']
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:18-trixie
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secret
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      valkey:
+        image: valkey/valkey:9-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "valkey-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: helpdesk_app
+      DB_PASSWORD: secret
+      DB_OWNER_USERNAME: helpdesk_owner
+      DB_OWNER_PASSWORD: secret
+      REDIS_HOST: 127.0.0.1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, intl, gd, bcmath, zip, pcntl, sockets
+          coverage: pcov
+          tools: composer:v2
+
+      - id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - run: composer install --prefer-dist --no-progress --no-interaction
+      - run: composer validate --strict
+      - run: composer audit
+      - run: vendor/bin/pint --test
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: Application key
+        run: cp .env.example .env && php artisan key:generate
+
+      # The same script the Compose database runs, so CI and development share one definition.
+      - name: Database roles, databases and extensions
+        working-directory: .
+        env:
+          PGHOST: 127.0.0.1
+          PGPASSWORD: secret
+          POSTGRES_USER: postgres
+          HELPDESK_OWNER_PASSWORD: secret
+          HELPDESK_APP_PASSWORD: secret
+          HELPDESK_BACKUP_PASSWORD: secret
+        run: bash infra/postgres/init/10-roles-and-databases.sh
+
+      - name: Migration round trip
+        env:
+          DB_CONNECTION: pgsql_owner
+          DB_DATABASE: helpdesk
+        run: |
+          php artisan migrate:fresh --force
+          php artisan migrate:rollback --force --step=1000
+          php artisan migrate --force
+          php artisan migrate:status | grep -q Pending && exit 1 || true
+
+      # Tests connect as the runtime role; migrations inside the suite use pgsql_owner.
+      - name: Tests
+        run: vendor/bin/pest --coverage --coverage-clover=coverage.xml
+
+      - name: OpenAPI document is up to date
+        env:
+          DB_CONNECTION: pgsql_owner
+          DB_DATABASE: helpdesk
+        run: |
+          php artisan scramble:export --path=openapi.json
+          git diff --exit-code openapi.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openapi
+          path: backend/openapi.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml

@@ -1,0 +1,142 @@
+# Edge proxy for the split host layout (ADR-0021, docs/09-infrastructure/docker.md).
+# Environment: PLATFORM_DOMAIN, TLS_MODE (acme|internal|files), APP_SERVE (static|vite), MONITOR_AUTH (off|on).
+{
+	servers {
+		protocols h1 h2 h3
+	}
+}
+
+(tls_acme) {
+}
+(tls_internal) {
+	tls internal
+}
+(tls_files) {
+	tls /certs/fullchain.pem /certs/privkey.pem
+}
+
+(common) {
+	encode zstd gzip
+	# Correlation id for logs, problem details and audit rows (docs/11-operations/logs.md). Client values are replaced.
+	request_header X-Request-Id {http.request.uuid}
+	log {
+		output stdout
+		format json
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+	import tls_{$TLS_MODE:acme}
+}
+
+# SPA from the built bundle, or the Vite dev server on the host (HMR) when APP_SERVE=vite.
+(spa_static) {
+	root * /srv/app
+	try_files {path} /index.html
+	file_server
+}
+(spa_vite) {
+	reverse_proxy {$VITE_UPSTREAM:host.docker.internal:5173}
+}
+
+(monitor_auth_off) {
+}
+(monitor_auth_on) {
+	basic_auth {
+		{$MONITOR_USER} {$MONITOR_PASSWORD_HASH}
+	}
+}
+
+{$PLATFORM_DOMAIN} {
+	import common
+	handle /go/app {
+		redir https://app.{$PLATFORM_DOMAIN}/ 302
+	}
+	handle /go/docs {
+		redir https://docs.{$PLATFORM_DOMAIN}/ 302
+	}
+	handle {
+		root * /srv/landing
+		file_server
+	}
+}
+
+app.{$PLATFORM_DOMAIN} {
+	import common
+	header X-Frame-Options DENY
+	handle /config.json {
+		root * /srv/runtime/tenant
+		file_server
+	}
+	handle {
+		import spa_{$APP_SERVE:static}
+	}
+}
+
+api.{$PLATFORM_DOMAIN} {
+	import common
+	@realtime path /app/* /apps/*
+	handle @realtime {
+		reverse_proxy reverb:8080
+	}
+	handle {
+		reverse_proxy app:8080
+	}
+}
+
+admin.{$PLATFORM_DOMAIN} {
+	import common
+	header X-Frame-Options DENY
+	handle /platform-api/* {
+		reverse_proxy app:8080
+	}
+	handle /config.json {
+		root * /srv/runtime/platform
+		file_server
+	}
+	handle {
+		import spa_{$APP_SERVE:static}
+	}
+}
+
+monitor.{$PLATFORM_DOMAIN} {
+	import common
+	import monitor_auth_{$MONITOR_AUTH:on}
+	# RustFS console uses absolute /rustfs/... paths, so the prefix is kept, not stripped.
+	redir /storage /rustfs/console/
+	redir /storage/ /rustfs/console/
+	handle /rustfs/* {
+		reverse_proxy rustfs:9001
+	}
+	handle_path /mail/* {
+		reverse_proxy {$MAIL_ADMIN_UPSTREAM:mail:8080}
+	}
+	handle {
+		reverse_proxy app:8080
+	}
+}
+
+docs.{$PLATFORM_DOMAIN} {
+	import common
+	handle /openapi.json {
+		rewrite * /docs/api.json
+		reverse_proxy app:8080
+	}
+	handle {
+		rewrite * /docs/api
+		reverse_proxy app:8080
+	}
+}
+
+files.{$PLATFORM_DOMAIN} {
+	import common
+	reverse_proxy rustfs:9000
+}
+
+mail.{$PLATFORM_DOMAIN} {
+	import common
+	reverse_proxy {$MAIL_WEB_UPSTREAM:mail:8080}
+}

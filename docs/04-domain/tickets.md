@@ -92,3 +92,38 @@ The first `public` comment by a `user` sets `first_responded_at` and satisfies t
 ## Explanation surfaces
 
 The ticket page shows three "Why?" panels: priority breakdown, assignment ranking (top 3 candidates with scores), duplicate suggestions with component scores. These are the academic demonstration points and come straight from the JSONB explanation columns.
+
+## As built (M1-17)
+
+| Piece | Where |
+|---|---|
+| Tables | `skills` (minimal), `categories`, `category_skill`, `tickets`, `ticket_comments`, `ticket_events`, `ticket_assignments` in `app/Modules/Tickets/Database/Migrations/…_create_ticket_tables.php` |
+| State machine | `App\Modules\Tickets\Domain\TicketStatus` (`allowedTargets()`, `canTransitionTo()`, `transitionTo()`); a refused transition throws `InvalidTransition`, rendered as 422 `invalid_transition` with `meta.from`, `meta.to` and `meta.allowed` |
+| Numbers | `AllocateTicketNumber` runs one `INSERT … ON CONFLICT DO UPDATE … RETURNING` on `tenant_counters` inside the creating transaction, so concurrent creations queue on the row and a rollback returns the number |
+| Creation | `CreateTicket` v0: number, `open`, contact's organisation copied, tags, `created` history event, contact `last_ticket_at` |
+| List | `TicketListQuery` over `IndexTicketsRequest` (see [pagination-filtering.md](../07-api/pagination-filtering.md)); `priority_level` filters and sorts on the effective level, `coalesce(priority_override_level, priority_level)` |
+| API | `GET/POST /v1/tickets`, `GET /v1/tickets/{ticket}`, `GET /v1/tickets/{ticket}/history` (cursor), `GET /v1/categories` |
+
+Decisions made while building:
+
+- Priority stays at the P4 default with score 0 until the PriorityStrategy is wired in M2-04; the
+  create action marks this with `MVP-SHORTCUT`.
+- `team_id`, `assigned_agent_id` and `categories.default_team_id` have no foreign key yet, because
+  `teams` and `agent_profiles` arrive in M2-02, whose migration adds the composite keys.
+- Invariant 3 is enforced by a CHECK constraint (`resolved_at` set exactly when resolved or closed),
+  and a ticket cannot be its own duplicate target.
+- `ticket_events` is append-only for the runtime role; `tickets`, `ticket_comments`,
+  `ticket_assignments` and `categories` carry the change-capture trigger (`search_vector` is never
+  recorded).
+- New workspaces get six default categories from `helpdesk.tickets.default_categories`.
+- `php artisan tickets:seed-sample <workspace> --count=N` (not registered in production) creates
+  sample tickets through `CreateTicket`, so numbers are real. It was used for the acceptance
+  measurements below.
+
+Measured on the development stack (10 000 tickets in one workspace, through Caddy with a session):
+
+| Query | Time |
+|---|---|
+| Default list, first page | ≈ 140 ms end to end; the database part uses `tickets_default_sort_idx` and runs in under 1 ms |
+| Filters, search, page 300 | 110–145 ms end to end |
+| 20 creations in parallel | numbers 10 001–10 020, no gaps, no duplicates |

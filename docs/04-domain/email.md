@@ -52,7 +52,22 @@ sequenceDiagram
 
 `inbound_emails` (tenant_id nullable until routed, message_id unique, from, to, subject, raw headers JSONB, text/html bodies, parsed reply text, state `comment|ticket|ignored|unrouted|rejected`, ticket_id, error). Idempotent on `message_id`; messages are moved to `Processed`/`Failed` IMAP folders.
 
-Rules: only a contact whose email matches the ticket's contact (or the organisation's domain, when the setting allows) may add a public comment by email; others are recorded as `rejected` and the ticket assignee is notified. A reply to a resolved ticket within the reopen window reopens it. The `ReplyParser` strips quoted history (`>` lines, "On … wrote:", Outlook separators) and signatures (`-- `, common sign-off heuristics), keeping the original in `inbound_emails` for audit.
+Rules: only a contact whose email matches the ticket's contact (or the organisation's domain, when the setting allows) may add a public comment by email; others are recorded as `rejected` and the ticket assignee is notified. A reply to a resolved ticket within the reopen window reopens it. The original message is kept in `inbound_emails` for audit.
+
+### ReplyParser
+
+`App\Modules\Automation\Domain\Text\ReplyParser` keeps only the new text of a reply. It lives in `Automation`, not in `Mail`, and `Mail` calls it. It is the minimal parser of [ADR-0023](../adr/0023-minimal-replaceable-algorithms.md): it cuts at the first marker, checked line by line from the top. Line endings are normalised to `\n` first, and the result is trimmed.
+
+| Marker | Rule |
+|---|---|
+| Quoted line | a line starting with `>`, also after leading spaces |
+| Attribution | a line starting with `On ` that, alone or joined with up to two following lines, matches `On … wrote:` (Gmail, Apple Mail); a blank line breaks the join |
+| Outlook plain text | `-----Original Message-----`, three or more dashes, any case |
+| Outlook HTML as text | a line of 10 or more underscores |
+| Header block | a line starting with `From: ` that is the first line or follows a blank line, and is followed within 4 lines by `Sent:`, `Date:`, `To:`, `Cc:` or `Subject:` |
+| Signature separator | a line `--`, with or without a trailing space |
+
+If nothing is left above the first marker (a bottom-posted reply), the parser returns the whole text with only the `>` lines removed. Sign-off heuristics ("Regards", "Sent from my phone") are not implemented; a sign-off above the markers stays in the reply.
 
 ## Outbound
 
@@ -64,4 +79,4 @@ Sender display name, intake address (read-only), DNS records to create with a ch
 
 ## Tests
 
-Parser fixtures (Gmail, Outlook, Apple Mail replies; auto-replies; bounces); routing table tests; idempotency; isolation (an inbound email never attaches to another tenant's ticket even with a forged plus-address, because the UUID is checked against the resolved tenant).
+Parser fixtures in `backend/tests/Unit/Automation/Fixtures/replies` (Gmail, Outlook, Outlook plain text, Apple Mail, header block; done in M1-21), plus look-alike texts that must not be cut; auto-replies and bounces (M2); routing table tests; idempotency; isolation (an inbound email never attaches to another tenant's ticket even with a forged plus-address, because the UUID is checked against the resolved tenant).

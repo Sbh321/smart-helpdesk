@@ -1,0 +1,242 @@
+import { revalidateLogic, useForm } from '@tanstack/react-form'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { PlusIcon } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { EntityCombobox } from '@/components/shared/entity-combobox'
+import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SelectField } from '@/components/shared/select-field'
+import { TagInput } from '@/components/shared/tag-input'
+import { TextField } from '@/components/shared/text-field'
+import { TextareaField } from '@/components/shared/textarea-field'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { FieldGroup } from '@/components/ui/field'
+import { copy, fill } from '@/copy/en'
+import { useContactOptions, useTagSuggestions } from '@/features/contacts'
+import { queryKeys } from '@/lib/api/query-keys'
+import { useSession } from '@/lib/auth'
+import { mergeMessages, serverFieldErrors } from '@/lib/forms/messages'
+import { categoryQueries, createTicket } from '../api/ticket-queries'
+import { type TicketFormValues, ticketFormSchema } from '../schemas'
+
+const LEVELS = [1, 2, 3, 4] as const
+const IMPACT_OPTIONS = LEVELS.map((level) => ({ value: level, label: copy.tickets.impact[level] }))
+const URGENCY_OPTIONS = LEVELS.map((level) => ({ value: level, label: copy.tickets.urgency[level] }))
+
+const EMPTY: TicketFormValues = {
+  title: '',
+  description: '',
+  contact: null,
+  category_id: null,
+  impact: null,
+  urgency: null,
+  tags: [],
+}
+
+/**
+ * "New ticket" (roadmap M1-17): the minimal create form in a dialog. `POST /v1/tickets` answers 201 with
+ * the numbered ticket; its 422 messages land on the fields (`contact_id` on the contact picker).
+ */
+export function CreateTicketDialog() {
+  const tenantId = useSession().session?.tenant.id ?? ''
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const [serverErrors, setServerErrors] = useState<Record<string, string[]>>({})
+  const [failure, setFailure] = useState<unknown>(null)
+  const contacts = useContactOptions()
+  const tags = useTagSuggestions()
+  const categories = useQuery({ ...categoryQueries.all(tenantId), enabled: open && tenantId !== '' })
+  const categoryOptions =
+    categories.data
+      ?.filter((category) => category.is_active)
+      .map((category) => ({ value: category.id, label: category.name })) ?? []
+
+  const form = useForm({
+    defaultValues: EMPTY,
+    // Validate on submit; after a failed submit, re-check as the user corrects the fields.
+    validationLogic: revalidateLogic({ mode: 'submit', modeAfterSubmission: 'change' }),
+    validators: { onDynamic: ticketFormSchema },
+    onSubmit: async ({ value }) => {
+      setServerErrors({})
+      setFailure(null)
+      try {
+        const ticket = await createTicket({
+          title: value.title.trim(),
+          description: value.description.trim(),
+          contact_id: value.contact?.value ?? '',
+          category_id: value.category_id ?? '',
+          impact: value.impact ?? 0,
+          urgency: value.urgency ?? 0,
+          ...(value.tags.length > 0 ? { tags: value.tags } : {}),
+        })
+        await queryClient.invalidateQueries({ queryKey: queryKeys.tickets.all(tenantId) })
+        toast.success(fill(copy.tickets.create.created, { number: ticket.number }))
+        setOpen(false)
+        form.reset()
+      } catch (error) {
+        const fields = serverFieldErrors(error)
+        if (Object.keys(fields).length > 0) {
+          setServerErrors(fields)
+        } else {
+          setFailure(error)
+        }
+      }
+    },
+  })
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (!next) {
+          form.reset()
+          setServerErrors({})
+          setFailure(null)
+        }
+      }}
+    >
+      <DialogTrigger render={<Button type="button" />}>
+        <PlusIcon aria-hidden="true" />
+        {copy.tickets.create.open}
+      </DialogTrigger>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{copy.tickets.create.title}</DialogTitle>
+          <DialogDescription>{copy.tickets.create.description}</DialogDescription>
+        </DialogHeader>
+        <form
+          noValidate
+          id="create-ticket"
+          aria-label={copy.tickets.create.title}
+          onSubmit={(event) => {
+            event.preventDefault()
+            void form.handleSubmit()
+          }}
+          className="flex flex-col gap-5"
+        >
+          {failure ? <FormErrorBanner title={copy.tickets.create.failed} error={failure} /> : null}
+          <FieldGroup>
+            <form.Field name="title">
+              {(field) => (
+                <TextField
+                  id="ticket-title"
+                  label={copy.tickets.create.titleLabel}
+                  autoComplete="off"
+                  value={field.state.value}
+                  onValueChange={field.handleChange}
+                  onBlur={field.handleBlur}
+                  errors={mergeMessages(field.state.meta.errors, serverErrors.title)}
+                />
+              )}
+            </form.Field>
+            <form.Field name="description">
+              {(field) => (
+                <TextareaField
+                  id="ticket-description"
+                  label={copy.tickets.create.descriptionLabel}
+                  rows={4}
+                  value={field.state.value}
+                  onValueChange={field.handleChange}
+                  onBlur={field.handleBlur}
+                  errors={mergeMessages(field.state.meta.errors, serverErrors.description)}
+                />
+              )}
+            </form.Field>
+            <form.Field name="contact">
+              {(field) => (
+                <EntityCombobox
+                  id="ticket-contact"
+                  label={copy.tickets.create.contactLabel}
+                  placeholder={copy.tickets.create.contactPlaceholder}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  options={contacts.options}
+                  onQueryChange={contacts.setQuery}
+                  isLoading={contacts.isLoading}
+                  errors={mergeMessages(field.state.meta.errors, serverErrors.contact_id)}
+                />
+              )}
+            </form.Field>
+            <form.Field name="category_id">
+              {(field) => (
+                <SelectField
+                  id="ticket-category"
+                  label={copy.tickets.create.categoryLabel}
+                  placeholder={copy.tickets.create.categoryPlaceholder}
+                  value={field.state.value}
+                  onValueChange={field.handleChange}
+                  options={categoryOptions}
+                  errors={mergeMessages(field.state.meta.errors, serverErrors.category_id)}
+                />
+              )}
+            </form.Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <form.Field name="impact">
+                {(field) => (
+                  <SelectField
+                    id="ticket-impact"
+                    label={copy.tickets.create.impactLabel}
+                    description={copy.tickets.create.impactDescription}
+                    value={field.state.value}
+                    onValueChange={field.handleChange}
+                    options={IMPACT_OPTIONS}
+                    errors={mergeMessages(field.state.meta.errors, serverErrors.impact)}
+                  />
+                )}
+              </form.Field>
+              <form.Field name="urgency">
+                {(field) => (
+                  <SelectField
+                    id="ticket-urgency"
+                    label={copy.tickets.create.urgencyLabel}
+                    description={copy.tickets.create.urgencyDescription}
+                    value={field.state.value}
+                    onValueChange={field.handleChange}
+                    options={URGENCY_OPTIONS}
+                    errors={mergeMessages(field.state.meta.errors, serverErrors.urgency)}
+                  />
+                )}
+              </form.Field>
+            </div>
+            <form.Field name="tags">
+              {(field) => (
+                <TagInput
+                  id="ticket-tags"
+                  label={copy.tickets.create.tagsLabel}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  suggestions={tags.suggestions}
+                  onQueryChange={tags.setQuery}
+                  errors={mergeMessages(field.state.meta.errors, serverErrors.tags)}
+                />
+              )}
+            </form.Field>
+          </FieldGroup>
+        </form>
+        <DialogFooter>
+          <DialogClose render={<Button type="button" variant="outline" />}>
+            {copy.tickets.create.cancel}
+          </DialogClose>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" form="create-ticket" disabled={isSubmitting}>
+                {isSubmitting ? copy.tickets.create.submitting : copy.tickets.create.submit}
+              </Button>
+            )}
+          </form.Subscribe>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

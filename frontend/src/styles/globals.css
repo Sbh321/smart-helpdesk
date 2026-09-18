@@ -1,0 +1,45 @@
+/* Tailwind entry. Tokens, themes and density live in tokens.css (docs/06-design-system/tokens.md). */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./tokens.css";
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply bg-background font-sans text-foreground;
+  }
+  body {
+    /* Agents scan dense tables: the app body is text-sm (typography.md). */
+    @apply bg-background text-sm text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  /* Visible focus for every interactive element; components with their own ring (shadcn) override this. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: var(--ring-width) solid var(--ring);
+    outline-offset: var(--ring-offset);
+  }
+  :where(table, [data-numeric]) {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+ * Reduced motion: duration tokens are zeroed in tokens.css; this also stops tw-animate-css and transitions.
+ * Unlayered, so it beats Tailwind's layered utilities without !important.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}

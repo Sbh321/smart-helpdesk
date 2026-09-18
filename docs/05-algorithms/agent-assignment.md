@@ -1,6 +1,6 @@
 # Agent assignment — Least-Loaded Eligible Agent (academic baseline)
 
-Contract: `AssignmentStrategy`. Baseline class: `App\Modules\Automation\Strategies\Baseline\LeastLoadedAgent`. Replaceable after the defence ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)); richer candidate: [future/agent-assignment-advanced.md](future/agent-assignment-advanced.md). Requirements FR-AUT-04..05. Data model: [agents-and-teams.md](../04-domain/agents-and-teams.md).
+Contract: `AssignmentStrategy`. Baseline class: `App\Modules\Automation\Strategies\Baseline\LeastLoadedAgent` (`#[AcademicBaseline]`, `@deprecated` pointing to ADR-0023). Replaceable after the defence ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)); richer candidate: [future/agent-assignment-advanced.md](future/agent-assignment-advanced.md). Requirements FR-AUT-04..05. Data model: [agents-and-teams.md](../04-domain/agents-and-teams.md).
 
 ## Idea
 
@@ -17,6 +17,21 @@ An agent is **eligible** when all of these hold:
 
 "Open tickets" means tickets assigned to the agent in status assigned, in progress or pending.
 
+The caller's loader builds one `AgentCandidate` per agent. It supplies `openTickets`, `capacity`, `skills`, `teamIds`, `active`, `available`, `lastAssignedAt` and `onShift`. `onShift` is computed by the loader from the agent's shifts at the `Clock`'s "now". The ticket side is `TicketNeeds(ticketId, requiredSkills, teamId, enforceShifts)`; `enforceShifts` is the tenant setting `shifts.enforce`.
+
+The checks run in this order, and the first failing one is the recorded reason:
+
+| # | Check | Reason code |
+|---|---|---|
+| 1 | agent is active | `inactive` |
+| 2 | agent is available | `not_available` |
+| 3 | on shift (only when `enforceShifts` is true) | `off_shift` |
+| 4 | has every required skill | `missing_skill` (the explanation lists the missing skills, sorted, once each) |
+| 5 | in the ticket's team (only when the ticket has a team) | `not_in_team` |
+| 6 | open tickets < capacity | `at_capacity` |
+
+An agent with capacity 0 is always `at_capacity`.
+
 ## Step 2 — pick one
 
 ```text
@@ -26,6 +41,8 @@ choose the eligible agent with the smallest load;
 if equal: the one whose last assignment is oldest (never assigned counts as oldest);
 if still equal: the smallest agent id
 ```
+
+Loads are compared exactly by cross-multiplication (`open_a × capacity_b` against `open_b × capacity_a`), so 1/3 and 2/6 are equal and no floating-point rounding decides a tie.
 
 ## Flow
 
@@ -61,6 +78,10 @@ function choose(ticket, agents):
 
 The chosen agent's open-ticket count and last-assignment time are updated in the same database transaction, with the ticket row locked so two requests cannot assign it twice.
 
+**Result:** `AssignmentResult` with `agentId` (null when nobody is eligible), `ranking` (eligible agents, best first) and `exclusions` (sorted by agent id). `explanation(ticketId)` returns `strategy` (`least_loaded_agent`), `strategy_version` (`1.0.0`), `ticket_id`, `agent_id`, `outcome` (`assigned` or `no_eligible_agent`), `ranking` (rank, agent id, open tickets, capacity, load rounded to 4 decimals, last assigned) and `excluded` (agent id, reason, missing skills).
+
+`FairnessIndex` (`Domain/Assignment`) provides Jain's index, standard deviation and coefficient of variation for experiment E1.
+
 **Complexity:** O(A log A) for A agents in the tenant (the sort); A is small.
 
 ## Worked example
@@ -79,7 +100,7 @@ Asha and Chen share the lowest load (0.30); Chen was assigned earlier, so **Chen
 
 ## Tests
 
-Each exclusion reason; lowest load wins; tie goes to the oldest last assignment; never-assigned agent wins a tie; identical agents rotate like round robin over repeated assignments; no eligible agent returns no assignment with reasons; shuffled input gives the same result (contract test); concurrent assignment of one ticket succeeds once.
+Each exclusion reason; lowest load wins; tie goes to the oldest last assignment; never-assigned agent wins a tie; identical agents rotate like round robin over repeated assignments; no eligible agent returns no assignment with reasons; shuffled input gives the same result (contract test); concurrent assignment of one ticket succeeds once (feature test with the assignment action, M2).
 
 ## Evaluation (experiment E1)
 

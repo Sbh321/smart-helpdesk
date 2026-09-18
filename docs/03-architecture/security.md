@@ -64,6 +64,37 @@ Threat model and controls for the MVP. Test mapping in [10-quality/security-test
 | Logs leaking PII | debug logs | no request bodies in logs; Telescope dev-only; log-viewer platform-admin only |
 | Supply chain | dependencies | lockfiles; `composer audit` and `pnpm audit` in CI; Dependabot |
 
+## Roles and permissions as built (M1-09)
+
+The catalogue lives in `App\Modules\Identity\Support\PermissionCatalogue` and is written to the
+database by `php artisan identity:sync-permissions` (also run by `DatabaseSeeder`). It is idempotent:
+it adds missing permissions and re-syncs the five global default roles, leaving custom roles alone.
+
+| Role | Gets |
+|---|---|
+| `owner` | every permission |
+| `admin` | everything except nothing; manager plus settings, users, roles, integrations, mail and audit |
+| `manager` | agent plus assign, delete, agents, teams, SLA, calendars, shifts, media management |
+| `agent` | ticket work, internal notes, contacts, media upload, reports |
+| `developer` | read-only ticket, contact and agent views plus integrations |
+
+Details that matter when adding endpoints:
+
+- Roles live in `roles` with a nullable `tenant_id`; null marks the five global defaults, which every
+  workspace inherits. Custom roles carry the tenant and are unique per workspace, and a custom role
+  may not reuse a default role's name.
+- Assignments always carry `tenant_id` (spatie's team key), so the same user row cannot gain another
+  workspace's permissions. Outside a request, assign roles inside `$tenant->run(...)`.
+- `User::$guard_name` is pinned to `web`, so a session request and a token request resolve the same
+  permissions (ADR-0007: one vocabulary).
+- Every `/v1` route declares `can:<permission>`. `tests/Permissions/RouteProtectionTest.php` fails
+  when a route has no permission and no allow-list entry, when a route is unauthenticated, when a
+  permission is not in the catalogue, or when a platform route lacks the platform guard.
+- `tests/Permissions/RoleMatrixTest.php` is the roles × routes table; rows are added with each
+  endpoint.
+- `LastOwnerGuard` refuses to remove the last active owner of a workspace.
+- Invitations name roles; acceptance assigns the ones that still exist.
+
 ## Security headers (Caddy)
 
 `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy` (SPA: `default-src 'self'; img-src 'self' data: <storage-endpoint>; connect-src 'self' <storage-endpoint> wss://<host>`), `Permissions-Policy` minimal.

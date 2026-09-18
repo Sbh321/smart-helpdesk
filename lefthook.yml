@@ -1,0 +1,30 @@
+# Git hooks (docs/10-quality/code-quality.md). Install with `lefthook install` (done by `mise install` users once).
+# Commands skip themselves until the backend/frontend scaffolds exist.
+pre-commit:
+  parallel: true
+  commands:
+    pint:
+      root: backend/
+      glob: "*.php"
+      run: test -x vendor/bin/pint && docker compose exec -T app vendor/bin/pint {staged_files} || true
+      stage_fixed: true
+    biome:
+      root: frontend/
+      glob: "*.{ts,tsx,js,json,css}"
+      run: test -d node_modules && pnpm exec biome check --write --no-errors-on-unmatched {staged_files} || true
+      stage_fixed: true
+    typecheck:
+      root: frontend/
+      glob: "*.{ts,tsx}"
+      run: test -d node_modules && pnpm exec tsc --noEmit || true
+    # Blocks real env files (.env, .env.local, …) and anything under secrets/ except dotfiles such as
+    # .gitkeep. The committed templates (.env.example) are allowed.
+    no-secrets:
+      run: "! git diff --cached --name-only | grep -E '(^|/)(\\.env(\\..+)?|secrets/[^.][^/]*)$' | grep -vE '(^|/)\\.env\\.example$'"
+
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        head -1 {1} | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .{1,100}$' \
+          || { echo "Commit subject must follow Conventional Commits: type(scope): summary"; exit 1; }

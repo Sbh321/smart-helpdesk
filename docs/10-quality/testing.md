@@ -34,7 +34,7 @@ Total ≈ 520 automated tests. Counts are targets; the actual numbers are report
 ## Conventions
 
 - Layout: `backend/tests/{Unit,Feature,Isolation,Permissions,Architecture}` mirroring `app/Modules/<Module>`; algorithm tests live in `tests/Unit/Automation/*` and `tests/Unit/Sla/*`.
-- Every factory sets `tenant_id` from the current tenancy context or an explicit `forTenant($tenant)` state; a factory that creates a tenant-scoped model without a tenant fails.
+- Every factory sets `tenant_id` from the current tenancy context or an explicit `forTenant($tenant)` state (the `Database\Factories\Concerns\ForTenant` trait); a factory that creates a tenant-scoped model without a tenant fails on the NOT NULL column, which the isolation suite asserts per model.
 - Helpers in `tests/Pest.php`: `createTenant(string $slug = 'acme')`, `actingAsTenantUser(Tenant $t, string $role = 'agent')`, `actingAsApiClient(Tenant $t, array $scopes)`, `onApiHost()` (sets `Host: api.shp.test`), `loginToWorkspace(Tenant $t, User $u)` (real login through the API so the session carries `tenant_id`), `freezeAt('2026-09-01 09:00')`, `advance('2 hours')`.
 - Feature tests always issue requests to the `api` host with a real session or bearer token so the whole middleware chain runs; direct `tenancy()->initialize()` only in unit tests.
 - Datasets: Pest `dataset()` files under `tests/Datasets` for statuses, transitions, roles, and the SLA/priority scenario JSON in `experiments/datasets/v1/`.
@@ -58,6 +58,26 @@ These tests are the proof for FR-TEN-03/04/05 and NFR-SEC-01. A failure blocks m
 11. **Scheduler**: `sla:evaluate` processes timers of both tenants and emits events with the correct tenant context per timer.
 12. **Suspended tenant**: all tenant routes return 403 `tenant_suspended`; platform routes unaffected.
 
+### Status (v1, M1-10)
+
+The suite is its own PHPUnit test suite (`<testsuite name="Isolation">`, `vendor/bin/pest tests/Isolation`) and runs in about four seconds. Version 1 covers the items that the M1 models and tables allow; the rest are written by the task that brings the surface they guard, in the same numbering.
+
+| Item | State | Where |
+|---|---|---|
+| 1 Model reflection | done | `tests/Isolation/ModelReflectionTest.php` — every concrete Eloquent class under `app/` is found on disk and must appear in exactly one list of `Tests\Support\TenantModelInventory` (primary, secondary, nullable, credentials, central), its list must match the trait it uses, its table must be registered in `TenantTables`, and a table with a `tenant_id` column that is in neither the registry nor the documented control-plane allow-list fails. A model added without a tenant trait therefore fails before it can be used. |
+| 1 Data isolation | done for models with a factory | `tests/Isolation/ModelDataIsolationTest.php` — datasets over the primary list: zero rows of B under A, `find`/`update`/`delete` of a B key unreachable, `create()` stamps A, a factory with no tenant fails on the NOT NULL column. Secondary models join in M2 with `BelongsToPrimaryModel`. |
+| 2 HTTP cross-tenant by ID | done for `users` | `tests/Isolation/CrossTenantHttpTest.php` — 404 on read and write, a cross-tenant id indistinguishable from an unknown one, a list route that returns only the session tenant, 401 for a bearer token whose tenant is not its owner's and for a swapped session tenant. The M2 resources join by adding their routes to the same file. |
+| 3 Host spoofing | not applicable | Hosts never identify tenants ([ADR-0021](../adr/0021-host-layout-and-tenant-resolution.md)). The equivalent negatives — session tenant ≠ user tenant, no session tenant, deleted tenant, unknown or malformed workspace, single-tenant mode — are in `tests/Feature/Tenancy/TenantResolutionTest.php`. |
+| 4 Schema assertions | done except RLS | `tests/Isolation/SchemaTest.php` — read from `information_schema`, `pg_index`, `pg_constraint`, `pg_trigger` and `pg_roles`: `tenant_id uuid NOT NULL` with a foreign key to `tenants`, every unique index other than the surrogate primary key led by `tenant_id`, the `protectTenantId()` trigger present, and a runtime role that is neither table owner nor superuser and has `rolbypassrls = false`. |
+| 4 RLS enable/force/policies, 5 RLS backstop | M3-07 | Placeholder `todo()` at the end of `SchemaTest.php` naming the assertions to add when the policy migration lands. |
+| 6 Queue | done | `tests/Isolation/QueueContextTest.php` — jobs for A, B and the centre in one worker run: each sees its own tenant, `app.current_tenant`, permission team and rows; the tenant travels in the job payload. The bootstrapper plumbing (re-initialise, `end()` after the job, log context) stays in `tests/Feature/Tenancy/TenancyBootstrapTest.php`. |
+| 7 Broadcast channels | M2 (notifications) | No channels exist yet. |
+| 8 Storage keys | partly, M2 | The `tenants/{id}/` disk prefix is asserted in `TenancyBootstrapTest.php`; the presigned-download negative arrives with the Media module. |
+| 9 Notifications, 10 Search, 11 Scheduler | M2 | Need the tables and commands. |
+| 12 Suspended tenant | done | `TenantResolutionTest.php` (403 `tenant_suspended` on tenant routes, platform routes unaffected). |
+
+Two registry gaps are stepped over by name in `Tests\Support\TenantModelInventory`, each with the task that closes it, so that every *other* table is still enforced: `invitations` is missing from `TenantTables::PRIMARY` (M1-08) and `entity_changes_version_unique` does not lead with `tenant_id` (M1-09). The exemptions clear themselves as soon as the owning task fixes the table.
+
 ## Permission matrix tests (`tests/Permissions`)
 
 A table-driven test iterates `RouteMatrix` (route name × HTTP method × required permission) against the five default roles plus an API client with each scope. Expected outcome per cell is `200/201/204` (allowed), `403` (forbidden), or `skip` (record-level rule tested elsewhere). A separate route-list test asserts every registered `/api` route is either in the matrix or in the public allow-list (`auth/login`, `auth/accept-invitation`, `auth/forgot`, `oauth/token`, `up`, `health`, `docs/api*`). Adding a route without a matrix row fails CI.
@@ -71,7 +91,7 @@ A table-driven test iterates `RouteMatrix` (route name × HTTP method × require
 | Duplicates | word extraction, Jaccard at 0/1 and the worked example, threshold, ordering and limit, determinism | labelled pairs precision/recall at the default threshold (reported, no gate); cross-tenant candidates absent |
 | SLA | transition table legality, pause/resume arithmetic, recompute from start, warning fraction, 24×7 and working-hours calendars, repeated checks notify once, policy selection | 10 timelines expected vs actual table |
 
-**Contract suites.** `tests/Contracts/PriorityStrategyContract.php` and its siblings are Pest datasets any implementation must pass (determinism, bounds, explanation shape with `strategy` and `version`, empty input). A replacement strategy is added to the dataset and must pass before its binding is switched ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)).
+**Contract suites.** `tests/Contracts/PriorityStrategyContract.php` and its siblings are classes with a static `register(string $label, Closure $factory)` method. It declares a Pest `describe` block that any implementation must pass (determinism, order independence, bounds, explanation shape with `strategy` and `strategy_version`, empty input). `tests/Contracts/BaselineStrategiesTest.php` registers the four baselines; the SLA factory receives the test's `Clock`. The `Contracts` directory is its own PHPUnit test suite. A replacement strategy adds one `register` line per contract and must pass before its binding is switched ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)).
 
 ## CI gates
 

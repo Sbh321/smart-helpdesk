@@ -70,3 +70,17 @@ References: IEEE numbered, from `report/university/references.bib` (every URL/pa
 ## Internship report
 
 A separate, basic internship report is prepared in `report/internship/` ([report-generation.md](report-generation.md) §Internship report); it reuses only the tools/technology descriptions and the module summaries, in a different structure.
+
+## Evidence available after milestone 1 (2026-09-18)
+
+Material that already exists for the report chapters, so it does not have to be recreated at the end.
+
+| Report need | Where it comes from now |
+|---|---|
+| System screenshots | the running dev stack: sign-in, dashboard shell, ticket list (10 020 sample tickets), contact and organisation lists and forms, create-ticket dialog, platform API responses, Horizon, Mailpit invitation mail, RustFS console, API reference at `docs.shp.localhost` |
+| Architecture and data diagrams | the Mermaid diagrams in `docs/03-architecture`, `docs/04-domain` and `docs/08-database`, already rendered for the report by `report/` |
+| Testing chapter tables | Pest (601 backend tests across unit, contract, architecture, feature, permission and isolation suites), Vitest (121 unit, 75 browser tests with axe checks) |
+| Performance evidence | ticket list timings at 10 000 tickets and the parallel numbering check, recorded in `docs/04-domain/tickets.md` |
+| Algorithm chapter | worked examples reproduced as unit tests in `backend/tests/Unit/{Automation,Sla,Reporting}` |
+
+Screenshots should be taken after M2-06 (ticket detail) and M3-01 (dashboard), when the screens the report describes exist; the list above is what can be captured today.

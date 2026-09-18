@@ -1,0 +1,8 @@
+Forwarding the details you asked for.
+From: this line is part of the reply and stays.
+
+From: Dev Gurung <dev@example.com>
+Date: 17 September 2026 at 10:15
+Subject: Invoice question
+
+The old message.

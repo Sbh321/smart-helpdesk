@@ -1,0 +1,14 @@
+Hi team,
+
+The export works now, thank you.
+
+Asha
+
+On Thu, Sep 17, 2026 at 10:15 AM Smart Helpdesk <support+ticket-0199@shp.example
+> wrote:
+
+> Hello Asha,
+> We have deployed a fix for the export.
+>
+> -- 
+> Smart Helpdesk

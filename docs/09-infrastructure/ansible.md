@@ -69,8 +69,10 @@ mail_from=helpdesk@corp.local
 - name: Generate missing secrets
   ansible.builtin.set_fact:
     generated_secrets:
+      db_superuser_password: "{{ db_superuser_password | default(lookup('community.general.random_string', length=32, special=false)) }}"
       db_owner_password: "{{ db_owner_password | default(lookup('community.general.random_string', length=32, special=false)) }}"
       db_app_password:   "{{ db_app_password   | default(lookup('community.general.random_string', length=32, special=false)) }}"
+      db_backup_password: "{{ db_backup_password | default(lookup('community.general.random_string', length=32, special=false)) }}"
       redis_password:    "{{ redis_password    | default(lookup('community.general.random_string', length=32, special=false)) }}"
       health_token:      "{{ health_token      | default(lookup('community.general.random_string', length=40, special=false)) }}"
       s3_key:            "{{ s3_key            | default(lookup('community.general.random_string', length=20, special=false, upper=true, lower=false)) }}"
@@ -88,11 +90,14 @@ mail_from=helpdesk@corp.local
   ansible.builtin.copy:
     dest: "/opt/smart-helpdesk/secrets/{{ item.key }}"
     content: "{{ item.value }}"
-    owner: deploy
-    mode: "0600"
+    owner: "33"          # www-data inside the backend image reads DB_PASSWORD_FILE; PostgreSQL reads them as root
+    group: deploy
+    mode: "0640"
   loop: "{{ generated_secrets | dict2items | selectattr('key', 'search', '^db_') | list }}"
   no_log: true
 ```
+
+The files stay unreadable to other host users. PostgreSQL does not need them to be readable by its own user, because `infra/postgres/entrypoint.sh` reads them as root before the server starts ([docker.md](docker.md#postgresql-bootstrap)).
 
 `APP_KEY` is generated inside the container on first run (`key:generate --show`) and written back into `.env` by the role. The persisted secrets file is the only copy outside the host; it belongs in the operator's password manager, not in git.
 

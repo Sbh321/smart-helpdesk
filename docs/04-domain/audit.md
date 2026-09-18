@@ -19,3 +19,15 @@ Two different things are commonly called "audit". We keep them apart because the
 ## Implementation choice
 
 A small, purpose-built `AuditLogger` action plus one table is preferred over `spatie/laravel-activitylog`'s automatic model diffing, because (a) we want explicit, named actions with intent rather than column diffs, (b) tenant scoping and actor types (`user`, `api_client`, `system`) are first-class, and (c) it is ~150 lines. The decision and the package comparison are in [01-research/backend-ecosystem.md](../01-research/backend-ecosystem.md) §Audit logging.
+
+## As built (M1-16)
+
+| Part | Where |
+|---|---|
+| Table | `app/Modules/Audit/Database/Migrations/…_create_audit_logs_table.php`; `actor_type` has a CHECK constraint; indexes as in [indexing.md](../08-database/indexing.md) |
+| Append-only | the migration revokes `UPDATE`, `DELETE` and `TRUNCATE` from the runtime role; the `AuditLog` model also throws on update and delete |
+| Writing | `Audit::record($action, $subject, $changes, $tenantId, $actorType, $actorId)` calls the `RecordAuditLog` action |
+| Defaults | actor from the current guard (`user`), otherwise `system`; tenant from tenancy when initialised; IP, user agent and `request_id` from the request; time from `Clock` |
+| Subject type | snake-case class name, for example `ticket` or `role` |
+| Not yet | the tenant foreign key and tenant scoping (M1-06), `platform_user` and `client` actors from their guards (M1-07, M3), the viewer API |
+

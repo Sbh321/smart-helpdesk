@@ -26,6 +26,7 @@ Every index below exists for a named query. Anything not listed is not indexed u
 | `tickets_tenant_category_idx` | `(tenant_id, category_id)` | category filter and analytics |
 | `tickets_open_pidx` | `(tenant_id, priority_score DESC, id) WHERE status NOT IN ('resolved','closed')` | active queue, hourly re-evaluation pass |
 | `tickets_unassigned_pidx` | `(tenant_id, created_at) WHERE assigned_agent_id IS NULL AND status IN ('open')` | unassigned KPI and manager view |
+| `tickets_default_sort_idx` | `(tenant_id, priority_score DESC, created_at DESC, id)` | the default list order across all statuses (added in M1-17; the partial `tickets_open_pidx` only covers active tickets) |
 | `tickets_search_gin` | GIN `(search_vector)` | `search=` FTS, duplicate candidate FTS branch |
 | `tickets_title_trgm_gin` | GIN `(title gin_trgm_ops)` | short-term `ILIKE`, duplicate candidate `similarity()` |
 | `tickets_duplicate_of_idx` | `(duplicate_of_id) WHERE duplicate_of_id IS NOT NULL` | "duplicates of this ticket" |

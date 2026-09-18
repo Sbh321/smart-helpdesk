@@ -123,11 +123,13 @@ def main() -> int:
     print(f"Calendar: {total:.1f} working days on {tracks} track(s) at {hours:g} h/day; "
           f"{total_with_buffer:.1f} with buffer → finish {day(total_with_buffer)}")
     print()
-    print("| Task | Track | Size | Start | End | Critical |")
-    print("|---|---|---|---|---|---|")
+    labels = {"x": "done", "~": "in progress", "-": "cut", "!": "blocked", " ": ""}
+    print("| Task | Track | Size | Start | End | Critical | Status |")
+    print("|---|---|---|---|---|---|---|")
     for t in tasks:
         print(f"| {t['id']} {t['title']} | {t['track']} | {t['size']} | {day(t['start'])} | "
-              f"{day(max(t['end'] - 0.01, t['start']))} | {'yes' if t['critical'] else ''} |")
+              f"{day(max(t['end'] - 0.01, t['start']))} | {'yes' if t['critical'] else ''} | "
+              f"{labels.get(t['status'], t['status'])} |")
     last = max(finish, key=finish.get)
     chain, cur = [], last
     while cur in by_id:

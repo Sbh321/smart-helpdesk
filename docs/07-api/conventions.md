@@ -116,7 +116,10 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
-| GET/POST | `/platform-api/tenants` | P | list / provision |
+| POST | `/platform-api/auth/login` | – | platform session on the admin host |
+| POST | `/platform-api/auth/logout` | P | 204 |
+| GET | `/platform-api/me` | P | the signed-in platform admin |
+| GET/POST | `/platform-api/tenants` | P | list (filters `status`, `search`) / provision (201) |
 | GET/PATCH | `/platform-api/tenants/{tenant}` | P | |
 | POST | `/platform-api/tenants/{tenant}/suspend`, `/reactivate` | P | |
 | GET | `/platform-api/audit-logs` | P | platform-level entries |
@@ -130,8 +133,8 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 | POST | `/v1/users/invitations` | S | `users.manage` |
 | PATCH | `/v1/users/{user}` | S | `users.manage` |
 | POST | `/v1/users/{user}/disable`, `/enable` | S | `users.manage` |
-| GET/POST | `/v1/roles` | S | `roles.manage` (GET also `users.manage`) |
-| GET/PATCH/DELETE | `/v1/roles/{role}` | S | `roles.manage` |
+| GET/POST | `/v1/roles` | S | `roles.manage`; the list returns the global defaults plus this workspace's custom roles |
+| PATCH/DELETE | `/v1/roles/{role}` | S | `roles.manage`; default roles answer 404, so they cannot be edited |
 | GET | `/v1/permissions` | S | `roles.manage` |
 
 ### Contacts
@@ -142,7 +145,8 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 | POST | `/v1/contacts` | S, C | `contacts.manage` (idempotent for C) |
 | GET | `/v1/contacts/{contact}` | S, C | `contacts.view` (`include=organization,tags`) |
 | PATCH | `/v1/contacts/{contact}` | S, C | `contacts.manage` |
-| POST | `/v1/contacts/{contact}/archive` | S | `contacts.manage` |
+| POST | `/v1/contacts/{contact}/archive`, `/unarchive` | S | `contacts.manage` |
+| GET | `/v1/contacts/typeahead?q=` | S, C | `contacts.view` — at most 10 active contacts, fuzzy match on name and email |
 | GET | `/v1/contacts/{contact}/tickets` | S | `tickets.view` (Could-have) |
 | GET/POST | `/v1/organizations` | S, C | `contacts.view` / `contacts.manage` |
 | GET/PATCH | `/v1/organizations/{organization}` | S, C | `contacts.view` / `contacts.manage` |
@@ -246,6 +250,6 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 | GET | `/v1/webhook-deliveries/{delivery}` | S, C | `integrations.manage` |
 | POST | `/v1/webhook-deliveries/{delivery}/retry` | S, C | `integrations.manage` |
 | GET | `/v1/audit-logs` | S | `audit.view` — cursor feed |
-| GET | `/docs/api`, `/docs/api.json` | S | any authenticated tenant user |
+| GET | `/docs/api`, `/docs/api.json` | — | public reference, no tenant data ([documentation.md](documentation.md)) |
 
 A route-list test asserts that every route above carries `auth` and a `can:` (or an explicit public allow-list entry) and that C-guard routes are limited to the ones marked C.

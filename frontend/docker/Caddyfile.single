@@ -1,0 +1,63 @@
+# Single-host layout for on-premise installs (HOST_LAYOUT=single): one hostname serves everything.
+{
+	servers {
+		protocols h1 h2 h3
+	}
+}
+
+(tls_acme) {
+}
+(tls_internal) {
+	tls internal
+}
+(tls_files) {
+	tls /certs/fullchain.pem /certs/privkey.pem
+}
+
+{$PLATFORM_DOMAIN} {
+	encode zstd gzip
+	# Correlation id for logs, problem details and audit rows (docs/11-operations/logs.md). Client values are replaced.
+	request_header X-Request-Id {http.request.uuid}
+	log {
+		output stdout
+		format json
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+	import tls_{$TLS_MODE:acme}
+
+	handle_path /api/* {
+		reverse_proxy app:8080
+	}
+	handle /platform-api/* {
+		reverse_proxy app:8080
+	}
+	handle /docs* {
+		reverse_proxy app:8080
+	}
+	# RustFS console uses absolute /rustfs/... paths, so the prefix is kept, not stripped.
+	redir /monitor/storage /rustfs/console/
+	redir /monitor/storage/ /rustfs/console/
+	handle /rustfs/* {
+		reverse_proxy rustfs:9001
+	}
+	handle_path /monitor/* {
+		reverse_proxy app:8080
+	}
+	handle_path /files/* {
+		reverse_proxy rustfs:9000
+	}
+	handle /config.json {
+		root * /srv/runtime/tenant
+		file_server
+	}
+	handle {
+		root * /srv/app
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,0 +1,52 @@
+name: frontend
+
+on:
+  push:
+    branches: [main]
+    paths: ['frontend/**', 'backend/openapi.json', '.github/workflows/frontend.yml']
+  pull_request:
+    paths: ['frontend/**', 'backend/openapi.json', '.github/workflows/frontend.yml']
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm tokens:check
+
+      - name: Generated API types are up to date
+        run: |
+          pnpm api:types
+          git diff --exit-code src/lib/api/schema.d.ts
+
+      - run: pnpm test
+
+      - name: Playwright browser for component tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm test:browser
+      - run: pnpm build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spa-dist
+          path: frontend/dist

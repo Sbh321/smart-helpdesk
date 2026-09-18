@@ -1,0 +1,33 @@
+# Development settings, loaded automatically by `docker compose` (not used in production, which passes -f).
+services:
+  app:
+    build: { target: development, args: { USER_ID: "${PUID:-1000}", GROUP_ID: "${PGID:-1000}" } }
+    image: smart-helpdesk-backend:dev
+    environment:
+      PHP_OPCACHE_ENABLE: "0"
+    volumes:
+      - ./backend:/var/www/html
+  horizon:
+    build: { target: development, args: { USER_ID: "${PUID:-1000}", GROUP_ID: "${PGID:-1000}" } }
+    image: smart-helpdesk-backend:dev
+    volumes:
+      - ./backend:/var/www/html
+  scheduler:
+    build: { target: development, args: { USER_ID: "${PUID:-1000}", GROUP_ID: "${PGID:-1000}" } }
+    image: smart-helpdesk-backend:dev
+    volumes:
+      - ./backend:/var/www/html
+  reverb:
+    build: { target: development, args: { USER_ID: "${PUID:-1000}", GROUP_ID: "${PGID:-1000}" } }
+    image: smart-helpdesk-backend:dev
+    volumes:
+      - ./backend:/var/www/html
+  proxy:
+    environment:
+      TLS_MODE: internal
+      MONITOR_AUTH: "off"
+      MAIL_WEB_UPSTREAM: mailpit:8025
+  postgres:
+    ports: ["127.0.0.1:${DEV_DB_PORT:-55439}:5432"]
+  valkey:
+    ports: ["127.0.0.1:${DEV_VALKEY_PORT:-56379}:6379"]

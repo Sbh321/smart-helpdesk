@@ -1,8 +1,14 @@
 # Smart Helpdesk
 
+[![backend](https://github.com/subham/smart-helpdesk/actions/workflows/backend.yml/badge.svg)](https://github.com/subham/smart-helpdesk/actions/workflows/backend.yml)
+[![frontend](https://github.com/subham/smart-helpdesk/actions/workflows/frontend.yml/badge.svg)](https://github.com/subham/smart-helpdesk/actions/workflows/frontend.yml)
+[![security](https://github.com/subham/smart-helpdesk/actions/workflows/security.yml/badge.svg)](https://github.com/subham/smart-helpdesk/actions/workflows/security.yml)
+
+<!-- The badges use the repository slug assumed by the documentation; update them when the remote is created. -->
+
 A multi-tenant support-ticket management system with automated prioritisation, agent assignment, duplicate detection, SLA monitoring, integrations and analytics. Final-year BCA project engineered as the foundation of a real SaaS/on-premise product.
 
-**Status (2026-09-17):** research and planning complete; implementation has not started. The repository contains the platform documentation (`docs/`), the track-based roadmap (`roadmap/`), and the university and internship report sources (`report/`).
+**Status:** implementation in progress (milestone 1). Planning completed on 2026-09-17. The repository contains the platform documentation (`docs/`), the track-based roadmap (`roadmap/`), and the university and internship report sources (`report/`).
 
 | Start here | |
 |---|---|
@@ -21,13 +27,13 @@ A multi-tenant support-ticket management system with automated prioritisation, a
 
 Laravel 13 / PHP 8.5 API · React 19 / TypeScript 7 / Vite 8 SPA with TanStack Router, Query, Table, Form · Tailwind 4 + shadcn/ui on Base UI · PostgreSQL 18 · Valkey 9 · S3-compatible object storage (RustFS locally) · Stalwart mail server · Laravel Horizon · Docker Compose · Caddy · Ansible (any VM) · optional OpenTofu. Versions: [docs/01-research/versions.md](docs/01-research/versions.md).
 
-## Planned quick start (after M1-04)
+## Quick start
 
 ```bash
 git clone <repo> smart-helpdesk && cd smart-helpdesk
-mise install
-cp .env.example .env
-just setup          # docker compose up, migrate, seed demo, generate API types
+mise install          # Node, pnpm, just, lefthook, OpenTofu, Ansible
+lefthook install
+just setup            # secrets, containers, migrations, demo data, API types
 open https://app.shp.localhost/acme   # API at https://api.shp.localhost, docs at https://docs.shp.localhost
 ```
 

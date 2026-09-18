@@ -2,6 +2,26 @@
 
 GitHub Actions. Three path-filtered workflows plus image build and a manual deploy. Goal: every push runs lint, static analysis, tests and the contract check in under 10 minutes; `main` publishes images; deployment is a human-triggered Ansible run.
 
+## As built (M1-05)
+
+`.github/workflows/` currently holds `backend.yml`, `frontend.yml`, `build.yml` and `security.yml`.
+`e2e.yml`, `infra.yml` and `deploy.yml` arrive with the tasks that need them (M2-E2E, M3-14).
+The YAML below is the design; the differences that are already real:
+
+| Difference | Reason |
+|---|---|
+| The PostgreSQL service runs as the `postgres` superuser, and a step runs `infra/postgres/init/10-roles-and-databases.sh` | one definition of roles, databases, extensions and grants for CI and development; the script is idempotent |
+| Tests run `vendor/bin/pest`, not `php artisan test --parallel` | parallel testing needs one database per worker, and the owner role may not create databases |
+| Coverage is uploaded but not gated | the ≥ 70 % gate is switched on in M3-11, when the feature tests exist |
+| `pnpm lint`, `pnpm typecheck`, `pnpm tokens:check`, `pnpm test`, `pnpm test:browser`, `pnpm build` | the scripts the repository actually defines; `tokens:check` is the colour-contrast check from M1-11 |
+| `build.yml` builds `backend` (target `production`) and `proxy` (target `runtime`) | `webhook-echo` does not exist yet (M2) |
+| `security.yml` runs gitleaks on every push and the dependency review on pull requests | dependency review only works on pull requests |
+| Badges in the README use the slug `subham/smart-helpdesk` | the repository has no remote yet |
+
+The workflows have not run on GitHub yet, because no remote is configured. Each step was checked
+locally: the database script is idempotent against the running container, every frontend script is
+green, and the backend commands are the ones used in development.
+
 ## Workflows
 
 ```text

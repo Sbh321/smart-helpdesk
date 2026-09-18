@@ -1,0 +1,14 @@
+# Tool versions for the host. Application runtimes (PHP 8.5, PostgreSQL, Valkey, ...) run in containers.
+# PHP is intentionally not pinned here: mise builds PHP from source; the host PHP (8.4+) is only used by
+# editor tooling, and every project command runs PHP 8.5 inside the `app` container (see justfile).
+[tools]
+node = "24"
+pnpm = "12.4.2"
+just = "1.58.0"
+lefthook = "2.1.14"
+opentofu = "1.12.6"
+"pipx:ansible-core" = "2.21.4"
+python = "3.13"
+
+[settings]
+experimental = true

@@ -1,0 +1,29 @@
+# environment and secrets
+.env
+.env.*
+!.env.example
+secrets/*
+!secrets/.gitkeep
+
+# dependencies and build output
+node_modules/
+vendor/
+dist/
+coverage/
+.phpunit.cache/
+.vite/
+*.tsbuildinfo
+
+# tooling
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.log
+.terraform/
+*.tfstate
+*.tfstate.*
+.claude/settings.local.json
+
+# experiments: datasets and results are committed; scratch output is not
+experiments/tmp/

@@ -1,0 +1,31 @@
+import type { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
+
+export interface PageHeaderProps {
+  title: string
+  description?: string
+  /** Rendered above the title, for example the breadcrumb trail. */
+  eyebrow?: ReactNode
+  /** Primary and secondary actions, right aligned on wide viewports. */
+  actions?: ReactNode
+  className?: string
+}
+
+/**
+ * The `h1` of a page plus its actions (docs/06-design-system/components.md §PageHeader).
+ * Exactly one `PageHeader` per route, so the heading order stays h1 → h2 → h3.
+ */
+export function PageHeader({ title, description, eyebrow, actions, className }: PageHeaderProps) {
+  return (
+    <div className={cn('flex flex-col gap-3 border-b border-border pb-4', className)}>
+      {eyebrow}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+        </div>
+        {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+      </div>
+    </div>
+  )
+}

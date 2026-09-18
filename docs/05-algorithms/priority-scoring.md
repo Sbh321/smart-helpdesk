@@ -1,6 +1,6 @@
 # Priority scoring — Basic Weighted Priority (academic baseline)
 
-Contract: `PriorityStrategy`. Baseline class: `App\Modules\Automation\Strategies\Baseline\BasicWeightedPriority`. Replaceable after the defence ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)); richer candidate: [future/priority-scoring-advanced.md](future/priority-scoring-advanced.md). Requirements FR-AUT-01..03.
+Contract: `PriorityStrategy`. Baseline class: `App\Modules\Automation\Strategies\Baseline\BasicWeightedPriority` (`#[AcademicBaseline]`, `@deprecated` pointing to ADR-0023). Replaceable after the defence ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)); richer candidate: [future/priority-scoring-advanced.md](future/priority-scoring-advanced.md). Requirements FR-AUT-01..03.
 
 ## Idea
 
@@ -13,20 +13,32 @@ A ticket's priority is a **weighted sum** of four things an agent can see: how m
 | impact | 1 single user · 2 team · 3 department · 4 whole organisation | (impact − 1) ÷ 3 |
 | urgency | 1 low · 2 medium · 3 high · 4 immediate | (urgency − 1) ÷ 3 |
 | customer tier | standard · premium · enterprise | 0 · 0.5 · 1 |
-| age | hours since creation (business hours when the tenant calendar is not 24×7) | min(1, hours ÷ 72) |
+| age | hours since creation, supplied by the caller as `hoursWaited` (business hours on the tenant's default calendar when it is not 24×7, "now" from the `Clock`) | min(1, hours ÷ `age_full_hours`, default 72) |
 
 ## Formula
 
 ```text
 score = 100 × (0.40 × impact' + 0.35 × urgency' + 0.15 × tier' + 0.10 × age')
 
-level = P1 if score ≥ 75
+score = round(score, 1)            // after round(score, 6) removes float noise
+
+level = P1 if score ≥ 75           // compared on the rounded score
         P2 if score ≥ 50
         P3 if score ≥ 25
         P4 otherwise
 ```
 
-Weights and thresholds are tenant settings (`automation.priority.baseline`); weights must add up to 1.
+The level comes from the score rounded to one decimal, so the displayed score and the level always agree. The raw sum can carry float noise (for example 40.000000000000006); rounding to 6 decimals first removes it. A unit test pins the boundary case: impact 4, urgency 4, standard tier, 0 h gives exactly **75.0**, level P1.
+
+Weights, thresholds and `age_full_hours` are tenant settings (`automation.priority.baseline`, class `PrioritySettings`):
+
+| Setting | Default | Rule |
+|---|---|---|
+| `weights` | impact 0.40, urgency 0.35, tier 0.15, age 0.10 | exactly these four keys; each 0–1; sum 1 within 0.001 |
+| `thresholds` | P1 75, P2 50, P3 25 | exactly these three keys; 100 ≥ P1 > P2 > P3 > 0 |
+| `age_full_hours` | 72 | positive |
+
+Invalid settings, impact or urgency outside 1–4, and a negative `hoursWaited` throw `InvalidStrategySettings`.
 
 ## Algorithm
 
@@ -41,10 +53,25 @@ function score(ticket, now):
         contribution ← 100 × weight × value
         score ← score + contribution
         explanation.add(name, value, weight, contribution)
-    return round(score, 1), level(score), explanation
+    score ← round(round(score, 6), 1)
+    return score, level(score), explanation
 ```
 
-**When it runs:** on ticket creation, when impact, urgency or organisation changes, and hourly for open tickets (because age grows). A manual priority chosen by a manager always wins over the computed level; the score is still shown.
+**When it runs:** on ticket creation, when impact, urgency or organisation changes, and hourly for open tickets (because age grows). A manual priority chosen by a manager always wins over the computed level; the score is still shown. In code: `PriorityResult::effectiveLevel(?PriorityLevel $manual)` returns the manual level when there is one.
+
+**Explanation:** `PriorityResult::explanation(?PriorityLevel $manual = null)` returns:
+
+| Key | Value |
+|---|---|
+| `strategy`, `strategy_version` | `basic_weighted_priority`, `1.0.0` |
+| `score` | rounded to one decimal |
+| `level` | computed level |
+| `effective_level` | manual level if given, else `level` |
+| `manual_override` | `true` when a manual level was given |
+| `parts` | per part: `name`, `value`, `weight`, `contribution`; value and contribution rounded to 4 decimals, not to 1 |
+| `settings` | the weights, thresholds and `age_full_hours` used |
+
+Because contributions are stored almost unrounded, the one-decimal parts in the table below do not always add up exactly to the score (13.3 + 23.3 + 7.5 + 3.3 = 47.4, score 47.5). The contract test accepts a difference up to 0.05.
 
 **Complexity:** constant time per ticket (four terms); the hourly pass is linear in the number of open tickets.
 
