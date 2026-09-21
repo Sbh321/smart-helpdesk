@@ -31,12 +31,13 @@ trap 'rm -f "$out"/*.part' EXIT
 
 dump="$out/helpdesk-$stamp-$label.dump"
 "${compose[@]}" exec -T postgres pg_dump -U postgres -d helpdesk --create --format=custom --compress=6 > "$dump.part"
-# Integrity: the archive must list its table of contents, and it must contain table data.
-"${compose[@]}" exec -T postgres pg_restore --list < "$dump.part" | grep -q 'TABLE DATA public tenants'
+# Integrity: the archive must list its table of contents, and it must contain table data. grep reads the
+# whole list (no -q): quitting at the first match breaks the pipe, and pipefail then fails the backup.
+"${compose[@]}" exec -T postgres pg_restore --list < "$dump.part" | grep 'TABLE DATA public tenants' > /dev/null
 mv "$dump.part" "$dump"
 echo "database: $dump ($(du -h "$dump" | cut -f1))"
 
-if [[ ${BACKUP_FILES:-auto} != 0 ]] && "${compose[@]}" ps --status running --services 2>/dev/null | grep -qx rustfs; then
+if [[ ${BACKUP_FILES:-auto} != 0 ]] && "${compose[@]}" ps --status running --services 2>/dev/null | grep -x rustfs > /dev/null; then
   objects="$out/objects-$stamp-$label.tar.gz"
   "${compose[@]}" exec -T rustfs tar -C /data -czf - . > "$objects.part"
   gzip -t "$objects.part"
