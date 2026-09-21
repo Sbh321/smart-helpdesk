@@ -17,6 +17,8 @@ beforeEach(function (): void {
 
     $this->acme = createTenant('acme');
     $this->user = createTenantUser($this->acme, ['email' => 'priya@acme.test', 'password' => Hash::make('old-password')]);
+    // The body reads and edits acme's rows, which row-level security shows only inside acme.
+    tenancy()->initialize($this->acme);
     fromSpaOrigin();
     Notification::fake();
 });

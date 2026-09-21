@@ -9,7 +9,11 @@ use DateTimeInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin AgentCandidate */
+/**
+ * One agent in an assignment preview: rank, load and capacity, as the AssignmentStrategy saw them.
+ *
+ * @mixin AgentCandidate
+ */
 final class AgentCandidateResource extends JsonResource
 {
     public function toArray(Request $request): array

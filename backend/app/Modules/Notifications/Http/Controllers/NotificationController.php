@@ -40,6 +40,7 @@ final class NotificationController
         return NotificationResource::collection($query->paginate(min(100, max(1, $request->integer('per_page', 25)))));
     }
 
+    /** Mark a notification read. */
     public function read(Request $request, string $notification): NotificationResource
     {
         $row = $this->mine($request)->whereKey($notification)->firstOrFail();
@@ -50,6 +51,7 @@ final class NotificationController
         return new NotificationResource($row);
     }
 
+    /** Mark every notification read. */
     public function readAll(Request $request): Response
     {
         $this->mine($request)->whereNull('read_at')->update(['read_at' => $this->clock->now()]);

@@ -25,18 +25,42 @@ final class TicketResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            /**
+             * Human-facing ticket number, sequential per workspace.
+             *
+             * @example 1042
+             */
             'number' => $this->number,
+            /** @example Cannot sign in after password reset */
             'title' => $this->title,
             'description' => $this->description,
             'status' => $this->status,
+            /**
+             * Impact: 1 single user, 2 team, 3 department, 4 whole organisation.
+             *
+             * @example 2
+             */
             'impact' => $this->impact,
+            /**
+             * Urgency: 1 low, 2 medium, 3 high, 4 immediate.
+             *
+             * @example 3
+             */
             'urgency' => $this->urgency,
+            /**
+             * Score 0–100 from the PriorityStrategy.
+             *
+             * @example 71.5
+             */
             'priority_score' => (float) $this->priority_score,
+            /** Effective priority: the manual override when set, otherwise the computed level. */
             'priority_level' => $this->effectivePriority(),
             'priority_computed_level' => $this->priority_level,
             'priority_overridden' => $this->priority_override_level !== null,
+            /** The strategy's explanation: strategy name and version, factors, weights and contributions. */
             'priority_explanation' => $this->priority_explanation,
             'priority_override_reason' => $this->priority_override_reason,
+            /** Statuses the caller may move this ticket to now (state machine and permissions). */
             'allowed_transitions' => $this->allowedTransitions($request),
             'contact_id' => $this->contact_id,
             'organization_id' => $this->organization_id,
@@ -44,6 +68,11 @@ final class TicketResource extends JsonResource
             'team_id' => $this->team_id,
             'assigned_agent_id' => $this->assigned_agent_id,
             'duplicate_of_id' => $this->duplicate_of_id,
+            /**
+             * @var 'ui'|'api'|'seed'
+             *
+             * Channel that created the ticket.
+             */
             'created_via' => $this->created_via,
             // Only in list responses, which select the latest resolution timer with each row.
             /** @var 'running'|'warning'|'breached'|'paused'|'met'|'cancelled'|null */

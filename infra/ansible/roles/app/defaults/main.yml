@@ -1,0 +1,1 @@
+app_compose_files: [compose.yaml, infra/compose/prod.yaml]

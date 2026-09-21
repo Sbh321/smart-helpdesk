@@ -62,6 +62,34 @@ final class Tenant extends BaseTenant
         ];
     }
 
+    /**
+     * Runs the callback inside this tenant and puts the previous context back, also when the
+     * callback throws. stancl's `run()` restores only on success, which would leave this tenant's
+     * `app.current_tenant` on the connection after a failure (M3-07, docs/08-database/tenancy.md
+     * §Setting lifecycle); a sweep that catches the exception and carries on must not keep it.
+     *
+     * @template T
+     *
+     * @param  callable(self): T  $callback
+     * @return T
+     */
+    public function run(callable $callback): mixed
+    {
+        $original = tenant();
+
+        tenancy()->initialize($this);
+
+        try {
+            return $callback($this);
+        } finally {
+            if ($original !== null) {
+                tenancy()->initialize($original);
+            } else {
+                tenancy()->end();
+            }
+        }
+    }
+
     public function isActive(): bool
     {
         return $this->status === TenantStatus::Active;

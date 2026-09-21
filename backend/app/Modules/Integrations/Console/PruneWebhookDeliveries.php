@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Integrations\Console;
 
+use App\Modules\Tenancy\Models\Tenant;
 use App\Support\Time\Clock;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -24,8 +26,20 @@ final class PruneWebhookDeliveries extends Command
         $days = max(1, (int) ($this->option('days') ?? config('helpdesk.webhooks.retention_days', 30)));
         $before = $clock->now()->subDays($days);
 
-        // MVP-SHORTCUT: a cross-tenant delete that works because row-level security is not enabled yet;
-        // V1: M3-07 runs retention per tenant or under a privileged role.
+        // Retention runs inside each workspace, suspended ones included: row-level security lets a
+        // connection delete only the rows of the workspace it is set to (M3-07).
+        $deleted = 0;
+        foreach (Tenant::query()->cursor() as $tenant) {
+            $deleted += $tenant->run(fn (): int => $this->pruneTenant($before));
+        }
+
+        $this->components->info("Deleted {$deleted} webhook deliveries older than {$days} days.");
+
+        return self::SUCCESS;
+    }
+
+    private function pruneTenant(CarbonImmutable $before): int
+    {
         $deleted = 0;
         do {
             $batch = DB::delete(
@@ -35,8 +49,6 @@ final class PruneWebhookDeliveries extends Command
             $deleted += $batch;
         } while ($batch === 5000);
 
-        $this->components->info("Deleted {$deleted} webhook deliveries older than {$days} days.");
-
-        return self::SUCCESS;
+        return $deleted;
     }
 }

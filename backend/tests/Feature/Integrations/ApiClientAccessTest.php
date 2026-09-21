@@ -24,6 +24,8 @@ beforeEach(function (): void {
     $this->acme = createTenant('acme');
     $this->globex = createTenant('globex');
     [$this->contact, $this->category] = ticketPrerequisites($this->acme);
+    // The assertions read acme's rows, which row-level security shows only inside acme.
+    tenancy()->initialize($this->acme);
 });
 
 function clientTicketPayload(array $overrides = []): array

@@ -10,7 +10,11 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin MediaItem */
+/**
+ * A Media item: a stored file with its variants, where it is used and its state.
+ *
+ * @mixin MediaItem
+ */
 final class MediaItemResource extends JsonResource
 {
     /**
@@ -56,7 +60,11 @@ final class MediaItemResource extends JsonResource
                 'thumb' => $this->variantSize('thumb'),
                 'preview' => $this->variantSize('preview'),
             ],
-            /** Why no variants will appear: `pixel_limit` or `failed`; null while pending or present. */
+            /**
+             * @var 'pixel_limit'|'failed'|null
+             *
+             * Why no variants will appear; null while pending or present.
+             */
             'variants_skipped' => is_string($this->variants['variants_skipped'] ?? null) ? $this->variants['variants_skipped'] : null,
             'source' => $this->source,
             'state' => $this->state,

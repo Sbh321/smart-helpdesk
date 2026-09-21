@@ -106,6 +106,18 @@ reproduce seed="42" db="helpdesk_test":
 report:
     cd report && ./build.sh
 
+# provision with OpenTofu (envs/reference or envs/existing) and configure the host (terraform.md, ansible.md)
 deploy env:
     cd infra/tofu/envs/{{env}} && tofu apply
     cd infra/ansible && ansible-playbook -i inventory/{{env}}.ini site.yml
+
+# static checks of the deployment code: OpenTofu fmt/contracts/validate, Ansible syntax and lint, no credentials needed
+infra-check:
+    ./infra/scripts/tofu-check.sh
+    cd infra/ansible && ansible-galaxy role install -r requirements.yml -p galaxy_roles && ansible-galaxy collection install -r requirements.yml -p collections
+    cd infra/ansible && ansible-playbook -i inventory/onprem.ini.example --syntax-check site.yml deploy.yml backup.yml restore.yml
+    cd infra/ansible && ANSIBLE_COLLECTIONS_PATH=$PWD/collections uvx --from ansible-lint==26.8.0 ansible-lint --offline site.yml deploy.yml backup.yml restore.yml roles/
+
+# smoke checks against a deployed host, e.g. just prod-smoke shp.subhambhandari.com.np (add HEALTH_TOKEN=… for /v1/health)
+prod-smoke domain layout="split":
+    PLATFORM_DOMAIN={{domain}} HOST_LAYOUT={{layout}} SMOKE_DEV=0 ./infra/scripts/smoke.sh

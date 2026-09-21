@@ -55,6 +55,8 @@ final class WebhookController
     }
 
     /**
+     * Create a webhook subscription.
+     *
      * Create a subscription. The response carries `secret`, which is shown only this once.
      */
     #[Response(status: 201, type: WebhookSubscriptionWithSecretResource::class)]
@@ -69,6 +71,7 @@ final class WebhookController
         return (new WebhookSubscriptionWithSecretResource($subscription))->response()->setStatusCode(201);
     }
 
+    /** Get a webhook subscription. */
     public function show(WebhookSubscription $webhook): WebhookSubscriptionResource
     {
         return new WebhookSubscriptionResource($webhook);
@@ -98,17 +101,21 @@ final class WebhookController
         return response()->noContent();
     }
 
+    /** Enable a webhook subscription. */
     public function enable(WebhookSubscription $webhook, SetWebhookActive $set): WebhookSubscriptionResource
     {
         return new WebhookSubscriptionResource($set($webhook, true));
     }
 
+    /** Disable a webhook subscription. */
     public function disable(WebhookSubscription $webhook, SetWebhookActive $set): WebhookSubscriptionResource
     {
         return new WebhookSubscriptionResource($set($webhook, false));
     }
 
     /**
+     * Rotate the signing secret.
+     *
      * Replace the signing secret. The response carries the new `secret` once; the old one keeps
      * signing (as a second `v1=` entry) for 24 hours.
      */
@@ -118,6 +125,8 @@ final class WebhookController
     }
 
     /**
+     * Send a test delivery.
+     *
      * Queue a `ping` delivery to the subscription (also when it is disabled). Answers 202 with the
      * delivery; follow it in the delivery log.
      */

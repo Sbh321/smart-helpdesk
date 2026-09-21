@@ -90,7 +90,9 @@ final class ContactController
     }
 
     /**
-     * Archive a contact. Archived contacts leave the default list but keep their tickets.
+     * Archive a contact.
+     *
+     * Archived contacts leave the default list but keep their tickets.
      */
     public function archive(Contact $contact): ContactResource
     {

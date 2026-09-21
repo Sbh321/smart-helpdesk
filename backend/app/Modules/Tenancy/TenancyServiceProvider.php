@@ -11,6 +11,8 @@ use App\Modules\Tenancy\Settings\Sections\GeneralSection;
 use App\Modules\Tenancy\Settings\SettingsRegistry;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Database\Events\ConnectionEstablished;
+use Illuminate\Database\Events\TransactionRolledBack;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Event;
 use Stancl\Tenancy\Events\TenancyEnded;
 use Stancl\Tenancy\Events\TenancyInitialized;
@@ -40,6 +42,18 @@ final class TenancyServiceProvider extends ModuleServiceProvider
 
         Event::listen(function (ConnectionEstablished $event): void {
             $this->app->make(RlsTenancyBootstrapper::class)->reapply($event->connection);
+        });
+        Event::listen(function (TransactionRolledBack $event): void {
+            $this->app->make(RlsTenancyBootstrapper::class)->reapplyAfterRollback($event->connection);
+        });
+        // A worker's connection outlives its jobs (Horizon). stancl ends tenancy before a central
+        // job; this also clears the PostgreSQL session, so no tenant setting can reach the job
+        // whatever happened before it (M3-07, docs/08-database/tenancy.md §Setting lifecycle).
+        // Registered after stancl's listener, so it runs once tenancy has been ended.
+        Event::listen(function (JobProcessing $event): void {
+            if ($event->connectionName !== 'sync' && ($event->job->payload()['tenant_id'] ?? null) === null) {
+                $this->app->make(RlsTenancyBootstrapper::class)->clearSession();
+            }
         });
     }
 }

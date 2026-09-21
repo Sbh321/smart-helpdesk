@@ -80,7 +80,7 @@ Expected plan at 100 k tickets/tenant: Index Scan on `tickets_tenant_status_prio
 | `sla_targets` | UNIQUE `(policy_id, priority_level)` | policy lookup |
 | `sla_policies` | UNIQUE `(tenant_id, name)`; UNIQUE `(tenant_id) WHERE is_default` | one default per tenant |
 
-The sweep runs as the app role with `app.current_tenant` unset per tenant iteration; it iterates tenants and sets the GUC, so the partial indexes above are combined with the RLS predicate on `tenant_id` (the planner uses the partial index and filters on tenant). At 10 000 running timers this is milliseconds per tenant.
+The sweep runs as the app role and visits each active tenant with `app.current_tenant` set to it, so the partial indexes above are combined with the RLS predicate on `tenant_id` (the planner uses the partial index and filters on tenant). At 10 000 running timers this is milliseconds per tenant.
 
 ## Contacts and organisations
 

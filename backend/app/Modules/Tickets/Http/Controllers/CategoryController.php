@@ -29,6 +29,7 @@ final class CategoryController
         );
     }
 
+    /** Create a category. */
     #[Response(status: 201, type: CategoryResource::class)]
     public function store(SaveCategoryRequest $request): JsonResponse
     {
@@ -37,11 +38,13 @@ final class CategoryController
         return (new CategoryResource($category))->response()->setStatusCode(201);
     }
 
+    /** Update a category. */
     public function update(SaveCategoryRequest $request, Category $category): CategoryResource
     {
         return new CategoryResource($this->save($request->validated(), $category));
     }
 
+    /** Delete a category. */
     public function destroy(Category $category): HttpResponse
     {
         if (Ticket::query()->where('category_id', $category->id)->exists()) {

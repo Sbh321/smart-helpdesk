@@ -59,7 +59,7 @@ describe('show', function (): void {
         $this->postJson("/v1/media/{$foreign->id}/trash")->assertNotFound();
         $this->deleteJson("/v1/media/{$foreign->id}")->assertNotFound();
 
-        expect(MediaItem::query()->withoutTenancy()->findOrFail($foreign->id)->state)->toBe('ready');
+        expect($this->globex->run(fn (): MediaItem => MediaItem::query()->findOrFail($foreign->id))->state)->toBe('ready');
     });
 });
 
@@ -273,7 +273,8 @@ describe('index', function (): void {
             $this->getJson('/v1/media')->assertOk()->assertJsonCount($expectedItems, 'data');
             DB::disableQueryLog();
 
-            return count(DB::getQueryLog());
+            // The tenancy settings written around every request (M3-07) are not queries of the list.
+            return count(array_filter(DB::getQueryLog(), fn (array $query): bool => ! str_starts_with($query['query'], 'SELECT set_config(')));
         };
 
         $seed(2);

@@ -65,7 +65,7 @@ it('ages every workspace with its own weights in one command run', function (): 
     $this->clock->set('2026-09-24 09:00:00'); // 72 h: the age part is at its full weight
     $this->artisan('tickets:reevaluate-priority')->assertSuccessful();
 
-    $score = fn (Ticket $ticket): float => (float) Ticket::query()->withoutTenancy()->findOrFail($ticket->id)->priority_score;
+    $score = fn (Ticket $ticket): float => (float) findInAnyTenant(Ticket::class, $ticket->id)->priority_score;
     expect($score($mine))->toBe(10.0)->and($score($theirs))->toBe(50.0);
 });
 

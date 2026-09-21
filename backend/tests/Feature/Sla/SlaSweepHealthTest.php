@@ -27,3 +27,15 @@ it('fails for an absent or stale sweep and passes for a recent one', function ()
     Cache::put('sla:last_sweep_at', $clock->now()->subSeconds(180)->timestamp, 600);
     expect((string) $check->run()->status)->toBe('ok');
 });
+
+it('reads the heartbeat the redis store hands back as a numeric string', function (): void {
+    $clock = new FrozenClock('2026-09-19 10:00:00');
+    $this->app->instance(Clock::class, $clock);
+    config(['cache.default' => 'redis']);
+    Cache::put('sla:last_sweep_at', $clock->now()->subSeconds(30)->timestamp, 600);
+
+    expect(Cache::get('sla:last_sweep_at'))->toBeString()
+        ->and((string) SlaSweepCheck::new()->run()->status)->toBe('ok');
+
+    Cache::forget('sla:last_sweep_at');
+});

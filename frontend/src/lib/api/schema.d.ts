@@ -11,10 +11,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the workspace's API clients, active ones first, newest first */
+        /**
+         * List the workspace's API clients, active ones first, newest first
+         * @description Requires permission `integrations.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["api-clients.index"];
         put?: never;
-        /** Create an API client. The response carries `client_secret`, which is shown only this once */
+        /**
+         * Create an API client
+         * @description The response carries `client_secret`, which is shown only this once.
+         *
+         *     Requires permission `integrations.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["api-clients.store"];
         delete?: never;
         options?: never;
@@ -29,7 +37,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The scopes a client can be given, with a description each */
+        /**
+         * The scopes a client can be given, with a description each
+         * @description Requires permission `integrations.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["api-clients.scopes"];
         put?: never;
         post?: never;
@@ -48,7 +59,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Revoke an API client. Its tokens stop working immediately; the client cannot be restored */
+        /**
+         * Revoke an API client
+         * @description Its tokens stop working immediately; the client cannot be restored.
+         *
+         *     Requires permission `integrations.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["api-clients.revoke"];
         delete?: never;
         options?: never;
@@ -63,8 +79,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List agents
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["agents.index"];
         put?: never;
+        /**
+         * Make a user an agent
+         * @description Requires permission `agents.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["agents.store"];
         delete?: never;
         options?: never;
@@ -79,6 +103,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List users who can become agents
+         * @description Requires permission `agents.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["agents.available-users"];
         put?: never;
         post?: never;
@@ -95,12 +123,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get an agent
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["agents.show"];
         put?: never;
         post?: never;
+        /**
+         * Remove an agent profile
+         * @description Requires permission `agents.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["agents.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Update an agent
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["agents.update"];
         trace?: never;
     };
@@ -111,8 +151,36 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get an agent's live workload
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["agents.workload"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agents/{agent}/shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List an agent's shifts
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["agents.shifts.index"];
+        /**
+         * Replace an agent's shifts
+         * @description Requires permission `shifts.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        put: operations["agents.shifts.update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -127,8 +195,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List skills
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["skills.index"];
         put?: never;
+        /**
+         * Create a skill
+         * @description Requires permission `agents.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["skills.store"];
         delete?: never;
         options?: never;
@@ -146,9 +222,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * Delete a skill
+         * @description Requires permission `agents.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["skills.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Update a skill
+         * @description Requires permission `agents.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["skills.update"];
         trace?: never;
     };
@@ -159,8 +243,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List teams
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["teams.index"];
         put?: never;
+        /**
+         * Create a team
+         * @description Requires permission `teams.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["teams.store"];
         delete?: never;
         options?: never;
@@ -178,9 +270,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * Delete a team
+         * @description Requires permission `teams.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["teams.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Update a team
+         * @description Requires permission `teams.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["teams.update"];
         trace?: never;
     };
@@ -192,6 +292,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        /**
+         * Replace a team's members
+         * @description Requires permission `teams.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         put: operations["teams.members.update"];
         post?: never;
         delete?: never;
@@ -209,7 +313,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sign out and destroy the session */
+        /**
+         * Sign out and destroy the session
+         * @description SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["auth.logout"];
         delete?: never;
         options?: never;
@@ -224,7 +331,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The signed-in user, their workspace and permissions */
+        /**
+         * The signed-in user, their workspace and permissions
+         * @description SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["me.show"];
         put?: never;
         post?: never;
@@ -247,7 +357,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update interface preferences (theme, density) */
+        /**
+         * Update interface preferences (theme, density)
+         * @description SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["me.preferences.update"];
         trace?: never;
     };
@@ -335,6 +448,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Override or clear a ticket's priority
+         * @description Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.priority"];
         delete?: never;
         options?: never;
@@ -351,6 +468,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Preview priority scores with draft settings
+         * @description Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["settings.priority.preview"];
         delete?: never;
         options?: never;
@@ -365,6 +486,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Preview the assignment of a ticket
+         * @description Requires permission `tickets.assign`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["tickets.assignment-candidates"];
         put?: never;
         post?: never;
@@ -384,8 +509,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Manual assignment, reassignment or team routing; the manager may pick an agent the
-         *     strategy would exclude (`assignment.explanation.manual_override`)
+         * Assign a ticket
+         * @description Manual assignment, reassignment or team routing; the manager may pick an agent the
+         *     strategy would exclude (`assignment.explanation.manual_override`).
+         *
+         *     Requires permission `tickets.assign`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         post: operations["tickets.assign"];
         delete?: never;
@@ -404,8 +532,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Runs the assigner for an unassigned ticket. When nobody is eligible the attempt is stored
-         *     and the answer is 422 `no_eligible_agent` with `meta.exclusions`
+         * Run automatic assignment for a ticket
+         * @description Runs the assigner for an unassigned ticket. When nobody is eligible the attempt is stored
+         *     and the answer is 422 `no_eligible_agent` with `meta.exclusions`.
+         *
+         *     Requires permission `tickets.assign`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         post: operations["tickets.auto-assign"];
         delete?: never;
@@ -423,6 +554,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Unassign a ticket
+         * @description Requires permission `tickets.assign`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.unassign"];
         delete?: never;
         options?: never;
@@ -440,10 +575,15 @@ export interface paths {
         /**
          * List contacts
          * @description Archived contacts are hidden unless `filter[archived]` is `true` or `all`.
+         *
+         *     Requires permission `contacts.view`. Open to API clients with scope `contacts:read`.
          */
         get: operations["contacts.index"];
         put?: never;
-        /** Create a contact */
+        /**
+         * Create a contact
+         * @description Requires permission `contacts.manage`. Open to API clients with scope `contacts:write`.
+         */
         post: operations["contacts.store"];
         delete?: never;
         options?: never;
@@ -461,6 +601,8 @@ export interface paths {
         /**
          * Find contacts as you type
          * @description Fuzzy match on name and email (trigram similarity), best matches first, at most 10.
+         *
+         *     Requires permission `contacts.view`. Open to API clients with scope `contacts:read`.
          */
         get: operations["contacts.typeahead"];
         put?: never;
@@ -478,14 +620,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Show a contact */
+        /**
+         * Show a contact
+         * @description Requires permission `contacts.view`. Open to API clients with scope `contacts:read`.
+         */
         get: operations["contacts.show"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Update a contact */
+        /**
+         * Update a contact
+         * @description Requires permission `contacts.manage`. Open to API clients with scope `contacts:write`.
+         */
         patch: operations["contacts.update"];
         trace?: never;
     };
@@ -498,7 +646,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Archive a contact. Archived contacts leave the default list but keep their tickets */
+        /**
+         * Archive a contact
+         * @description Archived contacts leave the default list but keep their tickets.
+         *
+         *     Requires permission `contacts.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["contacts.archive"];
         delete?: never;
         options?: never;
@@ -515,7 +668,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Restore an archived contact */
+        /**
+         * Restore an archived contact
+         * @description Requires permission `contacts.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["contacts.unarchive"];
         delete?: never;
         options?: never;
@@ -530,10 +686,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List organisations */
+        /**
+         * List organisations
+         * @description Requires permission `contacts.view`. Open to API clients with scope `contacts:read`.
+         */
         get: operations["organizations.index"];
         put?: never;
-        /** Create an organisation */
+        /**
+         * Create an organisation
+         * @description Requires permission `contacts.manage`. Open to API clients with scope `contacts:write`.
+         */
         post: operations["organizations.store"];
         delete?: never;
         options?: never;
@@ -548,14 +710,22 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Show an organisation */
+        /**
+         * Show an organisation
+         * @description Requires permission `contacts.view`. Open to API clients with scope `contacts:read`.
+         */
         get: operations["organizations.show"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Update an organisation. Changing the tier affects the priority of new tickets */
+        /**
+         * Update an organisation
+         * @description Changing the tier affects the priority of new tickets.
+         *
+         *     Requires permission `contacts.manage`. Open to API clients with scope `contacts:write`.
+         */
         patch: operations["organizations.update"];
         trace?: never;
     };
@@ -566,7 +736,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Newest change first, 50 a page */
+        /**
+         * Newest change first, 50 a page
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["history.index"];
         put?: never;
         post?: never;
@@ -584,8 +757,11 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * The record's recorded attributes at an instant, and which of them differ from now. `exists` is
-         *     false for an instant before the record was created (or after it was deleted)
+         * Get a record as of an instant
+         * @description The record's recorded attributes at an instant, and which of them differ from now. `exists` is
+         *     false for an instant before the record was created (or after it was deleted).
+         *
+         *     Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         get: operations["history.as-of"];
         put?: never;
@@ -605,6 +781,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Start an upload
+         * @description Requires permission `media.upload`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["media.intent"];
         delete?: never;
         options?: never;
@@ -619,8 +799,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List media folders
+         * @description Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["media.folders.index"];
         put?: never;
+        /**
+         * Create a media folder
+         * @description Requires permission `media.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["media.folders.store"];
         delete?: never;
         options?: never;
@@ -638,9 +826,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * Delete a media folder
+         * @description Requires permission `media.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["media.folders.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Rename or move a media folder
+         * @description Requires permission `media.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["media.folders.update"];
         trace?: never;
     };
@@ -651,6 +847,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List media items
+         * @description Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["media.index"];
         put?: never;
         post?: never;
@@ -667,6 +867,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get storage usage
+         * @description Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["media.usage"];
         put?: never;
         post?: never;
@@ -685,6 +889,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Complete an upload
+         * @description Requires permission `media.upload`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["media.complete"];
         delete?: never;
         options?: never;
@@ -699,12 +907,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a media item
+         * @description Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["media.show"];
         put?: never;
         post?: never;
+        /**
+         * Delete a media item permanently
+         * @description Requires permission `media.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["media.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Update a media item
+         * @description Requires permission `media.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["media.update"];
         trace?: never;
     };
@@ -715,6 +935,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Download a media item
+         * @description Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["media.download"];
         put?: never;
         post?: never;
@@ -731,6 +955,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Download a variant of a media item
+         * @description Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["media.variant"];
         put?: never;
         post?: never;
@@ -749,6 +977,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Move a media item to the trash
+         * @description Requires permission `media.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["media.trash"];
         delete?: never;
         options?: never;
@@ -765,6 +997,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Restore a media item from the trash
+         * @description Requires permission `media.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["media.restore"];
         delete?: never;
         options?: never;
@@ -779,7 +1015,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Unread first, then newest first */
+        /**
+         * Unread first, then newest first
+         * @description SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["notifications.index"];
         put?: never;
         post?: never;
@@ -798,6 +1037,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Mark every notification read
+         * @description SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["notifications.read-all"];
         delete?: never;
         options?: never;
@@ -814,6 +1057,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Mark a notification read
+         * @description SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["notifications.read"];
         delete?: never;
         options?: never;
@@ -828,6 +1075,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get the dashboard
+         * @description Requires permission `reports.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["dashboard"];
         put?: never;
         post?: never;
@@ -844,7 +1095,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The reports the caller may run */
+        /**
+         * The reports the caller may run
+         * @description Requires permission `reports.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["reports.index"];
         put?: never;
         post?: never;
@@ -861,6 +1115,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a report definition
+         * @description Requires permission `reports.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["reports.show"];
         put?: never;
         post?: never;
@@ -879,7 +1137,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Rows per value of the chosen dimension, totals, and the previous period's totals */
+        /**
+         * Run a report
+         * @description Rows per value of the chosen dimension, totals, and the previous period's totals.
+         *
+         *     Requires permission `reports.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["reports.run"];
         delete?: never;
         options?: never;
@@ -894,7 +1157,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The records behind one number: `key` is the dimension value of the row (omit it for the totals) */
+        /**
+         * List the records behind a report number
+         * @description The records behind one number: `key` is the dimension value of the row (omit it for the totals).
+         *
+         *     Requires permission `reports.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["reports.records"];
         put?: never;
         post?: never;
@@ -917,6 +1185,8 @@ export interface paths {
          * Export a report
          * @description Queues a CSV or XLSX file of the report's data table: one row per group, the measures asked
          *     for and a `Total` row. The period is fixed when the export is requested.
+         *
+         *     Requires permission `reports.export` or `reports.view`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         post: operations["reports.exports.store"];
         delete?: never;
@@ -939,6 +1209,8 @@ export interface paths {
          * @description Queues a CSV or XLSX file of the ticket list with the filters, search and sort of
          *     `GET /v1/tickets` (in the body), one ticket per row. At most 50 000 tickets: a larger list
          *     answers 422 on `filter`.
+         *
+         *     Requires permission `reports.export` or `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         post: operations["exports.tickets"];
         delete?: never;
@@ -958,6 +1230,8 @@ export interface paths {
          * Show one of my exports
          * @description Only the requester sees an export; anyone else gets 404. When `state` is `ready`,
          *     `download_url` points at the Media download route.
+         *
+         *     Requires permission `reports.export`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         get: operations["exports.show"];
         put?: never;
@@ -975,6 +1249,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a ticket overview
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["tickets.overview"];
         put?: never;
         post?: never;
@@ -991,6 +1269,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a contact overview
+         * @description Requires permission `contacts.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["contacts.overview"];
         put?: never;
         post?: never;
@@ -1007,6 +1289,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get an organisation overview
+         * @description Requires permission `contacts.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["organizations.overview"];
         put?: never;
         post?: never;
@@ -1023,6 +1309,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get an agent overview
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["agents.overview"];
         put?: never;
         post?: never;
@@ -1039,6 +1329,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a team overview
+         * @description Requires permission `agents.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["teams.overview"];
         put?: never;
         post?: never;
@@ -1055,6 +1349,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a category overview
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["categories.overview"];
         put?: never;
         post?: never;
@@ -1071,7 +1369,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The permission catalogue, grouped by resource */
+        /**
+         * The permission catalogue, grouped by resource
+         * @description Keys are resources, values their actions; a permission is `<resource>.<action>`, for example `tickets.assign`.
+         *
+         *     Requires permission `roles.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["permissions.index"];
         put?: never;
         post?: never;
@@ -1088,10 +1391,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the roles available in this workspace */
+        /**
+         * List the roles available in this workspace
+         * @description Requires permission `roles.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["roles.index"];
         put?: never;
-        /** Create a custom role */
+        /**
+         * Create a custom role
+         * @description Requires permission `roles.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["roles.store"];
         delete?: never;
         options?: never;
@@ -1110,13 +1419,19 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete a custom role. 409 `in_use` (`meta.users`) while users hold it: deleting it would silently
-         *     take their permissions away
+         * Delete a custom role
+         * @description 409 `in_use` (`meta.users`) while users hold it: deleting it would silently
+         *     take their permissions away.
+         *
+         *     Requires permission `roles.manage`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         delete: operations["roles.destroy"];
         options?: never;
         head?: never;
-        /** Change a custom role's name or permissions */
+        /**
+         * Change a custom role's name or permissions
+         * @description Requires permission `roles.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["roles.update"];
         trace?: never;
     };
@@ -1127,8 +1442,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List business calendars
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["calendar.index"];
         put?: never;
+        /**
+         * Create a business calendar
+         * @description Requires permission `calendars.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["calendar.store"];
         delete?: never;
         options?: never;
@@ -1143,12 +1466,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a business calendar
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["calendar.show"];
         put?: never;
         post?: never;
+        /**
+         * Delete a business calendar
+         * @description Requires permission `calendars.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["calendar.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Update a business calendar
+         * @description Requires permission `calendars.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["calendar.update"];
         trace?: never;
     };
@@ -1161,6 +1496,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Add a holiday to a calendar
+         * @description Requires permission `calendars.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["calendarHoliday.store"];
         delete?: never;
         options?: never;
@@ -1178,6 +1517,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * Remove a holiday from a calendar
+         * @description Requires permission `calendars.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["calendarHoliday.destroy"];
         options?: never;
         head?: never;
@@ -1191,8 +1534,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List SLA policies
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["slaPolicy.index"];
         put?: never;
+        /**
+         * Create an SLA policy
+         * @description Requires permission `sla.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["slaPolicy.store"];
         delete?: never;
         options?: never;
@@ -1207,12 +1558,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get an SLA policy
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["slaPolicy.show"];
         put?: never;
         post?: never;
+        /**
+         * Delete an SLA policy
+         * @description Requires permission `sla.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["slaPolicy.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Update an SLA policy
+         * @description Requires permission `sla.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["slaPolicy.update"];
         trace?: never;
     };
@@ -1223,6 +1586,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List a ticket's SLA timers
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["ticketSla.show"];
         put?: never;
         post?: never;
@@ -1239,7 +1606,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every section with its effective values */
+        /**
+         * Every section with its effective values
+         * @description Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["settings.index"];
         put?: never;
         post?: never;
@@ -1256,6 +1626,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * One section with its effective values and defaults
+         * @description Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["settings.show"];
         put?: never;
         post?: never;
@@ -1263,9 +1637,12 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Partial update: submitted keys are merged into the section, the result is validated as a whole.
+         * Update a settings section
+         * @description Partial update: submitted keys are merged into the section, the result is validated as a whole.
          *     422 `validation_failed` for malformed values, 422 `settings_invalid` for values that do not fit
-         *     together (weights that do not sum to 1); both carry `errors` per field
+         *     together (weights that do not sum to 1); both carry `errors` per field.
+         *
+         *     Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         patch: operations["settings.update"];
         trace?: never;
@@ -1277,10 +1654,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List tags, optionally matching a search term (for the tag picker) */
+        /**
+         * List tags, optionally matching a search term (for the tag picker)
+         * @description Requires permission `tickets.view`. Open to API clients with scope `tickets:read`.
+         */
         get: operations["tags.index"];
         put?: never;
-        /** Create a tag */
+        /**
+         * Create a tag
+         * @description Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tags.store"];
         delete?: never;
         options?: never;
@@ -1298,7 +1681,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete a tag and remove it from everything it labels */
+        /**
+         * Delete a tag and remove it from everything it labels
+         * @description Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["tags.destroy"];
         options?: never;
         head?: never;
@@ -1315,9 +1701,12 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Assigns up to 100 tickets, each in its own transaction with the rules of the single endpoints:
+         * Assign up to 100 tickets
+         * @description Assigns up to 100 tickets, each in its own transaction with the rules of the single endpoints:
          *     one Agent or Team for all, or `auto: true` to run the assigner per ticket (a ticket nobody is
-         *     eligible for is a row with `no_eligible_agent`)
+         *     eligible for is a row with `no_eligible_agent`).
+         *
+         *     Requires permission `tickets.assign`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         post: operations["tickets.bulk.assign"];
         delete?: never;
@@ -1335,6 +1724,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Find possible duplicates of a draft ticket
+         * @description Requires permission `tickets.create`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.duplicates.preview"];
         delete?: never;
         options?: never;
@@ -1349,6 +1742,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List a ticket's duplicate suggestions
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["tickets.duplicates.index"];
         put?: never;
         post?: never;
@@ -1367,6 +1764,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Mark a ticket as a duplicate
+         * @description Requires permission `tickets.update` or `tickets.close`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.duplicates.mark"];
         delete?: never;
         options?: never;
@@ -1383,6 +1784,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Dismiss a duplicate suggestion
+         * @description Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.duplicates.dismiss"];
         delete?: never;
         options?: never;
@@ -1400,9 +1805,12 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Moves up to 100 tickets to one status. Each ticket is its own transaction with the same rules
+         * Transition up to 100 tickets
+         * @description Moves up to 100 tickets to one status. Each ticket is its own transaction with the same rules
          *     as `POST /tickets/{id}/transition`; the answer lists the outcome per ticket, so a partial failure
-         *     is a 200 with some rows `ok: false`
+         *     is a 200 with some rows `ok: false`.
+         *
+         *     Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         post: operations["tickets.bulk.transition"];
         delete?: never;
@@ -1422,6 +1830,8 @@ export interface paths {
          * List tickets
          * @description Filters combine with AND; comma-separated values within one filter combine with OR.
          *     `search` matches words (full text, stemmed), the ticket number, and short title fragments.
+         *
+         *     Requires permission `tickets.view`. Open to API clients with scope `tickets:read`.
          */
         get: operations["tickets.index"];
         put?: never;
@@ -1429,6 +1839,8 @@ export interface paths {
          * Create a ticket
          * @description The ticket gets the next number of the workspace and starts `open`. API clients may send an
          *     `Idempotency-Key` header: a repeat within 24 hours returns the first response.
+         *
+         *     Requires permission `tickets.create`. Open to API clients with scope `tickets:write`.
          */
         post: operations["tickets.store"];
         delete?: never;
@@ -1444,14 +1856,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Show a ticket with its contact, organisation, category and tags */
+        /**
+         * Show a ticket with its contact, organisation, category and tags
+         * @description Requires permission `tickets.view`. Open to API clients with scope `tickets:read`.
+         */
         get: operations["tickets.show"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Edit the ticket fields that do not have their own guarded action */
+        /**
+         * Edit the ticket fields that do not have their own guarded action
+         * @description Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["tickets.update"];
         trace?: never;
     };
@@ -1464,7 +1882,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Move a ticket across a lifecycle edge. Assignment and duplicate edges have dedicated actions */
+        /**
+         * Transition a ticket
+         * @description Move a ticket across a lifecycle edge. Assignment and duplicate edges have dedicated actions.
+         *
+         *     Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.transition"];
         delete?: never;
         options?: never;
@@ -1479,7 +1902,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The ticket's history, newest first (cursor pagination) */
+        /**
+         * The ticket's history, newest first (cursor pagination)
+         * @description Requires permission `tickets.view`. Open to API clients with scope `tickets:read`.
+         */
         get: operations["tickets.history"];
         put?: never;
         post?: never;
@@ -1496,8 +1922,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List a ticket's comments
+         * @description Requires permission `tickets.view`. Open to API clients with scope `tickets:read`.
+         */
         get: operations["tickets.comments.index"];
         put?: never;
+        /**
+         * Add a comment to a ticket
+         * @description Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.comments.store"];
         delete?: never;
         options?: never;
@@ -1512,8 +1946,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List a ticket's attachments
+         * @description Requires permission `tickets.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["tickets.attachments.index"];
         put?: never;
+        /**
+         * Attach media items to a ticket
+         * @description Requires permission `tickets.update` or `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["tickets.attachments.store"];
         delete?: never;
         options?: never;
@@ -1531,6 +1973,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * Detach a media item from a ticket
+         * @description Requires permission `tickets.update`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["tickets.attachments.destroy"];
         options?: never;
         head?: never;
@@ -1544,9 +1990,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the workspace's active categories, in display order */
+        /**
+         * List the workspace's active categories, in display order
+         * @description Requires permission `tickets.view`. Open to API clients with scope `tickets:read`.
+         */
         get: operations["categories.index"];
         put?: never;
+        /**
+         * Create a category
+         * @description Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["categories.store"];
         delete?: never;
         options?: never;
@@ -1564,9 +2017,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * Delete a category
+         * @description Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         delete: operations["categories.destroy"];
         options?: never;
         head?: never;
+        /**
+         * Update a category
+         * @description Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         patch: operations["categories.update"];
         trace?: never;
     };
@@ -1577,6 +2038,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * List workspace users
+         * @description Requires permission `users.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["users.index"];
         put?: never;
         post?: never;
@@ -1595,7 +2060,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Creates the user and mails a 48-hour invitation; the roles apply once it is accepted */
+        /**
+         * Invite a user
+         * @description Creates the user and mails a 48-hour invitation; the roles apply once it is accepted.
+         *
+         *     Requires permission `users.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["users.invite"];
         delete?: never;
         options?: never;
@@ -1610,6 +2080,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a workspace user
+         * @description Requires permission `users.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         get: operations["users.show"];
         put?: never;
         post?: never;
@@ -1617,8 +2091,11 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Name and roles. 403 `forbidden` (`meta.roles`) for a role beyond the actor's reach; 422 `last_owner`
-         *     when the last active owner would lose the role
+         * Update a user
+         * @description Name and roles. 403 `forbidden` (`meta.roles`) for a role beyond the actor's reach; 422 `last_owner`
+         *     when the last active owner would lose the role.
+         *
+         *     Requires permission `users.manage`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         patch: operations["users.update"];
         trace?: never;
@@ -1632,7 +2109,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** A new invitation link; the previous one stops working. 409 `conflict` once accepted */
+        /**
+         * Resend an invitation
+         * @description A new invitation link; the previous one stops working. 409 `conflict` once accepted.
+         *
+         *     Requires permission `users.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["users.invitation.resend"];
         delete?: never;
         options?: never;
@@ -1649,7 +2131,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 409 `conflict` (`self`) for the own account; 422 `last_owner` for the last active owner */
+        /**
+         * Disable a user
+         * @description 409 `conflict` (`self`) for the own account; 422 `last_owner` for the last active owner.
+         *
+         *     Requires permission `users.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["users.disable"];
         delete?: never;
         options?: never;
@@ -1666,6 +2153,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Enable a user
+         * @description Requires permission `users.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
         post: operations["users.enable"];
         delete?: never;
         options?: never;
@@ -1680,10 +2171,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the workspace's webhook subscriptions, newest first */
+        /**
+         * List the workspace's webhook subscriptions, newest first
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         get: operations["webhooks.index"];
         put?: never;
-        /** Create a subscription. The response carries `secret`, which is shown only this once */
+        /**
+         * Create a webhook subscription
+         * @description Create a subscription. The response carries `secret`, which is shown only this once.
+         *
+         *     Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         post: operations["webhooks.store"];
         delete?: never;
         options?: never;
@@ -1698,7 +2197,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The event catalogue a subscription can listen to */
+        /**
+         * The event catalogue a subscription can listen to
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         get: operations["webhooks.events"];
         put?: never;
         post?: never;
@@ -1715,14 +2217,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Get a webhook subscription
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         get: operations["webhooks.show"];
         put?: never;
         post?: never;
-        /** Delete a subscription and its delivery log */
+        /**
+         * Delete a subscription and its delivery log
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         delete: operations["webhooks.destroy"];
         options?: never;
         head?: never;
-        /** Edit the name, URL or events of a subscription */
+        /**
+         * Edit the name, URL or events of a subscription
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         patch: operations["webhooks.update"];
         trace?: never;
     };
@@ -1735,6 +2247,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Enable a webhook subscription
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         post: operations["webhooks.enable"];
         delete?: never;
         options?: never;
@@ -1751,6 +2267,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Disable a webhook subscription
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         post: operations["webhooks.disable"];
         delete?: never;
         options?: never;
@@ -1768,8 +2288,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Replace the signing secret. The response carries the new `secret` once; the old one keeps
-         *     signing (as a second `v1=` entry) for 24 hours
+         * Rotate the signing secret
+         * @description Replace the signing secret. The response carries the new `secret` once; the old one keeps
+         *     signing (as a second `v1=` entry) for 24 hours.
+         *
+         *     Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
          */
         post: operations["webhooks.rotate-secret"];
         delete?: never;
@@ -1788,8 +2311,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Queue a `ping` delivery to the subscription (also when it is disabled). Answers 202 with the
-         *     delivery; follow it in the delivery log
+         * Send a test delivery
+         * @description Queue a `ping` delivery to the subscription (also when it is disabled). Answers 202 with the
+         *     delivery; follow it in the delivery log.
+         *
+         *     Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
          */
         post: operations["webhooks.test"];
         delete?: never;
@@ -1805,7 +2331,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The subscription's delivery log, newest first (cursor pagination) */
+        /**
+         * The subscription's delivery log, newest first (cursor pagination)
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         get: operations["webhooks.deliveries"];
         put?: never;
         post?: never;
@@ -1822,7 +2351,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One delivery with the envelope that is sent */
+        /**
+         * One delivery with the envelope that is sent
+         * @description Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         get: operations["webhook-deliveries.show"];
         put?: never;
         post?: never;
@@ -1841,7 +2373,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Retry a failed or dead delivery now, with a fresh retry schedule (at most five manual retries) */
+        /**
+         * Retry a delivery
+         * @description Retry a failed or dead delivery now, with a fresh retry schedule (at most five manual retries).
+         *
+         *     Requires permission `integrations.manage`. Open to API clients with scope `webhooks:manage`.
+         */
         post: operations["webhook-deliveries.retry"];
         delete?: never;
         options?: never;
@@ -1869,16 +2406,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/agents/{agent}/shifts": {
+    "/oauth/token": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["agents.shifts.index"];
-        put: operations["agents.shifts.update"];
-        post?: never;
+        get?: never;
+        put?: never;
+        /**
+         * Request an access token
+         * @description OAuth 2.0 client-credentials grant for API clients (docs/07-api/authentication.md §3). Tokens are bound to the client's workspace, last one hour and are not refreshed: request a new one. Rate limited to 10 requests a minute per client. Errors are problem details that also carry the RFC 6749 `error` member.
+         */
+        post: operations["oauth.token"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1910,17 +2451,26 @@ export interface components {
          * @enum {string}
          */
         AgentAvailability: "available" | "away" | "offline";
-        /** AgentCandidateResource */
+        /**
+         * AgentCandidateResource
+         * @description One agent in an assignment preview: rank, load and capacity, as the AssignmentStrategy saw them.
+         */
         AgentCandidateResource: {
+            /** Format: uuid */
             agent_id: string;
             agent_name: string | null;
             open_tickets: number;
             capacity: number;
             load: number;
+            /** Format: date-time */
             last_assigned_at: string | null;
         };
-        /** AgentResource */
+        /**
+         * AgentResource
+         * @description An Agent: the agent profile of a workspace user, with skills, teams, capacity and availability.
+         */
         AgentResource: {
+            /** Format: uuid */
             id: string;
             user: {
                 id: string;
@@ -1931,6 +2481,7 @@ export interface components {
             capacity: number;
             availability: components["schemas"]["AgentAvailability"];
             active_ticket_count: number;
+            /** Format: date-time */
             last_assigned_at: string | null;
             skills: {
                 id: string;
@@ -1943,32 +2494,50 @@ export interface components {
                 name: string;
             }[];
         };
-        /** AgentSessionResource */
+        /**
+         * AgentSessionResource
+         * @description The agent profile of the signed-in user, as `/me` embeds it.
+         */
         AgentSessionResource: {
+            /** Format: uuid */
             id: string;
             capacity: number;
             availability: components["schemas"]["AgentAvailability"];
             active_ticket_count: number;
         };
-        /** AgentShiftResource */
+        /**
+         * AgentShiftResource
+         * @description One Shift of an agent: a weekly slot (`weekday`) or a dated exception (`date`), in the workspace time zone.
+         */
         AgentShiftResource: {
+            /** Format: uuid */
             id: string;
             weekday: number | null;
             date: string | null;
+            /** Format: date-time */
             starts_at: string;
+            /** Format: date-time */
             ends_at: string;
             is_off: boolean;
         };
-        /** AgentSummaryResource */
+        /**
+         * AgentSummaryResource
+         * @description An agent as a team member: name, availability and capacity.
+         */
         AgentSummaryResource: {
+            /** Format: uuid */
             id: string;
+            /** Format: uuid */
             user_id: string;
             name: string;
             email: string;
             availability: components["schemas"]["AgentAvailability"];
             capacity: number;
         };
-        /** AgentWorkloadResource */
+        /**
+         * AgentWorkloadResource
+         * @description Live workload of one Agent (`Contracts\DirectoryUsage::workload()`).
+         */
         AgentWorkloadResource: {
             active_ticket_count: number;
             capacity: number;
@@ -1980,25 +2549,39 @@ export interface components {
                 P4: number;
             };
         };
-        /** ApiClientResource */
+        /**
+         * ApiClientResource
+         * @description An API client as Settings → Developer lists it. The secret is never part of this shape.
+         */
         ApiClientResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             scopes: string[];
             revoked: boolean;
+            /** Format: date-time */
             revoked_at: string | null;
+            /** Format: date-time */
             last_used_at: string | null;
+            /** Format: date-time */
             created_at: string;
         };
-        /** ApiScopeResource */
+        /**
+         * ApiScopeResource
+         * @description One scope an API client can be given, with the permissions it grants.
+         */
         ApiScopeResource: {
             scope: string;
             description: string;
             permissions: string[];
         };
-        /** AsOfResource */
+        /**
+         * AsOfResource
+         * @description `exists` is false before the record was created or after it was deleted; `differences` lists the recorded attributes whose value then differs from now.
+         */
         AsOfResource: {
             entity_type: string;
+            /** Format: uuid */
             entity_id: string;
             at: string;
             exists: boolean;
@@ -2024,33 +2607,68 @@ export interface components {
             /** Format: uuid */
             team_id?: string | null;
         };
-        /** AssignedTicketResource */
+        /**
+         * AssignedTicketResource
+         * @description Answer of `/assign` and `/auto-assign`: the ticket as everywhere else, plus the assignment that was just recorded with its ranking explanation (docs/07-api/conventions.md).
+         */
         AssignedTicketResource: {
+            /** Format: uuid */
             id: string;
+            /**
+             * @description Human-facing ticket number, sequential per workspace.
+             * @example 1042
+             */
             number: number;
+            /** @example Cannot sign in after password reset */
             title: string;
             description: string;
             status: components["schemas"]["TicketStatus"];
+            /**
+             * @description Impact: 1 single user, 2 team, 3 department, 4 whole organisation.
+             * @example 2
+             */
             impact: number;
+            /**
+             * @description Urgency: 1 low, 2 medium, 3 high, 4 immediate.
+             * @example 3
+             */
             urgency: number;
+            /**
+             * @description Score 0–100 from the PriorityStrategy.
+             * @example 71.5
+             */
             priority_score: number;
+            /** @description Effective priority: the manual override when set, otherwise the computed level. */
             priority_level: components["schemas"]["Priority"];
             priority_computed_level: components["schemas"]["Priority"];
             priority_overridden: boolean;
+            /** @description The strategy's explanation: strategy name and version, factors, weights and contributions. */
             priority_explanation: {
                 [key: string]: unknown;
             };
             priority_override_reason: string | null;
+            /** @description Statuses the caller may move this ticket to now (state machine and permissions). */
             allowed_transitions: components["schemas"]["TicketStatus"][];
+            /** Format: uuid */
             contact_id: string;
+            /** Format: uuid */
             organization_id: string | null;
+            /** Format: uuid */
             category_id: string;
+            /** Format: uuid */
             team_id: string | null;
+            /** Format: uuid */
             assigned_agent_id: string | null;
+            /** Format: uuid */
             duplicate_of_id: string | null;
-            created_via: string;
+            /**
+             * @description Channel that created the ticket.
+             * @enum {string}
+             */
+            created_via: "ui" | "api" | "seed";
             /** @enum {string|null} */
             sla_state?: "running" | "warning" | "breached" | "paused" | "met" | "cancelled" | null;
+            /** Format: date-time */
             sla_due_at?: string | null;
             contact?: {
                 id: string;
@@ -2067,17 +2685,26 @@ export interface components {
                 name: string;
             };
             tags?: components["schemas"]["TagResource"][];
+            /** Format: date-time */
             resolved_at: string | null;
+            /** Format: date-time */
             closed_at: string | null;
+            /** Format: date-time */
             created_at: string;
+            /** Format: date-time */
             updated_at: string;
             assignment: components["schemas"]["TicketAssignmentResource"];
         };
-        /** AssignmentPreviewResource */
+        /**
+         * AssignmentPreviewResource
+         * @description What the AssignmentStrategy would do for a ticket now: the chosen agent, the ranking and the excluded agents with reasons; nothing is saved.
+         */
         AssignmentPreviewResource: {
             strategy: string;
             strategy_version: string;
+            /** Format: uuid */
             ticket_id: string;
+            /** Format: uuid */
             agent_id: string | null;
             outcome: string;
             ranking: components["schemas"]["AgentCandidateResource"][];
@@ -2087,8 +2714,12 @@ export interface components {
                 missing_skills?: string[];
             }[];
         };
-        /** AvailableUserResource */
+        /**
+         * AvailableUserResource
+         * @description A workspace user who has no agent profile yet and can be made an Agent.
+         */
         AvailableUserResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             email: string;
@@ -2106,8 +2737,12 @@ export interface components {
             /** Format: uuid */
             team_id?: string | null;
         };
-        /** BulkRowResource */
+        /**
+         * BulkRowResource
+         * @description One row of a bulk answer: `ok`, and on failure the problem `code` and `detail` of that ticket.
+         */
         BulkRowResource: {
+            /** Format: uuid */
             ticket_id: string;
             ok: boolean;
             code: string | null;
@@ -2125,11 +2760,27 @@ export interface components {
             status: components["schemas"]["TicketStatus"];
             comment?: string | null;
         };
-        /** BusinessCalendarResource */
+        /**
+         * BusinessCalendarResource
+         * @description A Business calendar: weekly working hours and holidays that SLA timers count in.
+         */
         BusinessCalendarResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             timezone: string;
+            /**
+             * @description Working hours per weekday (`mon`–`sun`) as `[start, end]` pairs in the calendar's time zone.
+             * @example {
+             *       "mon": [
+             *         [
+             *           "09:00",
+             *           "17:00"
+             *         ]
+             *       ],
+             *       "sat": []
+             *     }
+             */
             weekly_hours: {
                 [key: string]: [
                     string,
@@ -2139,16 +2790,24 @@ export interface components {
             is_default: boolean;
             holidays: components["schemas"]["CalendarHolidayResource"][];
         };
-        /** CalendarHolidayResource */
+        /**
+         * CalendarHolidayResource
+         * @description A non-working day of a business calendar.
+         */
         CalendarHolidayResource: {
+            /** Format: uuid */
             id: string;
             /** Format: date */
             date: string;
             name: string;
             recurs_yearly: boolean;
         };
-        /** CategoryResource */
+        /**
+         * CategoryResource
+         * @description A ticket Category; the default team and required skills feed assignment.
+         */
         CategoryResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             default_team: {
@@ -2175,11 +2834,21 @@ export interface components {
             external_ids?: string[];
             metadata?: string[];
         };
-        /** ContactResource */
+        /**
+         * ContactResource
+         * @description A contact with its organisation summary and tags. Both are always loaded by the list and item endpoints, because every contact view shows them.
+         */
         ContactResource: {
+            /** Format: uuid */
             id: string;
+            /** @example Maya Gurung */
             name: string;
+            /**
+             * @description Unique per workspace, compared case-insensitively.
+             * @example maya@globex.test
+             */
             email: string;
+            /** @example +977 1 5550123 */
             phone: string | null;
             organization: {
                 id: string;
@@ -2187,17 +2856,33 @@ export interface components {
                 tier: components["schemas"]["OrganizationTier"];
             } | null;
             tags: components["schemas"]["TagResource"][];
+            /**
+             * @description Identifiers of this contact in other systems, keyed by system.
+             * @example {
+             *       "crm": "C-2231"
+             *     }
+             */
             external_ids: {
                 [key: string]: unknown;
             };
+            /** @description Free-form attributes set by integrations. */
             metadata: {
                 [key: string]: unknown;
             };
+            /**
+             * Format: date-time
+             * @description When the contact's latest ticket was created.
+             */
             last_ticket_at: string | null;
+            /** Format: date-time */
             archived_at: string | null;
+            /** Format: date-time */
             created_at: string;
         };
-        /** DashboardResource */
+        /**
+         * DashboardResource
+         * @description KPI tiles (value of the period and of the previous period, null when suppressed below five records) and chart series. Each tile and series names the catalogue report and parameters it came from.
+         */
         DashboardResource: {
             period: string;
             from: string;
@@ -2244,25 +2929,38 @@ export interface components {
          * @enum {string}
          */
         DeliveryState: "pending" | "succeeded" | "failed" | "dead";
-        /** DuplicatePreviewMatchResource */
+        /**
+         * DuplicatePreviewMatchResource
+         * @description One possible duplicate found while a ticket is being written.
+         */
         DuplicatePreviewMatchResource: {
+            /** Format: uuid */
             ticket_id: string;
             number: number;
             title: string;
             score: number;
             shared_words: string[];
         };
-        /** DuplicatePreviewResource */
+        /**
+         * DuplicatePreviewResource
+         * @description Possible duplicates of a ticket that is not saved yet, with the strategy name and version.
+         */
         DuplicatePreviewResource: {
             strategy: string;
             strategy_version: string;
             candidates_compared: number;
             matches: components["schemas"]["DuplicatePreviewMatchResource"][];
         };
-        /** DuplicateSuggestionResource */
+        /**
+         * DuplicateSuggestionResource
+         * @description A stored duplicate suggestion for a ticket and the decision taken on it.
+         */
         DuplicateSuggestionResource: {
+            /** Format: uuid */
             id: string;
+            /** Format: uuid */
             ticket_id: string;
+            /** Format: uuid */
             candidate_ticket_id: string;
             candidate: {
                 number: number;
@@ -2270,15 +2968,26 @@ export interface components {
                 status: components["schemas"]["TicketStatus"];
             };
             score: number;
-            shared_words: unknown[];
-            strategy: unknown;
-            strategy_version: unknown;
+            /** @description Words both tickets share, as the strategy counted them. */
+            shared_words: string[];
+            /**
+             * @description Strategy that produced the suggestion; `manual` for a duplicate marked by hand.
+             * @example jaccard_duplicates
+             */
+            strategy: string;
+            strategy_version: string | null;
             decision: string;
+            /** Format: date-time */
             decided_at: string | null;
+            /** Format: date-time */
             created_at: string;
         };
-        /** EntityChangeResource */
+        /**
+         * EntityChangeResource
+         * @description One recorded change: version, operation, the changed attributes with old and new values, who and when.
+         */
         EntityChangeResource: {
+            /** Format: uuid */
             id: string;
             version: number;
             /** @enum {string} */
@@ -2290,12 +2999,18 @@ export interface components {
                 };
             };
             actor_type: string | null;
+            /** Format: uuid */
             actor_id: string | null;
+            /** Format: date-time */
             occurred_at: string;
         };
-        /** EntityOverviewResource */
+        /**
+         * EntityOverviewResource
+         * @description Key metrics, related records and trends of one record. The keys of `metrics`, `related` and `trends` depend on the entity (docs/04-domain/reporting.md §Entity 360).
+         */
         EntityOverviewResource: {
             entity: string;
+            /** Format: uuid */
             id: string;
             title: string;
             metrics: {
@@ -2357,7 +3072,10 @@ export interface components {
             /** Format: uuid */
             candidate_ticket_id: string;
         };
-        /** MeResource */
+        /**
+         * MeResource
+         * @description Everything the SPA needs after sign-in (docs/07-api/conventions.md).
+         */
         MeResource: {
             user: components["schemas"]["UserResource"];
             tenant: components["schemas"]["TenantResource"];
@@ -2366,9 +3084,14 @@ export interface components {
             /** @description Laravel's own relation on the user: Identity does not import the Notifications module. */
             unread_notifications: number;
         };
-        /** MediaFolderResource */
+        /**
+         * MediaFolderResource
+         * @description A folder of the media library.
+         */
         MediaFolderResource: {
+            /** Format: uuid */
             id: string;
+            /** Format: uuid */
             parent_id: string | null;
             name: string;
             system_key: string | null;
@@ -2377,9 +3100,14 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
-        /** MediaItemResource */
+        /**
+         * MediaItemResource
+         * @description A Media item: a stored file with its variants, where it is used and its state.
+         */
         MediaItemResource: {
+            /** Format: uuid */
             id: string;
+            /** Format: uuid */
             folder_id: string | null;
             name: string;
             mime_type: string;
@@ -2397,10 +3125,14 @@ export interface components {
                     height: number;
                 } | null;
             };
-            /** @description Why no variants will appear: `pixel_limit` or `failed`; null while pending or present. */
-            variants_skipped: unknown;
+            /**
+             * @description Why no variants will appear; null while pending or present.
+             * @enum {string|null}
+             */
+            variants_skipped: "pixel_limit" | "failed" | null;
             source: string;
             state: string;
+            /** Format: uuid */
             uploaded_by_user_id: string | null;
             used_in_count: number;
             used_in_tickets: components["schemas"]["MediaTicketUseResource"][];
@@ -2412,46 +3144,82 @@ export interface components {
             /** Format: date-time */
             created_at: string;
         };
-        /** MediaTagResource */
+        /**
+         * MediaTagResource
+         * @description A tag on a media item.
+         */
         MediaTagResource: {
             name: string;
             slug: string;
         };
-        /** MediaTicketUseResource */
+        /**
+         * MediaTicketUseResource
+         * @description A ticket a media item is attached to.
+         */
         MediaTicketUseResource: {
             number: number;
         };
-        /** MediaUsageResource */
+        /**
+         * MediaUsageResource
+         * @description Storage used by the workspace against its quota.
+         */
         MediaUsageResource: {
             used_bytes: number;
             quota_bytes: number;
             pending_bytes: number;
         };
-        /** NewApiClientResource */
+        /**
+         * NewApiClientResource
+         * @description The response to `POST /v1/api-clients`: the client plus its credentials. `client_secret` is shown this one time and cannot be read again.
+         */
         NewApiClientResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             scopes: string[];
             revoked: boolean;
+            /** Format: date-time */
             revoked_at: string | null;
+            /** Format: date-time */
             last_used_at: string | null;
+            /** Format: date-time */
             created_at: string;
+            /** Format: uuid */
             client_id: string;
             client_secret: string;
         };
-        /** NotificationResource */
+        /**
+         * NotificationResource
+         * @description An in-app notification of the signed-in user (bell menu). Ticket notifications name the ticket; `export_ready` names the export and its file.
+         */
         NotificationResource: {
+            /** Format: uuid */
             id: string;
-            kind: string;
-            /** @description Ticket notifications name the ticket; `export_ready` names the export and its file instead. */
+            /**
+             * @description What happened.
+             * @enum {string}
+             */
+            kind: "ticket_assigned" | "ticket_unassignable" | "ticket_escalated" | "public_reply" | "internal_note" | "sla_warning" | "sla_breached" | "export_ready";
+            /**
+             * Format: uuid
+             * @description Ticket notifications name the ticket; `export_ready` names the export and its file instead.
+             */
             ticket_id: string | null;
             ticket_number: number | null;
             ticket_title: string | null;
+            /** Format: uuid */
             export_id: string | null;
+            /** Format: uuid */
             media_id: string | null;
             file_name: string | null;
+            /**
+             * @description One line to show as is.
+             * @example Ticket #1042 was assigned to you
+             */
             summary: string;
+            /** Format: date-time */
             read_at: string | null;
+            /** Format: date-time */
             created_at: string;
         };
         /** OrganizationRequest */
@@ -2463,8 +3231,12 @@ export interface components {
             external_ids?: string[];
             metadata?: string[];
         };
-        /** OrganizationResource */
+        /**
+         * OrganizationResource
+         * @description An Organisation: the company contacts belong to; its tier feeds priority and SLA policy selection.
+         */
         OrganizationResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             domain: string | null;
@@ -2477,6 +3249,7 @@ export interface components {
             };
             contacts_count: number;
             tags: components["schemas"]["TagResource"][];
+            /** Format: date-time */
             created_at: string;
         };
         /**
@@ -2491,7 +3264,10 @@ export interface components {
             level: "P1" | "P2" | "P3" | "P4" | null;
             reason?: string | null;
         };
-        /** PingResource */
+        /**
+         * PingResource
+         * @description Liveness answer of `GET /v1/ping`. Wraps no model; the class exists so the OpenAPI document types the response.
+         */
         PingResource: {
             /** @constant */
             status: "ok";
@@ -2535,13 +3311,23 @@ export interface components {
          * @enum {string}
          */
         PriorityLevel: "P1" | "P2" | "P3" | "P4";
-        /** PriorityPreviewResource */
+        /**
+         * PriorityPreviewResource
+         * @description A PriorityStrategy result: score, level and the explanation (terms of the weighted sum) with the strategy name and version.
+         */
         PriorityPreviewResource: {
             strategy: string;
             strategy_version: string;
             score: number;
             level: components["schemas"]["PriorityLevel"];
-            parts: unknown[];
+            /** @description Terms of the weighted sum: scaled value (0–1), weight and contribution in score points. */
+            parts: {
+                name: string;
+                value: number;
+                weight: number;
+                contribution: number;
+            }[];
+            /** @description The priority settings the preview was computed with. */
             settings: {
                 [key: string]: unknown;
             };
@@ -2549,6 +3335,20 @@ export interface components {
         /**
          * ProblemDetails
          * @description RFC 9457 problem details.
+         * @example {
+         *       "type": "https://docs.shp.localhost/errors/validation_failed",
+         *       "title": "Validation failed",
+         *       "status": 422,
+         *       "detail": "The title field is required.",
+         *       "code": "validation_failed",
+         *       "instance": "/v1/tickets",
+         *       "request_id": "6f1c2d4e-8a3b-4c5d-9e7f-0a1b2c3d4e5f",
+         *       "errors": {
+         *         "title": [
+         *           "The title field is required."
+         *         ]
+         *       }
+         *     }
          */
         ProblemDetails: {
             /**
@@ -2592,7 +3392,10 @@ export interface components {
         ReplaceTeamMembersRequest: {
             agent_ids: string[];
         };
-        /** ReportDefinitionResource */
+        /**
+         * ReportDefinitionResource
+         * @description What a report accepts: its dimensions, measures (with units), filters, default group and chart.
+         */
         ReportDefinitionResource: {
             key: string;
             title: string;
@@ -2619,8 +3422,12 @@ export interface components {
                 labels: string | null;
             }[];
         };
-        /** ReportExportResource */
+        /**
+         * ReportExportResource
+         * @description An export and, once `ready`, where to download it. `download_url` is the Media download route, which checks access and redirects to a five-minute signed URL on each request.
+         */
         ReportExportResource: {
+            /** Format: uuid */
             id: string;
             /** @description A catalogue id (`rpt-t01`) or `tickets-list`. */
             report_key: string;
@@ -2631,22 +3438,32 @@ export interface components {
             row_count: number | null;
             /** @description Why a failed export failed: too_large, quota_exceeded, forbidden or failed. */
             error: string | null;
+            /** Format: uuid */
             media_id: string | null;
             file_name: string | null;
             size_bytes: number | null;
             download_url: string | null;
+            /** Format: date-time */
             created_at: string;
+            /** Format: date-time */
             finished_at: string | null;
         };
-        /** ReportRecordResource */
+        /**
+         * ReportRecordResource
+         * @description One record behind a report number (drill-down).
+         */
         ReportRecordResource: {
+            /** Format: uuid */
             id: string;
             entity: string;
             label: string;
             subtitle: string | null;
             status: string | null;
         };
-        /** ReportRunResource */
+        /**
+         * ReportRunResource
+         * @description Rows per value of the chosen dimension (`values` keyed by measure), totals over the period, the previous period's totals (null when not asked for or fewer than five records) and whether rows were cut.
+         */
         ReportRunResource: {
             report: string;
             parameters: {
@@ -2681,8 +3498,12 @@ export interface components {
             name: string;
             permissions: ("tickets.view" | "tickets.create" | "tickets.update" | "tickets.assign" | "tickets.resolve" | "tickets.close" | "tickets.reopen" | "tickets.delete" | "comments.internal" | "contacts.view" | "contacts.manage" | "agents.view" | "agents.manage" | "teams.manage" | "sla.manage" | "calendars.manage" | "shifts.manage" | "media.view" | "media.upload" | "media.manage" | "mail.manage" | "settings.manage" | "users.manage" | "roles.manage" | "integrations.manage" | "reports.view" | "reports.export" | "history.view" | "audit.view")[];
         };
-        /** RoleResource */
+        /**
+         * RoleResource
+         * @description A Role and its permissions; global default roles cannot be edited.
+         */
         RoleResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             is_global: boolean;
@@ -2710,34 +3531,13 @@ export interface components {
             name: string;
             timezone: string;
             weekly_hours: {
-                mon?: {
-                    0: string;
-                    1: string;
-                }[];
-                tue?: {
-                    0: string;
-                    1: string;
-                }[];
-                wed?: {
-                    0: string;
-                    1: string;
-                }[];
-                thu?: {
-                    0: string;
-                    1: string;
-                }[];
-                fri?: {
-                    0: string;
-                    1: string;
-                }[];
-                sat?: {
-                    0: string;
-                    1: string;
-                }[];
-                sun?: {
-                    0: string;
-                    1: string;
-                }[];
+                mon?: string[][];
+                tue?: string[][];
+                wed?: string[][];
+                thu?: string[][];
+                fri?: string[][];
+                sat?: string[][];
+                sun?: string[][];
             };
             is_default?: boolean;
         };
@@ -2789,7 +3589,10 @@ export interface components {
             name: string;
             description?: string | null;
         };
-        /** SettingsSectionResource */
+        /**
+         * SettingsSectionResource
+         * @description One settings section: effective values (defaults with the workspace overrides) and the code defaults, so a form can offer "reset to default".
+         */
         SettingsSectionResource: {
             section: string;
             version: number;
@@ -2800,25 +3603,37 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        /** SkillResource */
+        /**
+         * SkillResource
+         * @description A Skill agents have and categories can require.
+         */
         SkillResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             slug: string;
             description: string | null;
         };
-        /** SlaPolicyResource */
+        /**
+         * SlaPolicyResource
+         * @description An SLA policy: which tickets it matches, its calendar and the first-response and resolution targets per priority.
+         */
         SlaPolicyResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             is_default: boolean;
             applies_to_tier: components["schemas"]["OrganizationTier"] | null;
             warning_fraction: number;
+            /** Format: uuid */
             calendar_id: string | null;
             version: number;
             targets: components["schemas"]["SlaTargetResource"][];
         };
-        /** SlaTargetResource */
+        /**
+         * SlaTargetResource
+         * @description First-response and resolution targets of an SLA policy for one priority, in business-calendar minutes.
+         */
         SlaTargetResource: {
             priority_level: components["schemas"]["Priority"];
             first_response_minutes: number;
@@ -2892,22 +3707,34 @@ export interface components {
             name: string;
             color?: string | null;
         };
-        /** TagResource */
+        /**
+         * TagResource
+         * @description A tag on tickets, contacts and organisations.
+         */
         TagResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             slug: string;
             color: string | null;
         };
-        /** TeamResource */
+        /**
+         * TeamResource
+         * @description A Team of agents.
+         */
         TeamResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             description: string | null;
             members: components["schemas"]["AgentSummaryResource"][];
         };
-        /** TenantResource */
+        /**
+         * TenantResource
+         * @description The platform view of a workspace: more than tenant users see.
+         */
         TenantResource: {
+            /** Format: uuid */
             id: string;
             slug: string;
             name: string;
@@ -2925,26 +3752,50 @@ export interface components {
                 exports: boolean;
             };
         };
-        /** TicketAssignmentResource */
+        /**
+         * TicketAssignmentResource
+         * @description One row of the assignment history with the strategy's explanation (docs/05-algorithms/agent-assignment.md §Result).
+         */
         TicketAssignmentResource: {
+            /** Format: uuid */
             id: string;
             reason: string;
+            /** Format: uuid */
             team_id: string | null;
+            /** Format: uuid */
             agent_id: string | null;
+            /** Format: uuid */
             previous_agent_id: string | null;
+            /** Format: uuid */
             assigned_by_user_id: string | null;
             explanation: {
                 [key: string]: unknown;
             };
+            /** Format: date-time */
             created_at: string;
         };
-        /** TicketCommentResource */
+        /**
+         * TicketCommentResource
+         * @description A comment on a ticket: a public reply (visible to the contact) or an internal note (agents with `comments.internal` only; API clients never see internal notes).
+         */
         TicketCommentResource: {
+            /** Format: uuid */
             id: string;
+            /** Format: uuid */
             ticket_id: string;
-            visibility: string;
-            author_type: string;
+            /** @enum {string} */
+            visibility: "public" | "internal";
+            /**
+             * @description Who wrote it: a workspace user, the contact, or an API client.
+             * @enum {string}
+             */
+            author_type: "user" | "contact" | "client";
+            /** Format: uuid */
             author_id: string | null;
+            /**
+             * @description Plain text; line breaks are kept.
+             * @example I have reset the MFA device; please try again.
+             */
             body: string;
             attachments: components["schemas"]["MediaItemResource"][];
             /** Format: date-time */
@@ -2952,11 +3803,16 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
-        /** TicketEventResource */
+        /**
+         * TicketEventResource
+         * @description One entry of a ticket's timeline: what changed, who did it and when.
+         */
         TicketEventResource: {
+            /** Format: uuid */
             id: string;
             type: string;
             actor_type: string;
+            /** Format: uuid */
             actor_id: string | null;
             old_values: {
                 [key: string]: unknown;
@@ -2965,35 +3821,71 @@ export interface components {
                 [key: string]: unknown;
             };
             note: string | null;
+            /** Format: date-time */
             created_at: string;
         };
-        /** TicketResource */
+        /**
+         * TicketResource
+         * @description A ticket. `contact`, `organization`, `category` and `tags` appear when requested with `include=` (docs/07-api/pagination-filtering.md §Includes).
+         */
         TicketResource: {
+            /** Format: uuid */
             id: string;
+            /**
+             * @description Human-facing ticket number, sequential per workspace.
+             * @example 1042
+             */
             number: number;
+            /** @example Cannot sign in after password reset */
             title: string;
             description: string;
             status: components["schemas"]["TicketStatus"];
+            /**
+             * @description Impact: 1 single user, 2 team, 3 department, 4 whole organisation.
+             * @example 2
+             */
             impact: number;
+            /**
+             * @description Urgency: 1 low, 2 medium, 3 high, 4 immediate.
+             * @example 3
+             */
             urgency: number;
+            /**
+             * @description Score 0–100 from the PriorityStrategy.
+             * @example 71.5
+             */
             priority_score: number;
+            /** @description Effective priority: the manual override when set, otherwise the computed level. */
             priority_level: components["schemas"]["Priority"];
             priority_computed_level: components["schemas"]["Priority"];
             priority_overridden: boolean;
+            /** @description The strategy's explanation: strategy name and version, factors, weights and contributions. */
             priority_explanation: {
                 [key: string]: unknown;
             };
             priority_override_reason: string | null;
+            /** @description Statuses the caller may move this ticket to now (state machine and permissions). */
             allowed_transitions: components["schemas"]["TicketStatus"][];
+            /** Format: uuid */
             contact_id: string;
+            /** Format: uuid */
             organization_id: string | null;
+            /** Format: uuid */
             category_id: string;
+            /** Format: uuid */
             team_id: string | null;
+            /** Format: uuid */
             assigned_agent_id: string | null;
+            /** Format: uuid */
             duplicate_of_id: string | null;
-            created_via: string;
+            /**
+             * @description Channel that created the ticket.
+             * @enum {string}
+             */
+            created_via: "ui" | "api" | "seed";
             /** @enum {string|null} */
             sla_state?: "running" | "warning" | "breached" | "paused" | "met" | "cancelled" | null;
+            /** Format: date-time */
             sla_due_at?: string | null;
             contact?: {
                 id: string;
@@ -3010,13 +3902,21 @@ export interface components {
                 name: string;
             };
             tags?: components["schemas"]["TagResource"][];
+            /** Format: date-time */
             resolved_at: string | null;
+            /** Format: date-time */
             closed_at: string | null;
+            /** Format: date-time */
             created_at: string;
+            /** Format: date-time */
             updated_at: string;
         };
-        /** TicketSlaTimerResource */
+        /**
+         * TicketSlaTimerResource
+         * @description An SLA timer of a ticket (first response or resolution) with its state and due times.
+         */
         TicketSlaTimerResource: {
+            /** Format: uuid */
             id: string;
             kind: components["schemas"]["TimerKind"];
             cycle: number;
@@ -3039,9 +3939,11 @@ export interface components {
             met_at: string | null;
             /** Format: date-time */
             cancelled_at: string | null;
+            /** Format: uuid */
             policy_id: string;
             policy_version: number;
             warning_fraction: number;
+            /** Format: uuid */
             calendar_id: string | null;
             strategy: string;
             strategy_version: string;
@@ -3141,16 +4043,24 @@ export interface components {
              */
             purpose?: "attachment" | "branding";
         };
-        /** UploadIntentResource */
+        /**
+         * UploadIntentResource
+         * @description A presigned upload: PUT the file to `url` with `headers`, then call `POST /media/{media}/complete`.
+         */
         UploadIntentResource: {
+            /** Format: uuid */
             media_id: string;
             url: string;
             headers: {
                 [key: string]: string;
             };
         };
-        /** UserResource */
+        /**
+         * UserResource
+         * @description The signed-in user, as `/me` embeds it.
+         */
         UserResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             email: string;
@@ -3158,43 +4068,62 @@ export interface components {
             preferences: {
                 [key: string]: unknown;
             };
+            /** Format: date-time */
             last_login_at: string | null;
         };
-        /** WebhookDeliveryDetailResource */
+        /**
+         * WebhookDeliveryDetailResource
+         * @description One delivery with the exact envelope that is (or was) sent.
+         */
         WebhookDeliveryDetailResource: {
+            /** Format: uuid */
             id: string;
+            /** Format: uuid */
             subscription_id: string;
+            /** Format: uuid */
             event_id: string;
             event_type: string;
             state: components["schemas"]["DeliveryState"];
             attempt: number;
             manual_retries: number;
+            /** Format: date-time */
             next_attempt_at: string | null;
+            /** Format: date-time */
             last_attempted_at: string | null;
             response_status: number | null;
             response_excerpt: string | null;
             error: string | null;
             duration_ms: number | null;
+            /** Format: date-time */
             created_at: string;
             payload: {
                 [key: string]: unknown;
             };
         };
-        /** WebhookDeliveryResource */
+        /**
+         * WebhookDeliveryResource
+         * @description A row of the delivery log. The payload is only in the single-delivery view.
+         */
         WebhookDeliveryResource: {
+            /** Format: uuid */
             id: string;
+            /** Format: uuid */
             subscription_id: string;
+            /** Format: uuid */
             event_id: string;
             event_type: string;
             state: components["schemas"]["DeliveryState"];
             attempt: number;
             manual_retries: number;
+            /** Format: date-time */
             next_attempt_at: string | null;
+            /** Format: date-time */
             last_attempted_at: string | null;
             response_status: number | null;
             response_excerpt: string | null;
             error: string | null;
             duration_ms: number | null;
+            /** Format: date-time */
             created_at: string;
         };
         /**
@@ -3203,56 +4132,84 @@ export interface components {
          * @enum {string}
          */
         WebhookEventType: "ticket.created" | "ticket.updated" | "ticket.assigned" | "ticket.status_changed" | "ticket.priority_changed" | "ticket.resolved" | "ticket.closed" | "ticket.comment_added" | "ticket.sla_breached" | "contact.created" | "contact.updated" | "ping";
-        /** WebhookEventTypeResource */
+        /**
+         * WebhookEventTypeResource
+         * @description One event of the catalogue a subscription can listen to.
+         */
         WebhookEventTypeResource: {
             type: components["schemas"]["WebhookEventType"];
             /** @enum {string} */
             description: "A ticket was created" | "Ticket fields were edited" | "A ticket was assigned or reassigned" | "A ticket changed status" | "A ticket's priority level changed" | "A ticket was resolved" | "A ticket was closed" | "A public reply was added to a ticket" | "An SLA timer of a ticket was breached" | "A contact was created" | "A contact was updated" | "Test delivery";
         };
-        /** WebhookSubscriptionResource */
+        /**
+         * WebhookSubscriptionResource
+         * @description A webhook subscription. The secret is never part of this shape.
+         */
         WebhookSubscriptionResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             url: string;
             events: string[];
             api_version: string;
             is_active: boolean;
+            /** Format: date-time */
             disabled_at: string | null;
             disabled_reason: string | null;
             consecutive_failures: number;
+            /** Format: date-time */
             previous_secret_expires_at: string | null;
+            /** Format: date-time */
             last_delivery_at: string | null;
+            /** Format: date-time */
             created_at: string;
+            /** Format: date-time */
             updated_at: string;
         };
-        /** WebhookSubscriptionWithSecretResource */
+        /**
+         * WebhookSubscriptionWithSecretResource
+         * @description The response to creating a subscription or rotating its secret: the subscription plus `secret`, which is shown this one time and cannot be read again.
+         */
         WebhookSubscriptionWithSecretResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             url: string;
             events: string[];
             api_version: string;
             is_active: boolean;
+            /** Format: date-time */
             disabled_at: string | null;
             disabled_reason: string | null;
             consecutive_failures: number;
+            /** Format: date-time */
             previous_secret_expires_at: string | null;
+            /** Format: date-time */
             last_delivery_at: string | null;
+            /** Format: date-time */
             created_at: string;
+            /** Format: date-time */
             updated_at: string;
             secret: string;
         };
-        /** WorkspaceUserResource */
+        /**
+         * WorkspaceUserResource
+         * @description A user as Settings → Users shows it. `status`: `disabled`, `invited` (no password yet; the roles are those of the latest invitation) or `active`. `invitation_expired` tells an invited user whose link no longer works, so the SPA can offer "resend".
+         */
         WorkspaceUserResource: {
+            /** Format: uuid */
             id: string;
             name: string;
             email: string;
             /** @enum {string} */
             status: "disabled" | "invited" | "active";
             roles: string[];
+            /** Format: date-time */
             invitation_expires_at: string | null;
             invitation_expired: boolean;
+            /** Format: date-time */
             last_login_at: string | null;
+            /** Format: date-time */
             created_at: string | null;
         };
     };
@@ -3263,10 +4220,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": {
-                    /** @description Error overview. */
-                    message: string;
-                };
+                "application/problem+json": components["schemas"]["ProblemDetails"];
             };
         };
         /** @description Validation error */
@@ -3275,14 +4229,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": {
-                    /** @description Errors overview. */
-                    message: string;
-                    /** @description A detailed description of each field that failed validation. */
-                    errors: {
-                        [key: string]: string[];
-                    };
-                };
+                "application/problem+json": components["schemas"]["ProblemDetails"];
             };
         };
         /** @description Not found */
@@ -3291,10 +4238,16 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": {
-                    /** @description Error overview. */
-                    message: string;
-                };
+                "application/problem+json": components["schemas"]["ProblemDetails"];
+            };
+        };
+        /** @description `unauthenticated`: no session or token, an expired session, or a revoked API client. */
+        Unauthenticated: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["ProblemDetails"];
             };
         };
     };
@@ -3325,6 +4278,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -3361,6 +4315,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -3394,6 +4349,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -3429,6 +4385,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -3493,6 +4450,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -3530,6 +4488,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -3563,6 +4522,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -3598,6 +4558,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -3630,6 +4591,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -3670,6 +4632,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -3707,8 +4670,88 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.shifts.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AgentShiftResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentShiftResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.shifts.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceAgentShiftsRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `AgentShiftResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentShiftResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -3771,6 +4814,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -3808,6 +4852,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -3840,6 +4885,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -3880,6 +4926,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -3945,6 +4992,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -3982,6 +5030,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -4014,6 +5063,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -4054,6 +5104,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -4095,6 +5146,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -4123,10 +5175,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": unknown[];
-                };
+                content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -4158,6 +5209,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -4193,6 +5245,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -4382,6 +5435,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -4420,6 +5474,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -4456,6 +5511,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -4496,6 +5552,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -4533,6 +5590,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -4569,6 +5627,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -4639,6 +5698,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -4676,6 +5736,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -4711,6 +5772,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -4747,6 +5809,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -4787,6 +5850,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -4824,6 +5888,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -4860,6 +5925,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -4928,6 +5994,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -4965,6 +6032,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -5001,6 +6069,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5041,6 +6110,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -5097,6 +6167,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5136,6 +6207,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5173,6 +6245,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -5206,6 +6279,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -5242,6 +6316,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -5275,6 +6350,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5315,6 +6391,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -5392,6 +6469,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -5425,6 +6503,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -5460,6 +6539,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5496,6 +6576,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5528,6 +6609,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5568,6 +6650,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -5594,14 +6677,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Redirect to a short-lived signed URL. */
+            302: {
                 headers: {
+                    /** @description Signed URL of the file on the files host; valid for a few minutes. */
+                    Location: string;
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": Record<string, unknown>;
-                };
+                content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5628,14 +6713,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Redirect to a short-lived signed URL. */
+            302: {
                 headers: {
+                    /** @description Signed URL of the file on the files host; valid for a few minutes. */
+                    Location: string;
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": Record<string, unknown>;
-                };
+                content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5672,6 +6759,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5708,6 +6796,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -5773,6 +6862,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -5800,6 +6890,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -5833,6 +6924,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -5867,6 +6959,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -5900,6 +6993,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -5934,6 +7028,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -5989,6 +7084,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -6048,6 +7144,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -6088,6 +7185,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -6126,6 +7224,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -6161,6 +7260,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -6196,6 +7296,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6230,6 +7331,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6264,6 +7366,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6298,6 +7401,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6332,6 +7436,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6366,6 +7471,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6394,73 +7500,12 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: {
-                            tickets: [
-                                "view",
-                                "create",
-                                "update",
-                                "assign",
-                                "resolve",
-                                "close",
-                                "reopen",
-                                "delete"
-                            ];
-                            comments: [
-                                "internal"
-                            ];
-                            contacts: [
-                                "view",
-                                "manage"
-                            ];
-                            agents: [
-                                "view",
-                                "manage"
-                            ];
-                            teams: [
-                                "manage"
-                            ];
-                            sla: [
-                                "manage"
-                            ];
-                            calendars: [
-                                "manage"
-                            ];
-                            shifts: [
-                                "manage"
-                            ];
-                            media: [
-                                "view",
-                                "upload",
-                                "manage"
-                            ];
-                            mail: [
-                                "manage"
-                            ];
-                            settings: [
-                                "manage"
-                            ];
-                            users: [
-                                "manage"
-                            ];
-                            roles: [
-                                "manage"
-                            ];
-                            integrations: [
-                                "manage"
-                            ];
-                            reports: [
-                                "view",
-                                "export"
-                            ];
-                            history: [
-                                "view"
-                            ];
-                            audit: [
-                                "view"
-                            ];
+                            [key: string]: string[];
                         };
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6493,6 +7538,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6529,6 +7575,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -6559,10 +7606,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": unknown[];
-                };
+                content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -6603,6 +7649,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -6637,6 +7684,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6673,6 +7721,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -6709,6 +7758,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -6741,6 +7791,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -6781,6 +7832,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -6822,6 +7874,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -6857,6 +7910,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -6890,6 +7944,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -6926,6 +7981,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -6962,6 +8018,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -6994,6 +8051,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7034,6 +8092,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -7071,6 +8130,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7104,6 +8164,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -7138,6 +8199,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7160,7 +8222,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
         responses: {
             /** @description `SettingsSectionResource` */
             200: {
@@ -7173,8 +8241,18 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            /** @description `validation_failed` or `settings_invalid`, with `errors` per field */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -7208,6 +8286,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -7245,6 +8324,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -7275,10 +8355,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": unknown[];
-                };
+                content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7321,6 +8400,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -7358,6 +8438,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -7394,6 +8475,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7434,6 +8516,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -7472,6 +8555,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7514,6 +8598,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -7609,6 +8694,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -7649,6 +8735,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -7685,6 +8772,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7725,6 +8813,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -7766,6 +8855,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -7823,6 +8913,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -7888,6 +8979,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -7928,6 +9020,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -7965,6 +9058,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8005,6 +9099,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -8040,6 +9135,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8073,6 +9169,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -8109,6 +9206,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -8141,6 +9239,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description An error */
@@ -8190,6 +9289,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -8259,6 +9359,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -8296,6 +9397,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -8332,6 +9434,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8372,6 +9475,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -8409,6 +9513,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8445,6 +9550,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8481,6 +9587,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8514,6 +9621,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -8550,6 +9658,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
@@ -8583,6 +9692,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -8618,6 +9728,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8650,6 +9761,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8690,6 +9802,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -8727,6 +9840,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8763,6 +9877,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8799,6 +9914,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8835,6 +9951,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8894,6 +10011,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
@@ -8931,6 +10049,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -8967,6 +10086,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
@@ -9011,33 +10131,61 @@ export interface operations {
             };
         };
     };
-    "agents.shifts.index": {
+    "oauth.token": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                /** @description The agent ID */
-                agent: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": {
+                    /**
+                     * @description Only `client_credentials` is supported.
+                     * @enum {string}
+                     */
+                    grant_type: "client_credentials";
+                    /**
+                     * Format: uuid
+                     * @description The client id shown when the API client was created.
+                     */
+                    client_id: string;
+                    /** @description The secret shown once when the API client was created. */
+                    client_secret: string;
+                    /**
+                     * @description Space-separated scopes; omitted means every scope the client was granted.
+                     * @example tickets:read tickets:write
+                     */
+                    scope?: string;
+                };
+            };
+        };
         responses: {
-            /** @description Array of `AgentShiftResource` */
+            /** @description Access token */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["AgentShiftResource"][];
+                        /**
+                         * @description Always `Bearer`.
+                         * @enum {string}
+                         */
+                        token_type: "Bearer";
+                        /**
+                         * @description Lifetime in seconds (3600).
+                         * @example 3600
+                         */
+                        expires_in: number;
+                        /** @description JWT to send as `Authorization: Bearer …` to `/v1` routes open to API clients. */
+                        access_token: string;
                     };
                 };
             };
-            403: components["responses"]["AuthorizationException"];
-            404: components["responses"]["ModelNotFoundException"];
-            /** @description Problem details (RFC 9457) */
-            default: {
+            /** @description `invalid_request`, `unsupported_grant_type` or `invalid_scope` (an unknown scope or one the client was not granted). */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9045,40 +10193,17 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
-        };
-    };
-    "agents.shifts.update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The agent ID */
-                agent: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReplaceAgentShiftsRequest"];
-            };
-        };
-        responses: {
-            /** @description Array of `AgentShiftResource` */
-            200: {
+            /** @description `invalid_client`: unknown client, wrong secret, revoked client or suspended workspace. */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["AgentShiftResource"][];
-                    };
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
-            403: components["responses"]["AuthorizationException"];
-            404: components["responses"]["ModelNotFoundException"];
-            422: components["responses"]["ValidationException"];
-            /** @description Problem details (RFC 9457) */
-            default: {
+            /** @description `too_many_requests`: more than 10 token requests a minute for this client. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

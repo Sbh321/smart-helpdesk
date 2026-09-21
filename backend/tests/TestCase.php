@@ -6,8 +6,10 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Testing\TestResponse;
 use Laravel\Passport\Passport;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\Support\PassportTestKeys;
 
 /**
@@ -35,6 +37,41 @@ abstract class TestCase extends BaseTestCase
         Passport::loadKeysFrom(PassportTestKeys::directory());
 
         return $app;
+    }
+
+    /**
+     * Every request starts in the central context, as a fresh PHP-FPM request does, and the test
+     * body gets its own context back afterwards (the request's `terminate` ends tenancy). With
+     * row-level security (M3-07) the test body only sees the rows of the tenant it is in, so a test
+     * that asserts on a workspace's rows after a request stays inside that workspace; a tenant left
+     * over from the test body can never leak into the request under test.
+     *
+     * @param  string  $method
+     * @param  string  $uri
+     * @param  array<string, mixed>  $parameters
+     * @param  array<string, mixed>  $cookies
+     * @param  array<string, mixed>  $files
+     * @param  array<string, mixed>  $server
+     * @param  string|null  $content
+     * @return TestResponse<Response>
+     */
+    public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        $tenant = tenant();
+
+        if (tenancy()->initialized) {
+            tenancy()->end();
+        }
+
+        try {
+            return parent::call($method, $uri, $parameters, $cookies, $files, $server, $content);
+        } finally {
+            if ($tenant !== null) {
+                tenancy()->initialize($tenant);
+            } elseif (tenancy()->initialized) {
+                tenancy()->end();
+            }
+        }
     }
 
     /**

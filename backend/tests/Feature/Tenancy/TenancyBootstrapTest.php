@@ -198,7 +198,7 @@ describe('BelongsToTenant', function (): void {
 
     it('refuses to create a user outside a tenant without a tenant_id', function (): void {
         User::factory()->create();
-    })->throws(QueryException::class, 'tenant_id');
+    })->throws(QueryException::class, 'row-level security');
 
     it('never changes tenant_id through the model', function (): void {
         $user = createTenantUser($this->acme);
@@ -209,7 +209,8 @@ describe('BelongsToTenant', function (): void {
     it('never changes tenant_id in the database either', function (): void {
         $user = createTenantUser($this->acme);
 
-        DB::table('users')->where('id', $user->id)->update(['tenant_id' => $this->globex->id]);
+        // Inside the tenant, so row-level security lets the statement reach the row.
+        $this->acme->run(fn () => DB::table('users')->where('id', $user->id)->update(['tenant_id' => $this->globex->id]));
     })->throws(QueryException::class, 'tenant_id is immutable');
 
     it('keeps email unique per tenant, ignoring case', function (): void {

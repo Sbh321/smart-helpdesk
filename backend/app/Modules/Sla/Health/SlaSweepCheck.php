@@ -16,10 +16,12 @@ final class SlaSweepCheck extends Check
 
     public function run(): Result
     {
-        $last = Cache::get(EvaluateSlaTimers::HEARTBEAT_KEY);
-        if (! is_int($last)) {
+        // Valkey hands the stored timestamp back as a numeric string; the array store keeps the int.
+        $heartbeat = Cache::get(EvaluateSlaTimers::HEARTBEAT_KEY);
+        if (! is_numeric($heartbeat)) {
             return Result::make()->failed('The SLA sweep has not run yet.');
         }
+        $last = (int) $heartbeat;
 
         $ageSeconds = max(0, $this->clock->now()->timestamp - $last);
         if ($ageSeconds > 180) {

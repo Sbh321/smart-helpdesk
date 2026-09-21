@@ -13,6 +13,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 #[Group('SLA')]
 final class TicketSlaController
 {
+    /** List a ticket's SLA timers. */
     public function show(Ticket $ticket): AnonymousResourceCollection
     {
         return TicketSlaTimerResource::collection(TicketSlaTimer::query()->where('ticket_id', $ticket->id)

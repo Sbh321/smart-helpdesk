@@ -41,7 +41,7 @@ Threat model and controls for the MVP. Test mapping in [10-quality/security-test
 
 | Threat | Vector | Mitigation |
 |---|---|---|
-| Tenant data leakage | forgotten scope, raw query, wrong join | global scopes + RLS + reflection tests; `DB::` raw queries only in `Queries/` with tenant predicate and RLS |
+| Tenant data leakage | forgotten scope, raw query, wrong join | global scopes + RLS + reflection tests; `DB::` raw queries only in `Queries/` with tenant predicate and RLS. Since M3-07 the policies are forced on every tenant table and the runtime role cannot bypass them, so a raw query that forgets the tenant sees only the current tenant, or nothing outside one ([08-database/tenancy.md](../08-database/tenancy.md)) |
 | IDOR | guessing IDs | UUID v7; tenant scope makes foreign IDs 404; ownership policies for `own` permissions |
 | Authorisation bypass | missing `can:` | route-list test asserts every `/api` route has auth + permission middleware (allow-list of public routes) |
 | Header/host spoofing | attacker-controlled Host or workspace value | Caddy only forwards the fixed hosts; the tenant comes from the session or client, never from Host or headers; the workspace in the SPA URL is display-only; membership check on every request |
@@ -173,6 +173,23 @@ skip the scheme, port and address checks in development (the Compose `webhook-ec
 ignored when `APP_ENV=production`. Secrets are 32 random bytes (base64), stored with the `encrypted` cast,
 returned only by the create and rotate responses, and never written to logs or audit entries. Tests:
 `tests/Unit/Integrations/IpAddressPolicyTest.php`, `tests/Feature/Integrations/WebhookUrlGuardTest.php`.
+
+## Row-level security as built (M3-07)
+
+Every table in `TenantTables::all()` has row-level security enabled and forced with a `tenant_isolation`
+policy on `app.current_tenant` ([08-database/tenancy.md](../08-database/tenancy.md)). The application,
+Horizon and the scheduler connect as `helpdesk_app`: no ownership, no `BYPASSRLS`, no superuser and no
+`TRUNCATE` on tenant tables, all asserted by the isolation suite. The owner connection runs migrations only;
+nothing at runtime bypasses the policies, and cross-tenant work (provisioning, sweeps, retention) enters each
+tenant in turn. Without a tenant a tenant table shows no rows and refuses inserts, so a forgotten scope or a
+raw query fails closed rather than leaking.
+
+Residual risks: the setting lives on the PostgreSQL session, so a connection pooler in transaction mode
+(PgBouncer) must not be introduced without moving to `SET LOCAL` per transaction; `helpdesk_backup`
+(`BYPASSRLS`, read-only) is a high-value credential and is kept for `pg_dump` only; `sessions`,
+`oauth_clients`, `oauth_access_tokens`, `personal_access_tokens`, `tenant_counters` and
+`password_reset_tokens` carry `tenant_id` but no policy, because they are read before a tenant is known,
+and rely on the application checks and their tests.
 
 ## Security headers (Caddy)
 

@@ -8,7 +8,11 @@ use App\Modules\Automation\Domain\Assignment\AssignmentResult;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin AssignmentResult */
+/**
+ * What the AssignmentStrategy would do for a ticket now: the chosen agent, the ranking and the excluded agents with reasons; nothing is saved.
+ *
+ * @mixin AssignmentResult
+ */
 final class AssignmentPreviewResource extends JsonResource
 {
     public function toArray(Request $request): array

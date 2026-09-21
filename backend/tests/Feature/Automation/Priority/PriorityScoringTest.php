@@ -50,7 +50,7 @@ function priorityPayload(Contact $contact, int $impact, int $urgency): array
 
 function priorityTicket(string $id): Ticket
 {
-    return Ticket::query()->withoutTenancy()->findOrFail($id);
+    return findInAnyTenant(Ticket::class, $id);
 }
 
 it('scores a new ticket like the worked examples', function (int $impact, int $urgency, ?OrganizationTier $tier, float $score, string $level): void {

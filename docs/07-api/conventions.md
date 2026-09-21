@@ -115,6 +115,8 @@ workspace is a `not_found` row. Clients chunk larger selections into several req
 
 Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials (API clients), **P** = platform admin guard, **–** = public. Permission column lists what the guard must hold; for C the client's token scopes must map to it ([authentication.md](authentication.md) §Scopes → permissions).
 
+The OpenAPI document states the same per operation (M3-06): `security` is `session`, plus `oauth2` with the opening scope for C routes, and the description names the permission.
+
 As built (M3-04): a route is open to API clients only when it carries the `api-clients` middleware; every other `/v1` route answers a client with 403 `forbidden` ("This endpoint is not available to API clients."). Open today: `GET /tickets`, `POST /tickets`, `GET /tickets/{ticket}`, `GET /tickets/{ticket}/history`, `GET /tickets/{ticket}/comments` (public comments only), `GET /categories`, `GET /tags`, and the contact and organisation list/show/create/update routes plus `GET /contacts/typeahead`. `PATCH /tickets/{ticket}`, `POST …/transition`, `POST …/comments` and the media routes are still S only (MVP-SHORTCUT in `Tickets/Routes/api.php`: those actions record a user actor).
 
 ### Auth and session
@@ -142,6 +144,7 @@ As built (M3-04): a route is open to API clients only when it carries the `api-c
 | GET/PATCH | `/platform-api/tenants/{tenant}` | P | |
 | POST | `/platform-api/tenants/{tenant}/suspend`, `/reactivate` | P | |
 | GET | `/platform-api/audit-logs` | P | platform-level entries |
+| GET | `/platform-api/docs`, `/platform-api/docs/openapi.json` | P | the tenant API reference for Platform Super Admins |
 | GET | `/health`, `/up` | – | `/health` gated to platform admins for details |
 
 ### Identity
@@ -279,6 +282,6 @@ Agent PATCH accepts partial fields, including availability alone. A manager can 
 | GET | `/v1/webhook-deliveries/{delivery}` | S, C | `integrations.manage` |
 | POST | `/v1/webhook-deliveries/{delivery}/retry` | S, C | `integrations.manage` — 202; 409 `delivery_not_retryable` |
 | GET | `/v1/audit-logs` | S | `audit.view` — cursor feed |
-| GET | `/docs/api`, `/docs/api.json` | — | public reference, no tenant data ([documentation.md](documentation.md)) |
+| GET | `/docs/api`, `/docs/api.json` (docs host) | S | `integrations.manage` — the API reference and its OpenAPI document ([documentation.md](documentation.md) §Access) |
 
 A route-list test asserts that every route above carries `auth` and a `can:` (or an explicit public allow-list entry) and that C-guard routes are limited to the ones marked C.

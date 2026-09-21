@@ -82,7 +82,7 @@ exec "$@"
 
 ### Caddyfile (proxy)
 
-Host layout per [ADR-0021](../adr/0021-host-layout-and-tenant-resolution.md). `{$PLATFORM_DOMAIN}` is `shp.subhambhandari.com.np` in production and `shp.localhost` in development; `{$TLS}` is empty in production (automatic ACME per host), `internal` in development, or `/certs/fullchain.pem /certs/privkey.pem` for a customer certificate.
+Host layout per [ADR-0021](../adr/0021-host-layout-and-tenant-resolution.md). `{$PLATFORM_DOMAIN}` is `shp.subhambhandari.com.np` in production and `shp.localhost` in development. As built, `TLS_MODE` selects a snippet: `acme` (automatic ACME per host), `on_demand` (certificate at first handshake, approved by a loopback ask endpoint that allows only the fixed hosts), `internal` (development and intranets) or `files` (`/certs/fullchain.pem /certs/privkey.pem`).
 
 ```caddyfile
 {
@@ -189,10 +189,10 @@ As built in M1-04. The files below are authoritative; the YAML excerpts further 
 compose.yaml                 # every service; dev defaults are off; includes infra/compose/tools.yaml
 compose.override.yaml        # dev only, loaded automatically: bind mounts, dev image target, 127.0.0.1 ports, TLS internal
 infra/compose/tools.yaml     # profile dev: mailpit (later: webhook-echo, playwright)
-infra/compose/prod.yaml      # restart policies and memory limits
+infra/compose/prod.yaml      # production overlay (M3-14): images by tag, restart, limits, log rotation, migrate one-shot, Passport keys, certs
 ```
 
-Plain `docker compose up` in the repository loads `compose.yaml` and `compose.override.yaml`. Servers never have the override file and run `docker compose -f compose.yaml -f infra/compose/prod.yaml up -d`. The first design used `include` overlays, but `include` cannot override services that the root file defines, so the standard override file replaced it.
+Plain `docker compose up` in the repository loads `compose.yaml` and `compose.override.yaml`. Servers never have the override file; their `.env` sets `COMPOSE_FILE=compose.yaml:infra/compose/prod.yaml` and `BACKEND_ENV_FILE=.env`, so `docker compose up -d --wait` there means the production stack (templates in `infra/env/`, details in [production.md](production.md#host-layout)). Migrations run with `docker compose run --rm migrate` (profile `ops`, `DB_CONNECTION=pgsql_owner`). The first design used `include` overlays, but `include` cannot override services that the root file defines, so the standard override file replaced it.
 
 Profiles: `dev` (mailpit), `storage` (rustfs), `realtime` (reverb), later `demo` (webhook-echo) and `e2e` (playwright runner). The root `.env` sets `COMPOSE_PROFILES=dev,storage` for development. Production on-prem typically runs `COMPOSE_PROFILES=storage`, cloud runs no profile (managed storage), and both add `realtime` when enabled.
 
@@ -404,6 +404,8 @@ services:
 The Vite dev server runs on the host (`pnpm dev`) and proxies `/api` to `https://app.shp.localhost/acme`; `proxy` still serves the built SPA for E2E parity. Developers on macOS use `docker compose watch` with `sync` actions instead of the bind mount.
 
 ### Prod overlay (`prod.yaml`)
+
+Design sketch below; the built file additionally sets `pull_policy: missing`, CPU limits, Valkey 640 MB and RustFS 384 MB limits, json-file rotation on every service, the Passport key and `certs/` mounts, `RUSTFS_CONSOLE_ENABLE=false`, and the `migrate` service. Verified with `docker compose -p shp-prodtest` on the workstation and on the Ansible rehearsal host ([production.md §As built](production.md#as-built-and-verified-m3-14-2026-09-21)).
 
 ```yaml
 services:

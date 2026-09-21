@@ -12,9 +12,8 @@ use Tests\Support\TenantModelInventory;
  * tenant_id uuid NOT NULL with a foreign key, every business unique index led by tenant_id, the
  * immutability trigger in place, and a runtime role that cannot step over row-level security.
  *
- * The RLS half of item 4 (ENABLE/FORCE and pg_policies per table) and items 5 (raw-query backstop,
- * fail-closed with the setting unset) belong to M3-07, which owns the policy migration; the
- * `todo()` at the end of this file is their placeholder.
+ * The row-level security half of item 4 (ENABLE/FORCE and pg_policies per table) and item 5
+ * (raw-query backstop, fail-closed with the setting unset) are in RowLevelSecurityTest.php (M3-07).
  */
 
 /**
@@ -166,9 +165,3 @@ it('runs the application as a role that can neither own the tables nor bypass ro
 
     expect($owned)->toBe([], 'The runtime role owns tables, so FORCE ROW LEVEL SECURITY would not apply to it.');
 });
-
-it('enables, forces and policies row-level security on every tenant table', function (): void {
-    //
-})->todo('M3-07 adds the RLS migration; then assert relrowsecurity, relforcerowsecurity and a '
-    .'tenant_isolation policy per TenantTables::all() row, plus the fail-closed and raw-query '
-    .'backstop cases (items 4 and 5 of docs/10-quality/testing.md).');

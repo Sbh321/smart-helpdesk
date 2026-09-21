@@ -8,7 +8,11 @@ use App\Modules\Sla\Models\CalendarHoliday;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin CalendarHoliday */
+/**
+ * A non-working day of a business calendar.
+ *
+ * @mixin CalendarHoliday
+ */
 final class CalendarHolidayResource extends JsonResource
 {
     public function toArray(Request $request): array

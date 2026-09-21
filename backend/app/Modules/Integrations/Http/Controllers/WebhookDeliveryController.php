@@ -27,6 +27,8 @@ final class WebhookDeliveryController
     }
 
     /**
+     * Retry a delivery.
+     *
      * Retry a failed or dead delivery now, with a fresh retry schedule (at most five manual retries).
      */
     #[Response(status: 202, type: WebhookDeliveryResource::class)]

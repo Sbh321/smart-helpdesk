@@ -1,0 +1,13 @@
+# Full install on any fresh Debian/Ubuntu host (ADR-0017): ansible-playbook -i inventory/<env>.ini site.yml
+- name: Install Smart Helpdesk
+  hosts: helpdesk
+  become: true
+  roles:
+    - role: helpdesk_defaults
+    - role: common
+    - role: docker
+    - role: firewall
+      when: manage_firewall | bool
+    - role: proxy
+    - role: app
+    - role: backup

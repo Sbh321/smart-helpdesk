@@ -1,0 +1,7 @@
+collections/
+galaxy_roles/
+inventory/*.ini
+!inventory/*.ini.example
+host_vars/*.secrets.yml
+.vault-pass
+backups/

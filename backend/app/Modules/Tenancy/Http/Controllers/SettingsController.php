@@ -8,7 +8,9 @@ use App\Modules\Tenancy\Http\Resources\SettingsSectionResource;
 use App\Modules\Tenancy\Settings\SectionView;
 use App\Modules\Tenancy\Settings\Settings;
 use App\Modules\Tenancy\Settings\SettingsRegistry;
+use App\Support\ApiDocs\FreeFormRequestBody;
 use Dedoc\Scramble\Attributes\Group;
+use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -28,6 +30,7 @@ final class SettingsController
         return SettingsSectionResource::collection($sections);
     }
 
+    /** One section with its effective values and defaults. */
     public function show(string $section): SettingsSectionResource
     {
         abort_unless($this->registry->has($section), 404);
@@ -36,10 +39,17 @@ final class SettingsController
     }
 
     /**
+     * Update a settings section.
+     *
      * Partial update: submitted keys are merged into the section, the result is validated as a whole.
      * 422 `validation_failed` for malformed values, 422 `settings_invalid` for values that do not fit
      * together (weights that do not sum to 1); both carry `errors` per field.
      */
+    #[FreeFormRequestBody(
+        description: 'Some or all keys of the section; `GET /settings/{section}` lists them in `defaults`. Unknown keys are rejected.',
+        example: ['name' => 'Acme Support', 'timezone' => 'Asia/Kathmandu'],
+    )]
+    #[Response(status: 422, description: '`validation_failed` or `settings_invalid`, with `errors` per field')]
     public function update(Request $request, string $section): SettingsSectionResource
     {
         abort_unless($this->registry->has($section), 404);

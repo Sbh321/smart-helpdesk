@@ -1,0 +1,10 @@
+# cp terraform.tfvars.example terraform.tfvars   (gitignored); secrets may also come from TF_VAR_* variables.
+do_token              = "dop_v1_…"
+spaces_access_id      = "DO00…"
+spaces_secret_key     = "…"
+ssh_key_ids           = ["12345678"]
+deploy_ssh_public_key = "ssh-ed25519 AAAA… deploy@laptop"
+platform_domain       = "shp.subhambhandari.com.np"
+region                = "fra1"
+ssh_cidrs             = ["0.0.0.0/0"]
+# state_passphrase: export TF_VAR_state_passphrase=… (never in this file)

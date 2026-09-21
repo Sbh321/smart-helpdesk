@@ -8,11 +8,14 @@ use App\Modules\Agents\Actions\ReplaceAgentShifts;
 use App\Modules\Agents\Http\Requests\ReplaceAgentShiftsRequest;
 use App\Modules\Agents\Http\Resources\AgentShiftResource;
 use App\Modules\Agents\Models\AgentProfile;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+#[Group('Agents')]
 final class AgentShiftController
 {
+    /** List an agent's shifts. */
     public function index(Request $request, AgentProfile $agent): AnonymousResourceCollection
     {
         abort_unless($request->user()?->can('shifts.manage') === true || $request->user()?->id === $agent->user_id, 403);
@@ -20,6 +23,7 @@ final class AgentShiftController
         return AgentShiftResource::collection($agent->shifts()->orderBy('date')->orderBy('weekday')->orderBy('starts_at')->get());
     }
 
+    /** Replace an agent's shifts. */
     public function update(
         ReplaceAgentShiftsRequest $request,
         AgentProfile $agent,

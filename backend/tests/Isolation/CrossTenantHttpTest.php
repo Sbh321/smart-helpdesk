@@ -50,7 +50,7 @@ it('answers 404 for a write on another tenant identifier and leaves the row unto
 
     $this->patchJson('/v1/test-isolation/users/'.$this->theirs->id)->assertNotFound();
 
-    expect($this->theirs->fresh()->name)->toBe('Globex Person');
+    expect($this->globex->run(fn () => $this->theirs->fresh())->name)->toBe('Globex Person');
 });
 
 it('makes a cross-tenant identifier indistinguishable from one that does not exist', function (): void {

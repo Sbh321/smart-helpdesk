@@ -86,7 +86,8 @@ it('reports used, quota and reserved bytes per tenant from one snapshot', functi
     mediaItemIn($this->acme, 'failed', ['size_bytes' => 400]);
     mediaItemIn($this->globex, 'pending', ['size_bytes' => 5000]);
 
-    expect($this->quota->usage($this->acme->getKey()))->toEqual(new MediaUsage(700, 2000, 150))
+    // Called inside the workspace, as the upload actions and the usage endpoint do.
+    expect($this->acme->run(fn (): MediaUsage => $this->quota->usage($this->acme->getKey())))->toEqual(new MediaUsage(700, 2000, 150))
         ->and($this->quota->usage('01920000-0000-7000-8000-000000000000'))->toEqual(new MediaUsage(0, 0, 0));
 });
 

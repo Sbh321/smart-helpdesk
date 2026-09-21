@@ -21,8 +21,15 @@ final class ContactResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            /** @example Maya Gurung */
             'name' => $this->name,
+            /**
+             * Unique per workspace, compared case-insensitively.
+             *
+             * @example maya@globex.test
+             */
             'email' => $this->email,
+            /** @example +977 1 5550123 */
             'phone' => $this->phone,
             'organization' => $this->organization === null ? null : [
                 'id' => $this->organization->id,
@@ -30,8 +37,15 @@ final class ContactResource extends JsonResource
                 'tier' => $this->organization->tier,
             ],
             'tags' => TagResource::collection($this->tags),
+            /**
+             * Identifiers of this contact in other systems, keyed by system.
+             *
+             * @example {"crm": "C-2231"}
+             */
             'external_ids' => $this->external_ids,
+            /** Free-form attributes set by integrations. */
             'metadata' => $this->metadata,
+            /** When the contact's latest ticket was created. */
             'last_ticket_at' => $this->last_ticket_at?->toIso8601ZuluString(),
             'archived_at' => $this->archived_at?->toIso8601ZuluString(),
             'created_at' => $this->created_at->toIso8601ZuluString(),

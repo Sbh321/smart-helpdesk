@@ -8,7 +8,11 @@ use App\Modules\Tickets\Models\TicketDuplicateSuggestion;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin TicketDuplicateSuggestion */
+/**
+ * A stored duplicate suggestion for a ticket and the decision taken on it.
+ *
+ * @mixin TicketDuplicateSuggestion
+ */
 final class DuplicateSuggestionResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -23,8 +27,21 @@ final class DuplicateSuggestionResource extends JsonResource
                 'status' => $this->candidate->status,
             ],
             'score' => (float) $this->score,
+            /**
+             * @var list<string>
+             *
+             * Words both tickets share, as the strategy counted them.
+             */
             'shared_words' => $this->sharedWords(),
+            /**
+             * @var string
+             *
+             * Strategy that produced the suggestion; `manual` for a duplicate marked by hand.
+             *
+             * @example jaccard_duplicates
+             */
             'strategy' => $this->breakdown['strategy'] ?? 'manual',
+            /** @var string|null */
             'strategy_version' => $this->breakdown['strategy_version'] ?? null,
             'decision' => $this->decision,
             'decided_at' => $this->decided_at?->toIso8601ZuluString(),

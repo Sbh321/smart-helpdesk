@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * One entry of a ticket's timeline: what changed, who did it and when.
+ *
  * @mixin TicketEvent
  */
 final class TicketEventResource extends JsonResource

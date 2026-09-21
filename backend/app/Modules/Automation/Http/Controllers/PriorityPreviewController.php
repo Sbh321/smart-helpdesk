@@ -18,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 #[Group('Automation')]
 final class PriorityPreviewController
 {
+    /** Preview priority scores with draft settings. */
     public function store(PreviewPriorityRequest $request, PriorityStrategyFactory $factory): AnonymousResourceCollection
     {
         $data = $request->validated();

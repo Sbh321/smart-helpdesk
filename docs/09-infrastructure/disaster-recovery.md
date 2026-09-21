@@ -21,17 +21,41 @@ Runbooks for day-to-day failures are in [11-operations/runbooks.md](../11-operat
 
 ## Full rebuild procedure
 
-Assumes: the latest spatie archive in the backup bucket, the operator's copy of `host_vars/<host>.secrets.yml` (contains DB, Valkey, S3 and archive passwords) and the git repository.
+Assumes: the newest `helpdesk-*.dump` and `objects-*.tar.gz` off the host (`backup.yml -e fetch_backup=true`; spatie archives once V1-PL-16 lands), the operator's copy of `host_vars/<host>.secrets.yml` (APP_KEY, DB, Valkey and S3 passwords) and the git repository.
 
 1. **Provision** (cloud): `cd infra/tofu/envs/reference && tofu apply` → new droplet, same DNS names (the `dns` module updates records). On-prem: obtain a new VM from the customer with Docker-capable Debian/Ubuntu and add it to the inventory.
 2. **Configure**: `ansible-playbook -i inventory/<env>.ini site.yml` with the saved secrets file in place so the same passwords are re-used (otherwise the archive password will not match). The playbook brings up an empty, healthy stack.
-3. **Restore the database**: `ansible-playbook restore.yml -e dump_file=<path or s3 url>`; the playbook stops `app`, `horizon`, `scheduler`, runs `dropdb/createdb`, `pg_restore`/`psql` as `helpdesk_owner`, re-applies `infra/postgres/init` grants, then `migrate --force` for any migrations newer than the dump.
-4. **Restore attachments**: `php artisan storage:sync-backup --reverse` copies the backup bucket back into `helpdesk`.
-5. **Restart** services; `php artisan up`; `health:check`.
-6. **Verify**: log in to two tenants, open a ticket with an attachment and download it, check `/horizon` processes jobs, confirm `sla:evaluate` heartbeat, run `php artisan tenancy:verify-isolation` (the schema assertions from the isolation suite).
+3. **Restore database and attachments**: `ansible-playbook -i inventory/<env>.ini restore.yml -e upload=true -e dump_file=<local .dump> -e objects_file=<local objects .tar.gz>` (procedure below). With an external bucket instead of RustFS, the attachments are restored from that provider's versioning or backup bucket (`storage:sync-backup --reverse` arrives with V1-PL-16).
+5. **Verify**: `restore.yml` ends with `smoke.sh`; then `HEALTH_TOKEN=… just prod-smoke <domain>`, sign in to two workspaces, open a ticket with an attachment and download it, check `/horizon` processes jobs.
 7. **Communicate**: platform status mail to tenant owners with the data-loss window (last backup time → incident time).
 
 Expected duration on a 2 vCPU VM with a 5 GB database: provision 5 min, configure 6 min, restore 20–40 min, attachments depends on volume; within the 4 h RTO.
+
+## Restore procedure (as built)
+
+`helpdesk-restore <dump> [objects.tar.gz]` ([`infra/scripts/helpdesk-restore.sh`](../../infra/scripts/helpdesk-restore.sh)), run by `restore.yml` or by hand in `/opt/smart-helpdesk` (`RESTORE_YES=1` skips the prompt):
+
+```sh
+docker compose exec -T postgres pg_restore --list < "$dump" > /dev/null          # readable before anything is dropped
+docker compose stop proxy app horizon scheduler reverb
+docker compose exec -T postgres dropdb -U postgres --if-exists --force helpdesk
+docker compose exec -T postgres pg_restore -U postgres --create --exit-on-error -d postgres < "$dump"
+docker compose exec -T rustfs sh -c 'find /data -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -C /data -xzf -' < "$objects"
+docker compose restart rustfs
+docker compose run --rm --no-deps migrate                                        # migrations newer than the dump, owner role
+docker compose run --rm --no-deps migrate php artisan cache:clear                # stale report caches and heartbeats
+docker compose up -d --wait
+docker compose exec -T app php artisan storage:ensure-bucket --check
+```
+
+Valkey is not restored: queued jobs are transient (the SLA sweep and webhook retries re-derive work from the database).
+
+## Drill 2026-09-21
+
+| Drill | Steps | Duration | Result |
+|---|---|---|---|
+| Host loss, prod-like stack on the workstation (`docker compose -p shp-prodtest`, production images and overlay) | 3 tickets created through the API → `helpdesk-backup manual` (308 KB dump, 8 KB objects) → a 4th ticket → `docker compose down -v` (all volumes gone) → fresh `up` of postgres/valkey/rustfs (roles recreated by the init script) → `helpdesk-restore` | backup < 1 s; restore 23 s | 3 tickets, 1 user, 1 tenant; after the restore 42 tables have forced RLS and 66 triggers exist (schema objects come back with the dump); the owner signs in with the pre-backup password; smoke passes (health 503 for the known disk/heartbeat reasons, production.md §As built). The 4th ticket is lost, as the RPO says |
+| Ansible `restore.yml` on the rehearsal host (single-tenant) | `backup.yml -e fetch_backup=true` → 4th ticket → `restore.yml -e upload=true` with the fetched files | < 1 min | ticket count back to 3, sign-in and smoke pass |
 
 ## Partial restores
 

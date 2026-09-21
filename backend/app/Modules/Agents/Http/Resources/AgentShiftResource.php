@@ -8,7 +8,11 @@ use App\Modules\Agents\Models\AgentShift;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin AgentShift */
+/**
+ * One Shift of an agent: a weekly slot (`weekday`) or a dated exception (`date`), in the workspace time zone.
+ *
+ * @mixin AgentShift
+ */
 final class AgentShiftResource extends JsonResource
 {
     public function toArray(Request $request): array

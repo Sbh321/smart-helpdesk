@@ -26,7 +26,7 @@ beforeEach(function (): void {
         'role_names' => ['agent'],
         'expires_at' => $this->clock->now()->addHours(48),
     ]);
-    tenancy()->end();
+    // The body stays in acme to read its rows (row-level security); requests start central.
 
     fromSpaOrigin();
 });

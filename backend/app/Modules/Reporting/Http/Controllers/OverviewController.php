@@ -18,31 +18,37 @@ final class OverviewController
 {
     public function __construct(private readonly EntityOverviews $overviews) {}
 
+    /** Get a ticket overview. */
     public function ticket(string $id): EntityOverviewResource
     {
         return $this->answer($this->overviews->ticket($id));
     }
 
+    /** Get a contact overview. */
     public function contact(string $id): EntityOverviewResource
     {
         return $this->answer($this->overviews->contact($id));
     }
 
+    /** Get an organisation overview. */
     public function organization(string $id): EntityOverviewResource
     {
         return $this->answer($this->overviews->organization($id));
     }
 
+    /** Get an agent overview. */
     public function agent(string $id): EntityOverviewResource
     {
         return $this->answer($this->overviews->agent($id));
     }
 
+    /** Get a team overview. */
     public function team(string $id): EntityOverviewResource
     {
         return $this->answer($this->overviews->team($id));
     }
 
+    /** Get a category overview. */
     public function category(string $id): EntityOverviewResource
     {
         return $this->answer($this->overviews->category($id));

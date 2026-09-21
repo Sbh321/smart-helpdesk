@@ -47,7 +47,9 @@ final class ApiClientController
     }
 
     /**
-     * Create an API client. The response carries `client_secret`, which is shown only this once.
+     * Create an API client.
+     *
+     * The response carries `client_secret`, which is shown only this once.
      */
     #[Response(status: 201, type: NewApiClientResource::class)]
     public function store(StoreApiClientRequest $request, CreateApiClient $create): JsonResponse
@@ -62,7 +64,9 @@ final class ApiClientController
     }
 
     /**
-     * Revoke an API client. Its tokens stop working immediately; the client cannot be restored.
+     * Revoke an API client.
+     *
+     * Its tokens stop working immediately; the client cannot be restored.
      */
     public function revoke(ApiClient $apiClient, RevokeApiClient $revoke): ApiClientResource
     {

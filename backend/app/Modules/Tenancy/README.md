@@ -23,16 +23,21 @@ Schema::create('tickets', function (Blueprint $table): void {
     // every unique index starts with tenant_id
     $table->unique(['tenant_id', 'number']);
 });
-TenantTables::protectTenantId('tickets');   // BEFORE UPDATE trigger
+TenantTables::protectTenantId('tickets');         // BEFORE UPDATE trigger
+TenantTables::enableRowLevelSecurity('tickets');  // ENABLE + FORCE + tenant_isolation policy
 ```
 
 Finally add the table to `TenantTables::PRIMARY` (or `NULLABLE`). That list drives the isolation
-suite and the row-level-security migration, so a table left out of it fails those tests.
+suite and the row-level-security migration (M3-07), so a table left out of it, or one whose migration
+does not call `enableRowLevelSecurity()`, fails those tests.
 
 Rules that the isolation suite checks:
 
 - Secondary tables (comments, events, timers) also carry `tenant_id`, even though it is derivable.
-- Never query with `withoutTenancy()` outside the Platform module.
+- Never query with `withoutTenancy()` outside the Platform module. It only removes the Eloquent scope:
+  row-level security still limits the query to the current tenant, or to nothing outside one.
+- Never read tenant rows across tenants, and never use the `pgsql_owner` connection at runtime (the
+  policies are forced, so it would see nothing either). Loop over the tenants and enter each one.
 - Factories either run inside tenancy or use an explicit `forTenant($tenant)` state.
 - Cross-tenant identifiers answer 404, never 403.
 
@@ -40,10 +45,14 @@ Rules that the isolation suite checks:
 
 ```php
 tenancy()->initialize($tenant);   // sets app.current_tenant, cache tag, storage prefix, permission team
-tenancy()->end();
+tenancy()->end();                 // clears it
 
-tenancy()->run($tenant, fn () => …);          // one tenant
-tenancy()->runForMultiple($tenants, fn () => …);
+$tenant->run(fn () => …);         // one tenant; restores the previous context, also on an exception
+tenancy()->central(fn () => …);   // step out of the tenant (global roles, platform rows)
+
+foreach (Tenant::active()->cursor() as $tenant) {   // work across tenants: enter each one
+    $tenant->run(fn () => …);
+}
 ```
 
 `php artisan tenants:run <command> --tenants=<id>` runs a console command per tenant. Queued jobs

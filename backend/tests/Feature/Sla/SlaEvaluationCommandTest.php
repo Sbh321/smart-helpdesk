@@ -27,6 +27,8 @@ it('emits one warning and one breach despite repeated sweeps', function (): void
         'warning_at' => '2026-09-19 09:45:00',
         'due_at' => '2026-09-19 10:00:00',
     ]);
+    // The assertions read this workspace's rows, which row-level security shows only inside it.
+    tenancy()->initialize($tenant);
 
     $this->artisan('sla:evaluate')->assertSuccessful();
     $this->artisan('sla:evaluate')->assertSuccessful();
@@ -61,7 +63,7 @@ it('keeps sweeping the other tenants and writes the heartbeat when one tenant fa
     $healthy = [createTenant('sla-sweep-a'), createTenant('sla-sweep-z')];
     $brokenTimer = TicketSlaTimer::factory()->forTenant($broken)->create($due);
     $healthyTimers = array_map(fn ($tenant) => TicketSlaTimer::factory()->forTenant($tenant)->create($due), $healthy);
-    // A suspended tenant and a tenant without due work are not visited at all.
+    // A suspended tenant is not visited at all.
     $suspended = createTenant('sla-sweep-suspended', ['status' => 'suspended']);
     $suspendedTimer = TicketSlaTimer::factory()->forTenant($suspended)->create($due);
 
@@ -80,11 +82,15 @@ it('keeps sweeping the other tenants and writes the heartbeat when one tenant fa
 
     $this->artisan('sla:evaluate')->assertSuccessful();
 
-    expect($brokenTimer->fresh()->state)->toBe(TimerState::Running)
-        ->and(SlaEvent::query()->withoutTenancy()->where('timer_id', $brokenTimer->id)->where('type', 'warning')->count())->toBe(0)
-        ->and($healthyTimers[0]->fresh()->state)->toBe(TimerState::Warning)
-        ->and($healthyTimers[1]->fresh()->state)->toBe(TimerState::Warning)
-        ->and($suspendedTimer->fresh()->state)->toBe(TimerState::Running)
+    // Each timer is read inside its own workspace (row-level security).
+    $state = fn (TicketSlaTimer $timer): TimerState => findInAnyTenant(TicketSlaTimer::class, $timer->id)->state;
+
+    expect(tenant())->toBeNull()
+        ->and($state($brokenTimer))->toBe(TimerState::Running)
+        ->and($broken->run(fn (): int => SlaEvent::query()->where('timer_id', $brokenTimer->id)->where('type', 'warning')->count()))->toBe(0)
+        ->and($state($healthyTimers[0]))->toBe(TimerState::Warning)
+        ->and($state($healthyTimers[1]))->toBe(TimerState::Warning)
+        ->and($state($suspendedTimer))->toBe(TimerState::Running)
         ->and(Cache::get(EvaluateSlaTimers::HEARTBEAT_KEY))->toBe($clock->now()->timestamp)
         ->and(tenant())->toBeNull();
     Exceptions::assertReported(fn (RuntimeException $exception): bool => str_contains($exception->getMessage(), 'broken for this tenant'));

@@ -1,10 +1,104 @@
-# Production settings: docker compose -f compose.yaml -f infra/compose/prod.yaml up -d
+# Production overlay (docs/09-infrastructure/production.md, docker.md §Compose architecture).
+#
+#   docker compose -f compose.yaml -f infra/compose/prod.yaml up -d --wait
+#
+# Servers set COMPOSE_FILE=compose.yaml:infra/compose/prod.yaml in .env, so a plain `docker compose …`
+# in /opt/smart-helpdesk uses both files and never the development override.
+#
+# What this file adds to compose.yaml:
+#   - built, versioned images (BACKEND_IMAGE / PROXY_IMAGE); `pull_policy: missing` so an image loaded
+#     from an archive (air-gapped on-prem) is used as is and a registry image is pulled once
+#   - restart policies, memory/CPU limits (production.md §Sizing), json-file log rotation on every service
+#   - no published ports except the proxy (compose.yaml publishes nothing else; the dev ports live in
+#     compose.override.yaml, which servers never load)
+#   - `migrate`: one-shot service on the owner role (profile `ops`, run with `docker compose run --rm migrate`)
+#   - Passport signing keys and the customer certificate mounted read-only from the host
+#   - one `.env` for Compose interpolation and the backend (BACKEND_ENV_FILE=.env), secrets in ./secrets
+# Profiles: `storage` (RustFS on the host), `realtime` (Reverb), `ops` (migrate). COMPOSE_PROFILES in .env.
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+x-prod-backend: &prod-backend
+  pull_policy: missing
+  restart: unless-stopped
+  logging: *logging
+  volumes:
+    # Passport client-credentials signing keys (M3-04). Generated once per install by Ansible
+    # (or `openssl genrsa`), owned by the container user (uid 33), never baked into the image.
+    - ./secrets/oauth-private.key:/var/www/html/storage/oauth-private.key:ro
+    - ./secrets/oauth-public.key:/var/www/html/storage/oauth-public.key:ro
+
 services:
-  proxy: { restart: unless-stopped, deploy: { resources: { limits: { memory: 256M } } } }
-  app: { restart: unless-stopped, deploy: { resources: { limits: { memory: 768M, cpus: "1.0" } } } }
-  horizon: { restart: unless-stopped, deploy: { resources: { limits: { memory: 768M } } } }
-  scheduler: { restart: unless-stopped, deploy: { resources: { limits: { memory: 256M } } } }
-  reverb: { restart: unless-stopped, deploy: { resources: { limits: { memory: 256M } } } }
-  postgres: { restart: unless-stopped, deploy: { resources: { limits: { memory: 1G } } } }
-  valkey: { restart: unless-stopped }
-  rustfs: { restart: unless-stopped }
+  proxy:
+    pull_policy: missing
+    restart: unless-stopped
+    environment:
+      MONITOR_AUTH: "on"
+    volumes:
+      - ./certs:/certs:ro            # tls_mode=files: fullchain.pem + privkey.pem supplied by the customer
+    deploy: { resources: { limits: { memory: 256M, cpus: "0.5" } } }
+    logging: *logging
+
+  app:
+    <<: *prod-backend
+    deploy: { resources: { limits: { memory: 768M, cpus: "1.0" } } }
+
+  horizon:
+    <<: *prod-backend
+    # Supervisors from config/horizon.php (environment `production`): default/sla/notifications/reports,
+    # media, and webhooks (outbound deliveries, M3-05) — one container runs all three.
+    deploy: { resources: { limits: { memory: 768M, cpus: "1.0" } } }
+
+  scheduler:
+    <<: *prod-backend
+    deploy: { resources: { limits: { memory: 256M, cpus: "0.5" } } }
+
+  reverb:
+    <<: *prod-backend
+    deploy: { resources: { limits: { memory: 256M, cpus: "0.5" } } }
+
+  # One-shot: `docker compose run --rm migrate` (deploy step, never on container boot).
+  # Runs on the owner role; the long-running services connect as helpdesk_app (RLS applies).
+  migrate:
+    image: ${BACKEND_IMAGE:-smart-helpdesk-backend:local}
+    pull_policy: missing
+    profiles: [ops]
+    env_file:
+      - path: ${BACKEND_ENV_FILE:-./backend/.env}
+        required: true
+    environment:
+      DB_CONNECTION: pgsql_owner
+    command: ["php", "artisan", "migrate", "--force", "--no-interaction"]
+    secrets: [db_owner_password, db_app_password]
+    volumes:
+      - ./secrets/oauth-private.key:/var/www/html/storage/oauth-private.key:ro
+      - ./secrets/oauth-public.key:/var/www/html/storage/oauth-public.key:ro
+    networks: [internal]
+    depends_on:
+      postgres: { condition: service_healthy }
+      valkey: { condition: service_healthy }
+    restart: "no"
+    healthcheck: { disable: true }
+    logging: *logging
+
+  postgres:
+    restart: unless-stopped
+    shm_size: 256m
+    deploy: { resources: { limits: { memory: 1G, cpus: "1.0" } } }
+    logging: *logging
+
+  valkey:
+    restart: unless-stopped
+    deploy: { resources: { limits: { memory: 640M, cpus: "0.5" } } }   # 512 MB maxmemory + overhead
+    logging: *logging
+
+  rustfs:
+    restart: unless-stopped
+    environment:
+      # The console stays off in production (production.md §Security checklist); set to "true" only for
+      # a maintenance window, it is then reachable at monitor.<domain>/storage behind basic auth.
+      RUSTFS_CONSOLE_ENABLE: ${RUSTFS_CONSOLE_ENABLE:-false}
+    deploy: { resources: { limits: { memory: 384M, cpus: "0.5" } } }
+    logging: *logging

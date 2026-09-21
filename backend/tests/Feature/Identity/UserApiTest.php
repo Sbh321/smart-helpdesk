@@ -73,7 +73,7 @@ it('invites a user who stays invited, with the roles on the invitation, until th
 
 it('refuses an email already in the workspace, whatever the case, and unknown roles', function (array $payload, string $field): void {
     createTenantUser($this->tenant, ['email' => 'taken@people.test']);
-    Role::query()->create(['name' => 'other-workspace-role', 'guard_name' => 'web', 'tenant_id' => createTenant('elsewhere')->id]);
+    createTenant('elsewhere')->run(fn ($elsewhere) => Role::query()->create(['name' => 'other-workspace-role', 'guard_name' => 'web', 'tenant_id' => $elsewhere->id]));
     tenancy()->initialize($this->tenant);
 
     $this->postJson('/v1/users/invitations', ['name' => 'Someone', 'email' => 'new@people.test', 'roles' => ['agent'], ...$payload])

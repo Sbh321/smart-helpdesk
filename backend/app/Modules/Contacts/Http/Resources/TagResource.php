@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * A tag on tickets, contacts and organisations.
+ *
  * @mixin Tag
  */
 final class TagResource extends JsonResource

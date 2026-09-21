@@ -150,7 +150,7 @@ describe('rename and move', function (): void {
         $this->patchJson("/v1/media/folders/{$own->id}", ['parent_id' => $foreign->id])->assertNotFound();
         $this->patchJson('/v1/media/folders/not-a-uuid', ['name' => 'x'])->assertNotFound();
 
-        expect($foreign->fresh()?->name)->toBe('Globex');
+        expect($this->globex->run(fn () => $foreign->fresh())?->name)->toBe('Globex');
     });
 });
 
@@ -195,6 +195,6 @@ describe('delete', function (): void {
 
         $this->deleteJson("/v1/media/folders/{$foreign->id}")->assertNotFound();
 
-        expect(MediaFolder::query()->withoutTenancy()->whereKey($foreign->id)->exists())->toBeTrue();
+        expect($this->globex->run(fn (): bool => MediaFolder::query()->whereKey($foreign->id)->exists()))->toBeTrue();
     });
 });

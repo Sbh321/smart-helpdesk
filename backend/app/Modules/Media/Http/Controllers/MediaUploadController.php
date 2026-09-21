@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 #[Group('Media')]
 final class MediaUploadController
 {
+    /** Start an upload. */
     #[ScrambleResponse(status: 201, type: UploadIntentResource::class)]
     public function intent(UploadIntentRequest $request, RegisterUpload $register): JsonResponse
     {
@@ -32,6 +33,7 @@ final class MediaUploadController
         )))->response()->setStatusCode(201);
     }
 
+    /** Complete an upload. */
     public function complete(Request $request, MediaItem $media, CompleteUpload $complete): MediaItemResource
     {
         // Only the uploader (or a media manager) may finish somebody's upload.

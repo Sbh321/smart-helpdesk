@@ -6,9 +6,11 @@ use App\Models\User;
 use App\Modules\Reporting\Domain\History\ChangeOperation;
 use App\Modules\Reporting\Domain\History\ChangeReplayer;
 use App\Modules\Reporting\Models\EntityChange;
+use App\Modules\Tenancy\Models\Tenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Artisan;
@@ -36,24 +38,29 @@ final class RenameUserJob implements ShouldQueue
 }
 
 /**
- * The captured rows of one record, oldest first, read outside any tenant scope.
+ * The captured rows of one record, oldest first, read in every workspace in turn (row-level
+ * security shows a connection one workspace at a time).
  *
  * @return list<array<string, mixed>>
  */
 function capturedRows(string $table, string $entityId): array
 {
-    return DB::table('entity_changes')
-        ->where('entity_type', $table)
-        ->where('entity_id', $entityId)
-        ->orderBy('version')
-        ->get()
-        ->map(function (object $row): array {
-            $values = (array) $row;
-            $values['changes'] = json_decode((string) $row->changes, true);
+    $rows = [];
+    foreach (Tenant::query()->cursor() as $tenant) {
+        array_push($rows, ...$tenant->run(fn (): array => DB::table('entity_changes')
+            ->where('entity_type', $table)
+            ->where('entity_id', $entityId)
+            ->get()
+            ->all()));
+    }
+    usort($rows, fn (object $a, object $b): int => $a->version <=> $b->version);
 
-            return $values;
-        })
-        ->all();
+    return array_map(function (object $row): array {
+        $values = (array) $row;
+        $values['changes'] = json_decode((string) $row->changes, true);
+
+        return $values;
+    }, $rows);
 }
 
 beforeEach(function (): void {
@@ -239,15 +246,21 @@ describe('isolation', function (): void {
 
         expect($visible)->toContain($mine->id)
             ->and($visible)->not->toContain($theirs->id)
-            // The rows exist, they are simply out of scope; RLS becomes the backstop in M3-07.
+            // Row-level security hides them from a raw query as well; they exist inside globex.
+            ->and(DB::table('entity_changes')->where('entity_id', $theirs->id)->count())->toBe(0)
             ->and(capturedRows('users', $theirs->id))->toHaveCount(1);
     });
 
-    it('files a change under the tenant of the row, not the session', function (): void {
+    it('files a change under the tenant of the row', function (): void {
         tenancy()->initialize($this->acme);
+        // The factory stores globex's row inside globex; a row of another workspace cannot even be
+        // written from acme's session (row-level security), so the row's tenant is the one filed.
         $theirs = User::factory()->forTenant($this->globex)->create();
 
-        expect(capturedRows('users', $theirs->id)[0]['tenant_id'])->toBe($this->globex->id);
+        expect(capturedRows('users', $theirs->id)[0]['tenant_id'])->toBe($this->globex->id)
+            ->and(fn () => DB::transaction(fn () => DB::table('users')->insert([
+                'id' => (string) Str::uuid7(), 'tenant_id' => $this->globex->id, 'name' => 'X', 'email' => 'x@globex.test',
+            ])))->toThrow(QueryException::class, 'row-level security');
     });
 });
 

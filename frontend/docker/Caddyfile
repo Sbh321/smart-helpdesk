@@ -1,9 +1,24 @@
 # Edge proxy for the split host layout (ADR-0021, docs/09-infrastructure/docker.md).
-# Environment: PLATFORM_DOMAIN, TLS_MODE (acme|internal|files), APP_SERVE (static|vite), MONITOR_AUTH (off|on).
+# Environment: PLATFORM_DOMAIN, TLS_MODE (acme|on_demand|internal|files), APP_SERVE (static|vite), MONITOR_AUTH (off|on).
 {
 	servers {
 		protocols h1 h2 h3
 	}
+	# TLS_MODE=on_demand: a certificate is requested at the first handshake for a host name, and only
+	# when the ask endpoint answers 200. The default endpoint below (inside this container) allows
+	# exactly the fixed platform hosts, so a stray DNS name cannot make Caddy request certificates.
+	# MVP-SHORTCUT: the backend has no ask endpoint, so tenant custom domains cannot be approved;
+	# V1: V1-PL-10 (custom tenant domains) points TLS_ASK_URL at an app route backed by a domains table.
+	on_demand_tls {
+		ask {$TLS_ASK_URL:http://127.0.0.1:5555/tls-ask}
+	}
+}
+
+# Ask endpoint for on-demand TLS (loopback inside the container, never published).
+http://127.0.0.1:5555 {
+	@allowed expression `{query.domain} in ["{$PLATFORM_DOMAIN}", "app.{$PLATFORM_DOMAIN}", "api.{$PLATFORM_DOMAIN}", "admin.{$PLATFORM_DOMAIN}", "monitor.{$PLATFORM_DOMAIN}", "docs.{$PLATFORM_DOMAIN}", "files.{$PLATFORM_DOMAIN}", "mail.{$PLATFORM_DOMAIN}"]`
+	respond @allowed 200
+	respond 403
 }
 
 (tls_acme) {
@@ -13,6 +28,11 @@
 }
 (tls_files) {
 	tls /certs/fullchain.pem /certs/privkey.pem
+}
+(tls_on_demand) {
+	tls {
+		on_demand
+	}
 }
 
 (common) {

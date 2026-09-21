@@ -19,6 +19,7 @@ use Illuminate\Http\Response;
 #[Group('Agents')]
 final class SkillController
 {
+    /** List skills. */
     public function index(IndexDirectoryRequest $request): AnonymousResourceCollection
     {
         $query = Skill::query();
@@ -32,6 +33,7 @@ final class SkillController
         return SkillResource::collection($query->orderBy('id')->paginate($request->perPage())->withQueryString());
     }
 
+    /** Create a skill. */
     #[ScrambleResponse(status: 201, type: SkillResource::class)]
     public function store(SaveSkillRequest $request): JsonResponse
     {
@@ -40,6 +42,7 @@ final class SkillController
         return (new SkillResource($skill))->response()->setStatusCode(201);
     }
 
+    /** Update a skill. */
     public function update(SaveSkillRequest $request, Skill $skill): SkillResource
     {
         $skill->update($request->validated());
@@ -47,6 +50,7 @@ final class SkillController
         return new SkillResource($skill->refresh());
     }
 
+    /** Delete a skill. */
     public function destroy(Skill $skill, DirectoryUsage $usage): Response
     {
         $references = ['agents' => $skill->agents()->count(), ...$usage->skillReferences($skill)];

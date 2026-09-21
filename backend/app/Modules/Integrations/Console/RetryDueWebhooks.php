@@ -12,7 +12,6 @@ use App\Support\Time\Clock;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -34,12 +33,11 @@ final class RetryDueWebhooks extends Command
     {
         $now = $clock->now();
 
-        // MVP-SHORTCUT: this cross-tenant read works because row-level security is not enabled yet;
-        // V1: M3-07 gives the sweep a privileged read of the due tenant ids (same as sla:evaluate).
-        $tenantIds = $this->due(DB::table('webhook_deliveries'), $now)->distinct()->pluck('tenant_id');
-
+        // Row-level security shows a connection one workspace at a time, so the sweep visits every
+        // active workspace instead of reading due tenant ids across all of them (M3-07); a workspace
+        // with nothing due costs one indexed query.
         $queued = 0;
-        foreach (Tenant::active()->whereKey($tenantIds)->cursor() as $tenant) {
+        foreach (Tenant::active()->cursor() as $tenant) {
             try {
                 $queued += (int) $tenant->run(fn (): int => $this->queueTenant($now));
             } catch (Throwable $exception) {

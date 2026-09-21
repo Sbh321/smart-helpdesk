@@ -1,0 +1,6 @@
+- name: Recreate the proxy
+  ansible.builtin.command: docker compose up -d --force-recreate --no-deps proxy
+  args:
+    chdir: "{{ app_dir }}"
+  when: app_stack_exists | default(false)
+  changed_when: true

@@ -13,7 +13,8 @@ return [
     'platform_domain' => env('PLATFORM_DOMAIN', 'shp.localhost'),
     'host_layout' => env('HOST_LAYOUT', 'split'),
     'hosts' => [
-        'app' => env('APP_HOST', 'app.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
+        // The single layout serves the SPA on the platform domain itself, so links point there.
+        'app' => env('APP_HOST', (env('HOST_LAYOUT', 'split') === 'single' ? '' : 'app.').env('PLATFORM_DOMAIN', 'shp.localhost')),
         'api' => env('API_HOST', 'api.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
         'admin' => env('ADMIN_HOST', 'admin.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
         'monitor' => env('MONITOR_HOST', 'monitor.'.env('PLATFORM_DOMAIN', 'shp.localhost')),

@@ -8,7 +8,11 @@ use App\Modules\Media\Domain\MediaTicketUse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin MediaTicketUse */
+/**
+ * A ticket a media item is attached to.
+ *
+ * @mixin MediaTicketUse
+ */
 final class MediaTicketUseResource extends JsonResource
 {
     public function toArray(Request $request): array

@@ -41,9 +41,10 @@ final class SaveCalendarRequest extends FormRequest
 
         foreach (WorkingHoursCalendar::DAYS as $day) {
             $rules["weekly_hours.{$day}"] = ['sometimes', 'array'];
-            $rules["weekly_hours.{$day}.*"] = ['array', 'size:2'];
-            $rules["weekly_hours.{$day}.*.0"] = ['required', 'string'];
-            $rules["weekly_hours.{$day}.*.1"] = ['required', 'string'];
+            // A `[start, end]` pair. `list` + `.*.*` instead of `.0`/`.1` rules: same checks, and the API
+            // document gets an array of strings rather than an object with numeric keys.
+            $rules["weekly_hours.{$day}.*"] = ['array', 'list', 'size:2'];
+            $rules["weekly_hours.{$day}.*.*"] = ['required', 'string'];
         }
 
         return $rules;

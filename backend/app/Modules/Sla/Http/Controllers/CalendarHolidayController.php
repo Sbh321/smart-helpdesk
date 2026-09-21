@@ -15,6 +15,7 @@ use Illuminate\Http\Response;
 #[Group('SLA')]
 final class CalendarHolidayController
 {
+    /** Add a holiday to a calendar. */
     public function store(SaveHolidayRequest $request, BusinessCalendar $calendar): BusinessCalendarResource
     {
         $this->rejectActiveTimerEdit($calendar);
@@ -23,6 +24,7 @@ final class CalendarHolidayController
         return new BusinessCalendarResource($calendar->refresh()->load('holidays'));
     }
 
+    /** Remove a holiday from a calendar. */
     public function destroy(BusinessCalendar $calendar, CalendarHoliday $holiday): Response
     {
         abort_unless($holiday->calendar_id === $calendar->id, 404);

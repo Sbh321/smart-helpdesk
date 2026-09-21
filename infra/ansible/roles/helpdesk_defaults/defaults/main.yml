@@ -1,0 +1,74 @@
+# Non-secret defaults for every Smart Helpdesk host (docs/09-infrastructure/ansible.md).
+# They are role defaults, the lowest variable precedence, so the inventory ([helpdesk:vars] or host
+# variables) and -e always win; every play lists this role first. (Playbook group_vars/all would
+# override the inventory's [helpdesk:vars].) Secrets are generated per host into
+# host_vars/<host>.secrets.yml (gitignored); shared secrets that must live in git go in vault.yml.
+
+# ---- Release ----
+app_version: "2026.10.1"
+image_registry: ghcr.io/subham
+backend_image: "{{ image_registry }}/smart-helpdesk-backend:{{ app_version }}"
+proxy_image: "{{ image_registry }}/smart-helpdesk-proxy:{{ app_version }}"
+# Air-gapped or registry-less installs: a `docker save` archive (optionally .gz) on the controller
+# holding backend_image and proxy_image; it is copied and loaded instead of pulling.
+image_archive: ""
+registry_username: ""
+registry_password: "{{ vault_registry_password | default('') }}"
+
+# ---- Paths ----
+app_dir: /opt/smart-helpdesk
+deploy_user: deploy
+deploy_ssh_public_key: ""          # added to ~deploy/.ssh/authorized_keys when set
+container_uid: 33                  # www-data in the backend image; owns secret files it must read
+repo_root: "{{ playbook_dir }}/../.."
+
+# ---- Hosts and TLS (ADR-0021, production.md §TLS options) ----
+platform_domain: shp.subhambhandari.com.np
+host_layout: split                 # split | single
+tls_mode: acme                     # acme | on_demand | files | internal
+tls_cert_file: ""                  # tls_mode=files: fullchain.pem on the controller
+tls_key_file: ""                   # tls_mode=files: privkey.pem on the controller
+http_port: 80
+https_port: 443
+monitor_user: ops
+
+# ---- Tenancy ----
+# single_tenant: corp              # on-prem: every request runs in this workspace
+single_tenant_name: "{{ single_tenant | default('') | capitalize }}"
+single_tenant_owner: ""            # invited by mail; the invitation link is also written to .first-owner-invitation
+platform_admin_email: ""           # creates a platform super admin on first install when set
+platform_admin_name: Platform admin
+
+# ---- Profiles ----
+storage_profile: true              # RustFS on the host; false = external S3 (s3_* variables below)
+realtime_profile: false            # Reverb
+
+# ---- External object storage (storage_profile=false) ----
+s3_endpoint: ""
+s3_region: us-east-1
+s3_bucket: helpdesk
+s3_public_url: ""                  # presign endpoint; defaults to s3_endpoint
+# s3_key / s3_secret: from the OpenTofu inventory or vault (vault_s3_key / vault_s3_secret)
+
+# ---- Mail (production.md §Mail); log until a relay is configured ----
+mail_host: ""
+mail_port: 587
+mail_username: ""
+mail_password: "{{ vault_mail_password | default('') }}"
+mail_from: "no-reply@{{ platform_domain }}"
+mail_relay_host: ""                # bundled mail server smart host (M3-18)
+
+health_notify_mail: ""
+log_level: info
+
+# ---- Host hardening (roles common, firewall) ----
+timezone: UTC
+ssh_cidrs: ["0.0.0.0/0"]
+swap_size_mb: 2048                 # 0 = no swap file
+manage_firewall: true
+harden_ssh: true
+kernel_tuning: true                # vm.overcommit_memory=1 for Valkey; off in containers (not namespaced)
+
+# ---- Backups (backups.md §Host safety net) ----
+backup_on_calendar: "*-*-* 02:30:00"
+backup_retention_days: 7

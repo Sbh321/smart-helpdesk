@@ -17,6 +17,7 @@ use App\Modules\Identity\Http\Resources\MeResource;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
 
 #[Group('Authentication')]
@@ -48,7 +49,7 @@ final class AuthController
     /**
      * Sign out and destroy the session.
      */
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request): HttpResponse
     {
         $user = $request->user();
 
@@ -60,7 +61,7 @@ final class AuthController
             Audit::record('user.logged_out', $user);
         }
 
-        return new JsonResponse(status: 204);
+        return response()->noContent();
     }
 
     /**

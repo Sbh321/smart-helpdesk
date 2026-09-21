@@ -8,7 +8,11 @@ use App\Modules\Media\Domain\UploadIntent;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin UploadIntent */
+/**
+ * A presigned upload: PUT the file to `url` with `headers`, then call `POST /media/{media}/complete`.
+ *
+ * @mixin UploadIntent
+ */
 final class UploadIntentResource extends JsonResource
 {
     public function toArray(Request $request): array

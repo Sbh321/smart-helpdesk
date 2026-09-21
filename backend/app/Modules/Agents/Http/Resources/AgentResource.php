@@ -10,7 +10,11 @@ use App\Modules\Agents\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin AgentProfile */
+/**
+ * An Agent: the agent profile of a workspace user, with skills, teams, capacity and availability.
+ *
+ * @mixin AgentProfile
+ */
 final class AgentResource extends JsonResource
 {
     public function toArray(Request $request): array

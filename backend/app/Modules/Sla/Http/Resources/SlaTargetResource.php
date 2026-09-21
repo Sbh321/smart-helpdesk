@@ -8,7 +8,11 @@ use App\Modules\Sla\Models\SlaTarget;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin SlaTarget */
+/**
+ * First-response and resolution targets of an SLA policy for one priority, in business-calendar minutes.
+ *
+ * @mixin SlaTarget
+ */
 final class SlaTargetResource extends JsonResource
 {
     public function toArray(Request $request): array

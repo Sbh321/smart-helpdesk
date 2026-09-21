@@ -31,6 +31,7 @@ final class AgentController
 {
     public function __construct(private readonly DirectoryUsage $usage, private readonly Clock $clock) {}
 
+    /** List agents. */
     public function index(IndexAgentsRequest $request): AnonymousResourceCollection
     {
         $query = AgentProfile::query()->with(['user', 'skills', 'teams']);
@@ -48,6 +49,7 @@ final class AgentController
         return AgentResource::collection($query->orderBy('id')->paginate($request->perPage())->withQueryString());
     }
 
+    /** List users who can become agents. */
     public function availableUsers(): AnonymousResourceCollection
     {
         return AvailableUserResource::collection(
@@ -55,6 +57,7 @@ final class AgentController
         );
     }
 
+    /** Make a user an agent. */
     #[Response(status: 201, type: AgentResource::class)]
     public function store(SaveAgentRequest $request): JsonResponse
     {
@@ -63,21 +66,25 @@ final class AgentController
         return (new AgentResource($agent))->response()->setStatusCode(201);
     }
 
+    /** Get an agent. */
     public function show(AgentProfile $agent): AgentResource
     {
         return new AgentResource($this->loadForResource($agent));
     }
 
+    /** Update an agent. */
     public function update(UpdateAgentRequest $request, AgentProfile $agent): AgentResource
     {
         return new AgentResource($this->save($request->validated(), $agent));
     }
 
+    /** Get an agent's live workload. */
     public function workload(AgentProfile $agent): AgentWorkloadResource
     {
         return new AgentWorkloadResource(AgentWorkloadView::fromArray($this->usage->workload($agent)));
     }
 
+    /** Remove an agent profile. */
     public function destroy(AgentProfile $agent): HttpResponse
     {
         $tickets = $this->usage->activeTicketCount($agent);

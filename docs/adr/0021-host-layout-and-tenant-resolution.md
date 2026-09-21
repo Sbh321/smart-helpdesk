@@ -17,7 +17,7 @@ The owner will host the platform under a personal domain, `subhambhandari.com.np
 | `api.shp.subhambhandari.com.np` | REST API `/v1/*`, `/oauth/token`, `/sanctum/csrf-cookie`, `/broadcasting/auth`, websockets `/app` (Reverb) | SPA sessions, API clients |
 | `admin.shp.subhambhandari.com.np` | platform-admin SPA and same-origin platform API `/platform-api/*` | platform super admins (separate guard, host-only cookie) |
 | `monitor.shp.subhambhandari.com.np` | Horizon, health dashboard, log viewer, mail-server admin, object-storage console | platform super admins (app gate + Caddy basic auth; optional IP allow-list) |
-| `docs.shp.subhambhandari.com.np` | public API reference (Scramble) and, later, the user guide | public |
+| `docs.shp.subhambhandari.com.np` | API reference (Scramble) and, later, the user guide | public at first; since M3-06 the reference needs a workspace user with `integrations.manage` (docs/07-api/documentation.md §Access) |
 | `files.shp.subhambhandari.com.np` | S3-compatible endpoint (RustFS) used by presigned upload/download URLs | signed URLs only |
 | `mail.shp.subhambhandari.com.np` | SMTP (25, 587) and IMAP (993) of the bundled mail server; MX target | mail |
 

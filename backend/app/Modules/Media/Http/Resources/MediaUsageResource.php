@@ -8,7 +8,11 @@ use App\Modules\Media\Domain\MediaUsage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin MediaUsage */
+/**
+ * Storage used by the workspace against its quota.
+ *
+ * @mixin MediaUsage
+ */
 final class MediaUsageResource extends JsonResource
 {
     public function toArray(Request $request): array

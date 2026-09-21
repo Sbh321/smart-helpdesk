@@ -37,7 +37,7 @@ function overrideTicket(array $attributes = []): Ticket
 
 function overriddenTicket(Ticket $ticket): Ticket
 {
-    return Ticket::query()->withoutTenancy()->findOrFail($ticket->id);
+    return findInAnyTenant(Ticket::class, $ticket->id);
 }
 
 it('overrides the level with a reason, writes history and an audit entry', function (): void {

@@ -46,6 +46,7 @@ describe('authenticated tenant routes', function (): void {
 
     it('end tenancy after the request', function (): void {
         actingAsTenantUser($this->acme);
+        tenancy()->end();
 
         $this->getJson('/v1/test-tenancy/whoami')->assertOk();
 

@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * A Role and its permissions; global default roles cannot be edited.
+ *
  * @mixin Role
  */
 final class RoleResource extends JsonResource

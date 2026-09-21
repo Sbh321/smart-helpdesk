@@ -21,6 +21,7 @@ final class DashboardController
 {
     public function __construct(private readonly Dashboard $dashboard) {}
 
+    /** Get the dashboard. */
     public function __invoke(Request $request): DashboardResource
     {
         $validated = $request->validate([

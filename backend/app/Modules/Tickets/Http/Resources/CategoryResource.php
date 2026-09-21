@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * A ticket Category; the default team and required skills feed assignment.
+ *
  * @mixin Category
  */
 final class CategoryResource extends JsonResource

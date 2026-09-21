@@ -53,19 +53,16 @@ Each runbook: symptoms, diagnosis, fix, prevention. Commands assume `/opt/smart-
 
 ## Restore from backup
 
-See [09-infrastructure/disaster-recovery.md](../09-infrastructure/disaster-recovery.md) for the full rebuild. Database-only restore on a live host:
+See [09-infrastructure/disaster-recovery.md](../09-infrastructure/disaster-recovery.md#restore-procedure-as-built) for the steps and the full rebuild. On a live host (destructive: the database is replaced):
 
 ```sh
-docker compose stop app horizon scheduler
-docker compose exec -T postgres psql -U helpdesk_owner -d postgres -c "DROP DATABASE helpdesk;" -c "CREATE DATABASE helpdesk;"
-gunzip -c backups/helpdesk-2026-10-01-0230-daily.sql.gz | docker compose exec -T postgres psql -U helpdesk_owner -d helpdesk
-docker compose exec -T postgres psql -U helpdesk_owner -d helpdesk -f /docker-entrypoint-initdb.d/01-roles.sql   # grants for helpdesk_app/backup
-docker compose run --rm -e DB_USERNAME=helpdesk_owner -e DB_PASSWORD_FILE=/run/secrets/db_owner_password app php artisan migrate --force
-docker compose up -d --wait
-docker compose exec app php artisan health:check
+ls -t /opt/smart-helpdesk/backups | head                        # helpdesk-<UTC>-<label>.dump, objects-<UTC>-<label>.tar.gz
+sudo HELPDESK_DIR=/opt/smart-helpdesk helpdesk-restore /opt/smart-helpdesk/backups/helpdesk-20261001T023000Z-daily.dump \
+  /opt/smart-helpdesk/backups/objects-20261001T023000Z-daily.tar.gz
+cd /opt/smart-helpdesk && PLATFORM_DOMAIN=<domain> HOST_LAYOUT=<split|single> SMOKE_CONNECT=127.0.0.1:443 SMOKE_INSECURE=1 SMOKE_DEV=0 ./infra/scripts/smoke.sh
 ```
 
-Spatie archives: `php artisan backup:list`, download the zip from the `backups` disk, unzip with `BACKUP_ARCHIVE_PASSWORD`, then the same `psql` import.
+From the controller: `ansible-playbook -i inventory/<env>.ini restore.yml -e dump_file=… [-e objects_file=…] [-e upload=true]`. Spatie archives (`backup:list`, unzip with `BACKUP_ARCHIVE_PASSWORD`) arrive with V1-PL-16.
 
 ## Rotate APP_KEY and secrets
 
@@ -104,6 +101,7 @@ Only available when `APP_ENV != production`. Takes under a minute; rehearse befo
 
 | Date | Drill | Duration | Outcome / issues |
 |---|---|---|---|
-| (milestone 3) | restore into scratch project | | |
+| 2026-09-21 | restore into scratch project (`shp-prodtest`, after `down -v`) | backup < 1 s, restore 23 s | data back to the backup point, sign-in works; details in [disaster-recovery.md](../09-infrastructure/disaster-recovery.md#drill-2026-09-21) |
+| 2026-09-21 | `restore.yml` on the Ansible rehearsal host | < 1 min | green; smoke with sign-in passes |
 | (milestone 3) | secret rotation | | |
 | (before demo) | full rebuild on throwaway droplet | | |

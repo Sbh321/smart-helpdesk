@@ -8,7 +8,11 @@ use App\Modules\Contacts\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Tag */
+/**
+ * A tag on a media item.
+ *
+ * @mixin Tag
+ */
 final class MediaTagResource extends JsonResource
 {
     public function toArray(Request $request): array

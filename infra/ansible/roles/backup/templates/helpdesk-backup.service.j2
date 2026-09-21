@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Smart Helpdesk database and object backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+Environment=HELPDESK_DIR={{ app_dir }}
+Environment=RETENTION_DAYS={{ backup_retention_days }}
+ExecStart=/usr/local/bin/helpdesk-backup daily

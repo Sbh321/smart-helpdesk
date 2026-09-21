@@ -1,0 +1,3 @@
+# The inventory-facing settings (platform_domain, tls_mode, ...) are deliberately unprefixed: operators set them
+# in [helpdesk:vars]; role defaults are the only level below the inventory (roles/helpdesk_defaults).
+roles/helpdesk_defaults/defaults/main.yml var-naming[no-role-prefix]

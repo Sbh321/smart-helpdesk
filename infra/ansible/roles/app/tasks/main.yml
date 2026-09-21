@@ -1,0 +1,142 @@
+# Application install and convergence (ansible.md §Roles: app). Order: tree → secrets → images →
+# .env → data services → migrate (owner role) → first-run provisioning → all services → bucket → smoke.
+- name: Create the application tree
+  ansible.builtin.file:
+    path: "{{ app_dir }}/{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default(deploy_user) }}"
+    group: "{{ deploy_user }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - { path: "" }
+    - { path: infra/compose }
+    - { path: infra/postgres/init }
+    - { path: infra/scripts }
+    - { path: secrets, mode: "0750" }
+    - { path: backups, mode: "0700" }
+
+- name: Copy the Compose files and database bootstrap
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/{{ item.src }}"
+    dest: "{{ app_dir }}/{{ item.dest | default(item.src) }}"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop:
+    - { src: compose.yaml }
+    - { src: infra/compose/prod.yaml }
+    - { src: infra/compose/tools.yaml }
+    - { src: infra/postgres/entrypoint.sh, mode: "0755" }
+    - { src: infra/postgres/init/10-roles-and-databases.sh, mode: "0755" }
+    - { src: infra/scripts/smoke.sh, mode: "0755" }
+  notify: Converge the stack
+
+- name: Secrets
+  ansible.builtin.import_tasks: secrets.yml
+
+- name: Images
+  ansible.builtin.import_tasks: images.yml
+
+- name: Hash the monitor password for Caddy basic auth (first run only)
+  ansible.builtin.command:
+    argv: [docker, run, --rm, --entrypoint, caddy, "{{ proxy_image }}", hash-password, --plaintext, "{{ app_secrets.monitor_password }}"]
+  register: app_monitor_hash
+  when: app_secrets.monitor_password_hash | length == 0
+  changed_when: true
+  no_log: true
+
+- name: Keep the monitor password hash with the other secrets  # noqa: no-handler (needed before the next task, not at the end of the play)
+  ansible.builtin.set_fact:
+    app_secrets: "{{ app_secrets | combine({'monitor_password_hash': app_monitor_hash.stdout}) }}"
+  when: app_monitor_hash is changed
+  no_log: true
+
+- name: Persist the monitor password hash  # noqa: no-handler (needed before the next task, not at the end of the play)
+  ansible.builtin.copy:
+    dest: "{{ app_secrets_file }}"
+    content: "{{ app_secrets | to_nice_yaml }}"
+    mode: "0600"
+  delegate_to: localhost
+  become: false
+  when: app_monitor_hash is changed
+  no_log: true
+
+- name: Render .env
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ app_dir }}/.env"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0600"
+  notify: Converge the stack
+
+- name: Start the data services
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files: "{{ app_compose_files }}"
+    services: "{{ ['postgres', 'valkey'] + (['rustfs'] if storage_profile | bool else []) }}"
+    state: present
+    pull: missing
+    wait: true
+    wait_timeout: 300
+
+- name: Migrate on the owner role
+  community.docker.docker_compose_v2_run:
+    project_src: "{{ app_dir }}"
+    files: "{{ app_compose_files }}"
+    service: migrate
+    cleanup: true
+    no_deps: true
+  register: app_migrate
+  changed_when: "'DONE' in app_migrate.stdout"
+
+- name: First-run provisioning
+  ansible.builtin.import_tasks: provision.yml
+
+- name: Start every service
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files: "{{ app_compose_files }}"
+    state: present
+    pull: missing
+    remove_orphans: true
+    wait: true
+    wait_timeout: 300
+
+- name: Record that the stack exists (proxy handler)
+  ansible.builtin.set_fact:
+    app_stack_exists: true
+
+- name: Check the bucket and its CORS rules
+  community.docker.docker_compose_v2_exec:
+    project_src: "{{ app_dir }}"
+    service: app
+    command: php artisan storage:ensure-bucket --check
+  register: app_bucket_check
+  changed_when: false
+  failed_when: false
+
+- name: Create the bucket and apply its CORS rules
+  community.docker.docker_compose_v2_exec:
+    project_src: "{{ app_dir }}"
+    service: app
+    command: php artisan storage:ensure-bucket
+  when: "'present' not in app_bucket_check.stdout or 'up to date' not in app_bucket_check.stdout"
+  changed_when: true
+
+- name: Smoke test through the local proxy
+  ansible.builtin.command:
+    argv: ["{{ app_dir }}/infra/scripts/smoke.sh"]
+  environment:
+    PLATFORM_DOMAIN: "{{ platform_domain }}"
+    HOST_LAYOUT: "{{ host_layout }}"
+    SMOKE_CONNECT: "127.0.0.1:{{ https_port }}"
+    SMOKE_INSECURE: "1"
+    SMOKE_DEV: "0"
+    SMOKE_STORAGE: "{{ '1' if storage_profile | bool else '0' }}"
+    SMOKE_WORKSPACE: "{{ single_tenant | default('acme') }}"
+  register: app_smoke
+  changed_when: false
+  retries: 5
+  delay: 10
+  until: app_smoke.rc == 0

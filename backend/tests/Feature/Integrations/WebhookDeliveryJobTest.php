@@ -30,6 +30,8 @@ beforeEach(function (): void {
     $this->dns = fakeWebhookDns();
     $this->acme = createTenant('acme');
     $this->webhook = createWebhook($this->acme, attributes: ['url' => 'https://hooks.example.com/in']);
+    // The assertions read acme's rows, which row-level security shows only inside acme.
+    tenancy()->initialize($this->acme);
 });
 
 function pendingDelivery(WebhookSubscription $webhook, array $attributes = []): WebhookDelivery
@@ -242,8 +244,9 @@ it('prunes deliveries older than 30 days in every workspace', function (): void 
     $foreignOld = WebhookDelivery::factory()->forSubscription(createWebhook($globex))->create(['created_at' => '2026-08-01 00:00:00']);
     $kept = pendingDelivery($this->webhook, ['created_at' => '2026-08-22 10:01:00']);
 
+    tenancy()->end();
     $this->artisan('webhooks:prune')->assertSuccessful();
 
-    expect(WebhookDelivery::query()->withoutGlobalScopes()->pluck('id')->all())->toBe([$kept->id])
-        ->and(WebhookDelivery::query()->withoutGlobalScopes()->whereKey([$old->id, $foreignOld->id])->exists())->toBeFalse();
+    expect($this->acme->run(fn (): array => WebhookDelivery::query()->pluck('id')->all()))->toBe([$kept->id])
+        ->and($globex->run(fn (): bool => WebhookDelivery::query()->whereKey($foreignOld->id)->exists()))->toBeFalse();
 });

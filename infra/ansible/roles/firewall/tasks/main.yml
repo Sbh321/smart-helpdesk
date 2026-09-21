@@ -1,0 +1,30 @@
+# ufw: deny incoming except SSH (from ssh_cidrs), HTTP and HTTPS (ansible.md §Roles: firewall).
+# Docker publishes the proxy ports through its own iptables chains; nothing else is published.
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Allow SSH from the operator ranges
+  community.general.ufw:
+    rule: limit
+    port: "22"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ ssh_cidrs }}"
+
+- name: Allow HTTP and HTTPS
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - { port: "80", proto: tcp }
+    - { port: "443", proto: tcp }
+    - { port: "443", proto: udp }
+
+- name: Deny everything else and enable
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming

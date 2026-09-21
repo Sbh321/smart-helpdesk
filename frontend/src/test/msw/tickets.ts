@@ -391,7 +391,7 @@ export const ticketHandlers = [
       team_id: null,
       assigned_agent_id: null,
       duplicate_of_id: null,
-      created_via: 'agent',
+      created_via: 'ui',
       tags: tagsByName(body.tags ?? []),
       resolved_at: null,
       closed_at: null,

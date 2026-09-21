@@ -18,6 +18,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 final class TicketBulkAssignmentController
 {
     /**
+     * Assign up to 100 tickets.
+     *
      * Assigns up to 100 tickets, each in its own transaction with the rules of the single endpoints:
      * one Agent or Team for all, or `auto: true` to run the assigner per ticket (a ticket nobody is
      * eligible for is a row with `no_eligible_agent`).

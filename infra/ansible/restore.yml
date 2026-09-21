@@ -1,0 +1,45 @@
+# Restore (disaster-recovery.md): destructive, drops the database first.
+#   ansible-playbook -i inventory/<env>.ini restore.yml -e dump_file=/opt/smart-helpdesk/backups/helpdesk-….dump \
+#     [-e objects_file=/opt/smart-helpdesk/backups/objects-….tar.gz] [-e upload=true to copy both from the controller]
+- name: Restore Smart Helpdesk from a backup
+  hosts: helpdesk
+  become: true
+  roles: [helpdesk_defaults]
+  vars:
+    objects_file: ""
+    upload: false
+  tasks:
+    - name: Require a dump file
+      ansible.builtin.assert:
+        that: dump_file is defined and dump_file | length > 0
+        fail_msg: pass -e dump_file=<path to helpdesk-….dump>
+
+    - name: Upload the backup files from the controller
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ app_dir }}/backups/{{ item | basename }}"
+        mode: "0600"
+      loop: "{{ [dump_file] + ([objects_file] if objects_file | length > 0 else []) }}"
+      when: upload | bool
+
+    - name: Restore
+      ansible.builtin.command:
+        argv: "{{ ['/usr/local/bin/helpdesk-restore', restore_dump] + ([restore_objects] if objects_file | length > 0 else []) }}"
+      vars:
+        restore_dump: "{{ app_dir + '/backups/' + (dump_file | basename) if upload | bool else dump_file }}"
+        restore_objects: "{{ app_dir + '/backups/' + (objects_file | basename) if upload | bool else objects_file }}"
+      environment: { HELPDESK_DIR: "{{ app_dir }}", RESTORE_YES: "1" }
+      changed_when: true
+
+    - name: Smoke test
+      ansible.builtin.command:
+        argv: ["{{ app_dir }}/infra/scripts/smoke.sh"]
+      environment:
+        PLATFORM_DOMAIN: "{{ platform_domain }}"
+        HOST_LAYOUT: "{{ host_layout }}"
+        SMOKE_CONNECT: "127.0.0.1:{{ https_port }}"
+        SMOKE_INSECURE: "1"
+        SMOKE_DEV: "0"
+        SMOKE_STORAGE: "{{ '1' if storage_profile | bool else '0' }}"
+        SMOKE_WORKSPACE: "{{ single_tenant | default('acme') }}"
+      changed_when: false

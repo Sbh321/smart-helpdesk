@@ -84,11 +84,14 @@ it('gives each queued job only its own tenant rows, and a central job none, in o
         'emails' => ['theirs@globex.test'],
     ]);
 
-    // A central job keeps no tenant, no database setting and no permission team. It also sees
-    // every row, because the Eloquent scope is the only filter until row-level security (M3-07).
-    expect(QueriesUsersJob::$seen['central']['tenant'])->toBeNull()
-        ->and(QueriesUsersJob::$seen['central']['setting'])->toBe('')
-        ->and(QueriesUsersJob::$seen['central']['permission_team'])->toBeNull();
+    // A central job keeps no tenant, no database setting and no permission team, and row-level
+    // security (M3-07) shows it no tenant rows at all, although the Eloquent scope is off.
+    expect(QueriesUsersJob::$seen['central'])->toBe([
+        'tenant' => null,
+        'setting' => '',
+        'permission_team' => null,
+        'emails' => [],
+    ]);
 });
 
 it('carries the tenant in the job payload rather than in the job constructor', function (): void {

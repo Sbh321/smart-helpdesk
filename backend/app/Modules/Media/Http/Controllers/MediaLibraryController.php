@@ -34,6 +34,7 @@ final class MediaLibraryController
         'archive' => ['application/zip'],
     ];
 
+    /** List media items. */
     #[QueryParameter('page', 'One-based page number.', type: 'integer')]
     #[QueryParameter('per_page', '1–100, default 25.', type: 'integer')]
     #[QueryParameter('sort', 'name, size_bytes or created_at, optionally prefixed by -.', type: 'string')]
@@ -102,11 +103,13 @@ final class MediaLibraryController
         return MediaItemResource::collection($page);
     }
 
+    /** Get a media item. */
     public function show(MediaItem $media): MediaItemResource
     {
         return new MediaItemResource($media);
     }
 
+    /** Download a media item. */
     public function download(Request $request, MediaItem $media, MediaStorage $storage, MediaUses $uses): RedirectResponse
     {
         $this->authorizeRead($request, $media, $uses);
@@ -114,6 +117,7 @@ final class MediaLibraryController
         return redirect()->away($storage->downloadUrl($media->storage_key, $media->name, self::URL_TTL_SECONDS));
     }
 
+    /** Download a variant of a media item. */
     public function variant(Request $request, MediaItem $media, string $name, MediaStorage $storage, MediaUses $uses): RedirectResponse
     {
         $this->authorizeRead($request, $media, $uses);
@@ -124,6 +128,7 @@ final class MediaLibraryController
         return redirect()->away($storage->variantUrl($key, self::URL_TTL_SECONDS));
     }
 
+    /** Get storage usage. */
     public function usage(MediaQuota $quota): MediaUsageResource
     {
         return new MediaUsageResource($quota->usage((string) tenant()?->getTenantKey()));

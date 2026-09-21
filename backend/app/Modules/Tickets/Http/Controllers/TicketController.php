@@ -103,6 +103,8 @@ final class TicketController
     }
 
     /**
+     * Transition a ticket.
+     *
      * Move a ticket across a lifecycle edge. Assignment and duplicate edges have dedicated actions.
      */
     public function transition(TransitionTicketRequest $request, Ticket $ticket, TransitionTicket $transition): TicketResource

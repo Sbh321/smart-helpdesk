@@ -1,0 +1,22 @@
+# Docker Engine + Compose plugin from download.docker.com (ansible.md §Roles: docker).
+# Log rotation is also set daemon-wide, so containers started outside Compose cannot fill the disk.
+- name: Install Docker with geerlingguy.docker
+  ansible.builtin.include_role:
+    name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: true
+    docker_users: ["{{ deploy_user }}"]
+    docker_daemon_options:
+      log-driver: json-file
+      log-opts: { max-size: "10m", max-file: "3" }
+
+- name: Read the Compose version
+  ansible.builtin.command: docker compose version --short
+  register: docker_compose_version_out
+  changed_when: false
+
+- name: Require Docker Compose v2.24 or later (env_file.required, include)
+  ansible.builtin.assert:
+    that: docker_compose_version_out.stdout is version('2.24.0', '>=')
+    fail_msg: "docker compose {{ docker_compose_version_out.stdout }} is too old"
+    quiet: true

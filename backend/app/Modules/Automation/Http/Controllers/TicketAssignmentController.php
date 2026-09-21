@@ -23,6 +23,7 @@ final class TicketAssignmentController
 {
     private const TICKET_RELATIONS = ['contact', 'organization', 'category', 'tags'];
 
+    /** Preview the assignment of a ticket. */
     public function candidates(Ticket $ticket, AssignmentCandidates $candidates, AssignmentStrategy $strategy): AssignmentPreviewResource
     {
         $pool = $candidates->forTicket($ticket);
@@ -31,6 +32,8 @@ final class TicketAssignmentController
     }
 
     /**
+     * Assign a ticket.
+     *
      * Manual assignment, reassignment or team routing; the manager may pick an agent the
      * strategy would exclude (`assignment.explanation.manual_override`).
      */
@@ -47,6 +50,8 @@ final class TicketAssignmentController
     }
 
     /**
+     * Run automatic assignment for a ticket.
+     *
      * Runs the assigner for an unassigned ticket. When nobody is eligible the attempt is stored
      * and the answer is 422 `no_eligible_agent` with `meta.exclusions`.
      */
@@ -66,6 +71,7 @@ final class TicketAssignmentController
         return new AssignedTicketResource($assigned->load(self::TICKET_RELATIONS));
     }
 
+    /** Unassign a ticket. */
     public function unassign(Request $request, Ticket $ticket, UnassignTicket $unassign): TicketResource
     {
         return new TicketResource($unassign($ticket, (string) $request->user()?->id)->load(self::TICKET_RELATIONS));

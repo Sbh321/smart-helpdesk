@@ -15,6 +15,7 @@ use Dedoc\Scramble\Attributes\Group;
 #[Group('Automation')]
 final class TicketPriorityController
 {
+    /** Override or clear a ticket's priority. */
     public function store(OverridePriorityRequest $request, Ticket $ticket, OverrideTicketPriority $override): TicketResource
     {
         /** @var User $actor */

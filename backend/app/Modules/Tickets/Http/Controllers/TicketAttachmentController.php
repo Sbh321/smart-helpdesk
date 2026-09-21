@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 #[Group('Tickets')]
 final class TicketAttachmentController
 {
+    /** List a ticket's attachments. */
     public function index(Ticket $ticket): AnonymousResourceCollection
     {
         $items = MediaItem::query()
@@ -29,6 +30,7 @@ final class TicketAttachmentController
         return MediaItemResource::collection($items);
     }
 
+    /** Attach media items to a ticket. */
     public function store(StoreTicketAttachmentsRequest $request, Ticket $ticket, AttachMedia $attach): AnonymousResourceCollection
     {
         $data = $request->validated();
@@ -41,6 +43,7 @@ final class TicketAttachmentController
         return $this->index($ticket);
     }
 
+    /** Detach a media item from a ticket. */
     public function destroy(Ticket $ticket, MediaItem $media): Response
     {
         $removed = Mediable::query()->where('media_item_id', $media->id)

@@ -65,7 +65,9 @@ final class OrganizationController
     }
 
     /**
-     * Update an organisation. Changing the tier affects the priority of new tickets.
+     * Update an organisation.
+     *
+     * Changing the tier affects the priority of new tickets.
      */
     public function update(OrganizationRequest $request, Organization $organization): OrganizationResource
     {

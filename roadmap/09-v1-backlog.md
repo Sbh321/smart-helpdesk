@@ -170,3 +170,12 @@ Items referenced by `MVP-SHORTCUT` markers written while building milestone 2.
 | V1-AL-04 | Simple SLA Timer | per-metric pause rules, recompute modes, next-reply and periodic-update metrics, escalation chains ([design](../docs/05-algorithms/future/sla-evaluation-advanced.md)) | E4 extended | M |
 | V1-AL-05 | Baseline removal | delete baseline classes and their settings one release after each replacement | contract suites | S |
 
+
+## Added to V1 during milestone 3 (M3-14, 2026-09-21)
+
+Items referenced by `MVP-SHORTCUT` markers written while building the deployment.
+
+| ID | Item | Why deferred | Seam | Size |
+|---|---|---|---|---|
+| V1-PL-15 | Storage hostname in single-host mode | the proxy strips `/files`, which breaks presigned signatures; split layout is unaffected | `AWS_PRESIGN_ENDPOINT`, `Caddyfile.single` | S |
+| V1-PL-16 | Encrypted off-site database archives with `spatie/laravel-backup`, `backup:monitor`/`BackupsCheck`, `storage:sync-backup` | needs backend dependency, `config/backup.php`, a `backups` disk and schedules; the host dump timer + `backup.yml -e fetch_backup=true` cover the MVP | `helpdesk_backup` role, `docs/09-infrastructure/backups.md` | M |

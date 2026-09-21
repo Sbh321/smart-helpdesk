@@ -28,9 +28,11 @@ beforeEach(function (): void {
 it('records the acting user, subject, changes and request context', function (): void {
     $userId = (string) Str::uuid7();
     $subject = (new AuditSubjectStub)->forceFill(['id' => (string) Str::uuid7()]);
-    $tenantId = createTenant('acme')->getKey();
+    $tenant = createTenant('acme');
+    $tenantId = $tenant->getKey();
 
-    Route::middleware('api')->post('/v1/test-audit', function () use ($subject, $tenantId) {
+    Route::middleware('api')->post('/v1/test-audit', function () use ($subject, $tenant, $tenantId) {
+        tenancy()->initialize($tenant);
         $entry = Audit::record('user.role_changed', $subject, ['role' => ['old' => 'agent', 'new' => 'manager']], $tenantId);
 
         return ['id' => $entry->id];
@@ -40,7 +42,7 @@ it('records the acting user, subject, changes and request context', function ():
         ->postJson('/v1/test-audit', [], ['User-Agent' => 'PestBrowser/1.0', 'X-Request-Id' => 'req-12345678'])
         ->assertOk();
 
-    $entry = AuditLog::query()->findOrFail($response->json('id'));
+    $entry = $tenant->run(fn (): AuditLog => AuditLog::query()->findOrFail($response->json('id')));
 
     expect($entry->actor_type)->toBe(ActorType::User)
         ->and($entry->actor_id)->toBe($userId)

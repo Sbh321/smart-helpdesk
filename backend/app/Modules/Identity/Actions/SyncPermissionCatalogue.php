@@ -21,7 +21,9 @@ final class SyncPermissionCatalogue
      */
     public function __invoke(): array
     {
-        return DB::transaction(function (): array {
+        // Global roles have no tenant; row-level security lets only the central context write them
+        // (M3-07), so a caller inside a workspace steps out for the sync and back in afterwards.
+        return tenancy()->central(fn (): array => DB::transaction(function (): array {
             foreach (PermissionCatalogue::all() as $name) {
                 Permission::query()->firstOrCreate(['name' => $name, 'guard_name' => PermissionCatalogue::GUARD]);
             }
@@ -42,6 +44,6 @@ final class SyncPermissionCatalogue
                 'permissions' => count(PermissionCatalogue::all()),
                 'roles' => count(PermissionCatalogue::roles()),
             ];
-        });
+        }));
     }
 }

@@ -8,7 +8,11 @@ use App\Modules\Agents\Models\AgentProfile;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin AgentProfile */
+/**
+ * The agent profile of the signed-in user, as `/me` embeds it.
+ *
+ * @mixin AgentProfile
+ */
 final class AgentSessionResource extends JsonResource
 {
     public function toArray(Request $request): array

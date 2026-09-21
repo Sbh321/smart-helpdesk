@@ -1,0 +1,23 @@
+# On-prem single-tenant install (docs/09-infrastructure/ansible.md §Same playbooks, two targets).
+#   cp inventory/onprem.ini.example inventory/onprem.ini   # gitignored
+[helpdesk]
+corp ansible_host=10.0.0.15 ansible_user=deploy
+
+[helpdesk:vars]
+platform_domain=helpdesk.corp.local
+host_layout=single
+single_tenant=corp
+single_tenant_name=Corp Ltd
+single_tenant_owner=it@corp.local
+platform_admin_email=it@corp.local
+# internal (intranet, Caddy CA) | files (tls_cert_file/tls_key_file on the controller) | acme | on_demand
+tls_mode=internal
+storage_profile=true
+realtime_profile=false
+mail_host=smtp.corp.local
+mail_port=587
+mail_username=helpdesk
+mail_from=helpdesk@corp.local
+ssh_cidrs=["10.0.0.0/8"]
+# app_version=2026.10.1
+# image_archive=/path/to/smart-helpdesk-images.tar.gz   # air-gapped: `docker save` output instead of GHCR

@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Support\ApiDocs\RedirectResponseToSchema;
 use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
 
 /*
  * OpenAPI generation with Scramble (ADR-0010, docs/07-api/documentation.md).
- * Security schemes, the shared problem-details schema and the `viewApiDocs` gate live in
- * App\Providers\ApiDocsServiceProvider.
+ * Security schemes, the token endpoint, the shared problem-details schema, per-route access and the
+ * `viewApiDocs` gate live in App\Providers\ApiDocsServiceProvider and App\Support\ApiDocs.
  */
 
 return [
@@ -32,13 +33,19 @@ return [
     'info' => [
         'version' => env('API_VERSION', '1.0.0'),
         'description' => <<<'MD'
-            Smart Helpdesk REST API. All endpoints live under `/v1` on the API host.
+            Smart Helpdesk REST API. All endpoints live under `/v1` on the API host; the token endpoint is
+            `POST /oauth/token` on the same host.
 
             - Authentication: the SPA uses the Sanctum session cookie (`GET /sanctum/csrf-cookie` first, then send
-              `X-XSRF-TOKEN`); API clients use bearer tokens.
+              `X-XSRF-TOKEN`). API clients use OAuth 2.0 client credentials: `POST /oauth/token` returns a bearer
+              token for one hour. Each operation says whether API clients may call it and with which scope;
+              the others answer a client with `403 forbidden`.
             - Errors are RFC 9457 problem details (`application/problem+json`) with a stable `code` and a
               `request_id` that matches the `X-Request-Id` response header.
             - The tenant comes from the authenticated principal, never from the host or a header.
+            - Guides: authentication and scopes (`docs/07-api/authentication.md`), webhooks and signature
+              verification (`docs/07-api/webhooks.md`), errors (`docs/07-api/errors.md`), changes
+              (`docs/07-api/CHANGELOG.md`).
             MD,
     ],
 
@@ -84,13 +91,18 @@ return [
 
     'flatten_deep_query_parameters' => true,
 
-    // Public reference (no tenant data): the `viewApiDocs` gate allows guests.
+    // Unused: Scramble's own routes are switched off (ApiDocsServiceProvider). The reference is served by
+    // ApiDocsController behind the `viewApiDocs` gate (routes/web.php, Platform/Routes/platform.php); kept
+    // restrictive in case the default routes are ever re-enabled.
     'middleware' => [
         'web',
         RestrictedDocsAccess::class,
     ],
 
-    'extensions' => [],
+    // Documents redirects (media downloads) as 302 + Location instead of `200 {}`.
+    'extensions' => [
+        RedirectResponseToSchema::class,
+    ],
 
     // Security is set by the document transformer in ApiDocsServiceProvider.
     'security_strategy' => null,

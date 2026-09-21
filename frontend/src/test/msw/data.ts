@@ -442,7 +442,7 @@ export const NOTIFICATION_FIXTURES: NotificationResource[] = [
   if (!ticket) throw new Error('Missing ticket fixture')
   return {
     id: fixtureId(40, Number(index) + 1),
-    kind: String(kind),
+    kind: kind as NotificationResource['kind'],
     ticket_id: ticket.id,
     ticket_number: ticket.number,
     ticket_title: ticket.title,

@@ -283,7 +283,7 @@ it('lets an API client with webhooks:manage manage webhooks, and nothing else', 
     $this->withToken($token)->getJson('/v1/api-clients')->assertForbidden();
     $this->withToken($token)->getJson('/v1/tickets')->assertForbidden();
 
-    $audit = AuditLog::query()->withoutGlobalScopes()->where('action', 'webhook.created')->sole();
+    $audit = $this->acme->run(fn (): AuditLog => AuditLog::query()->where('action', 'webhook.created')->sole());
     expect($audit->actor_type->value ?? $audit->actor_type)->toBe('api_client')
         ->and($audit->actor_id)->toBe($client->id);
 

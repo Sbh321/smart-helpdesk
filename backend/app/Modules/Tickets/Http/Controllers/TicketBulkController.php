@@ -18,6 +18,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 final class TicketBulkController
 {
     /**
+     * Transition up to 100 tickets.
+     *
      * Moves up to 100 tickets to one status. Each ticket is its own transaction with the same rules
      * as `POST /tickets/{id}/transition`; the answer lists the outcome per ticket, so a partial failure
      * is a 200 with some rows `ok: false`.

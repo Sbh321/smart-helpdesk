@@ -8,7 +8,11 @@ use App\Modules\Tickets\Domain\DuplicatePreviewMatch;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin DuplicatePreviewMatch */
+/**
+ * One possible duplicate found while a ticket is being written.
+ *
+ * @mixin DuplicatePreviewMatch
+ */
 final class DuplicatePreviewMatchResource extends JsonResource
 {
     public function toArray(Request $request): array

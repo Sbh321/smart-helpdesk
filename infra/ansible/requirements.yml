@@ -1,0 +1,12 @@
+# ansible-galaxy install -r requirements.yml  (collections -> ./collections, roles -> ./galaxy_roles; both gitignored)
+# Versions: docs/01-research/versions.md (ansible-core 2.21 row).
+collections:
+  - name: community.docker
+    version: ">=5.3.0,<5.4.0"
+  - name: ansible.posix
+    version: ">=2.2.0,<2.3.0"
+  - name: community.general
+    version: ">=13.4.0,<13.5.0"
+roles:
+  - name: geerlingguy.docker
+    version: 8.0.0

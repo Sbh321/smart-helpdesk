@@ -1,0 +1,14 @@
+#cloud-config
+# First boot of a provisioned VM (terraform.md §cloud-init). Docker and everything else come from
+# Ansible, so a hand-made VM and a provisioned one are configured identically.
+users:
+  - name: deploy
+    groups: [sudo]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash
+    ssh_authorized_keys: ["${deploy_ssh_key}"]
+package_update: true
+packages: [ca-certificates, curl, python3]
+runcmd:
+  - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - systemctl restart ssh

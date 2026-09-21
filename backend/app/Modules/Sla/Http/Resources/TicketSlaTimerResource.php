@@ -8,7 +8,11 @@ use App\Modules\Sla\Models\TicketSlaTimer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin TicketSlaTimer */
+/**
+ * An SLA timer of a ticket (first response or resolution) with its state and due times.
+ *
+ * @mixin TicketSlaTimer
+ */
 final class TicketSlaTimerResource extends JsonResource
 {
     public function toArray(Request $request): array

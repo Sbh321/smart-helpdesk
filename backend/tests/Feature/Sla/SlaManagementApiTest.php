@@ -265,7 +265,7 @@ describe('tenancy and permissions', function (): void {
         $this->deleteJson("/v1/sla-policies/{$policy->id}")->assertNotFound();
         $this->getJson("/v1/tickets/{$timer->ticket_id}/sla")->assertNotFound();
 
-        expect($calendar->fresh()->name)->not->toBe('Mine now')
+        expect($other->run(fn () => $calendar->fresh())->name)->not->toBe('Mine now')
             ->and($this->getJson('/v1/calendars')->json('data'))->toBe([]);
     });
 

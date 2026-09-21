@@ -22,6 +22,8 @@ beforeEach(function (): void {
     [$this->contact, $this->category] = ticketPrerequisites($this->acme);
     $this->client = createApiClient($this->acme, ['tickets:write']);
     $this->withToken(issueToken($this->client));
+    // The assertions count acme's rows, which row-level security shows only inside acme.
+    tenancy()->initialize($this->acme);
 });
 
 function idempotentPayload(array $overrides = []): array

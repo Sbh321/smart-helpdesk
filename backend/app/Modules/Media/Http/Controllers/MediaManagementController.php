@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 #[Group('Media')]
 final class MediaManagementController
 {
+    /** Update a media item. */
     public function update(UpdateMediaRequest $request, MediaItem $media): MediaItemResource
     {
         $data = $request->validated();
@@ -42,6 +43,7 @@ final class MediaManagementController
         return new MediaItemResource($media);
     }
 
+    /** Move a media item to the trash. */
     public function trash(MediaItem $media, Clock $clock): MediaItemResource
     {
         $media = DB::transaction(function () use ($media, $clock): MediaItem {
@@ -54,6 +56,7 @@ final class MediaManagementController
         return new MediaItemResource($media);
     }
 
+    /** Restore a media item from the trash. */
     public function restore(MediaItem $media): MediaItemResource
     {
         $media = DB::transaction(function () use ($media): MediaItem {
@@ -66,6 +69,7 @@ final class MediaManagementController
         return new MediaItemResource($media);
     }
 
+    /** Delete a media item permanently. */
     public function destroy(MediaItem $media, PurgeMedia $purge): Response
     {
         $purge($media->id, 'trashed');

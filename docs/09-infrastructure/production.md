@@ -13,20 +13,26 @@ Memory budget at the minimum tier: PostgreSQL 1 GB, app 768 MB, Horizon 768 MB, 
 
 ## Host layout
 
+As built in M3-14 (the Ansible `app` role creates exactly this):
+
 ```text
 /opt/smart-helpdesk/
 ├── compose.yaml                  # copied from the release
-├── infra/compose/{base,dev,prod,demo}.yaml
-├── infra/caddy/Caddyfile
-├── infra/postgres/init/
-├── .env                          # 0600 deploy:deploy, rendered by Ansible
-├── secrets/                      # 0700; db_owner_password, db_app_password
-├── certs/                        # optional customer certificate (fullchain.pem, privkey.pem)
-└── backups/                      # host pg_dump safety net (7 days)
-/var/lib/docker/volumes/smart-helpdesk_{pg-data,valkey-data,object-data,caddy-data,...}
+├── infra/compose/{prod,tools}.yaml
+├── infra/postgres/{entrypoint.sh,init/10-roles-and-databases.sh}
+├── infra/scripts/smoke.sh
+├── .env                          # 0600 deploy:deploy; Compose settings AND backend settings (BACKEND_ENV_FILE=.env)
+├── secrets/                      # 0750; db_{superuser,owner,app,backup}_password, oauth-{private,public}.key (owner uid 33, 0640)
+├── certs/                        # tls_mode=files: fullchain.pem, privkey.pem
+├── backups/                      # 0700; helpdesk-<UTC>-<label>.dump + objects-<UTC>-<label>.tar.gz (7 days for daily)
+└── .seeded, .tenant-created, .admin-created   # first-run markers (.tenant-created holds the owner invitation link, 0600)
+/usr/local/bin/helpdesk-backup, helpdesk-restore      # from infra/scripts, run by helpdesk-backup.timer
+/var/lib/docker/volumes/smart-helpdesk_{pg-data,valkey-data,object-data,caddy-data,caddy-config}
 ```
 
-The `deploy` user owns the tree and is in the `docker` group; nothing else is installed on the host but Docker.
+`.env` sets `COMPOSE_FILE=compose.yaml:infra/compose/prod.yaml`, so a plain `docker compose …` in `/opt/smart-helpdesk` uses the production overlay and never the development override. Templates: [`infra/env/multi-tenant.env.example`](../../infra/env/multi-tenant.env.example) and [`infra/env/single-tenant.env.example`](../../infra/env/single-tenant.env.example) (Ansible renders the same keys from `roles/app/templates/env.j2`). The `deploy` user owns the tree and is in the `docker` group; nothing else is installed on the host but Docker.
+
+What `infra/compose/prod.yaml` adds to `compose.yaml`: images by tag (`BACKEND_IMAGE`, `PROXY_IMAGE`, `pull_policy: missing`), `restart: unless-stopped`, memory and CPU limits (table in §Sizing), json-file rotation on every service, the Passport keys and `certs/` mounted read-only, the RustFS console off (`RUSTFS_CONSOLE_ENABLE=false`), and a one-shot `migrate` service (profile `ops`) that runs `php artisan migrate --force` with `DB_CONNECTION=pgsql_owner`. Only the proxy publishes ports; PostgreSQL, Valkey and RustFS have none.
 
 ## Profiles per deployment
 
@@ -36,17 +42,21 @@ The `deploy` user owns the tree and is in the `docker` group; nothing else is in
 | `storage` | default on | off (managed Spaces/R2) | RustFS container; omit if the customer supplies an S3 endpoint |
 | `realtime` | optional | optional | Reverb; requires `REALTIME_ENABLED=true` and `BROADCAST_CONNECTION=reverb` |
 | `demo` | never | never | demo fixtures |
+| `ops` | on demand | on demand | `migrate` one-shot (`docker compose run --rm migrate`); never started by `up` |
 
-Set `COMPOSE_PROFILES=storage,realtime` in `.env`; Ansible renders it from inventory variables.
+Set `COMPOSE_PROFILES=storage,realtime` in `.env`; Ansible renders it from `storage_profile` and `realtime_profile`.
 
 ## TLS options
 
-| Situation | Caddyfile `tls` | Notes |
+The Caddyfiles are baked into the proxy image (`frontend/docker/Caddyfile` for `HOST_LAYOUT=split`, `Caddyfile.single` for `single`); `TLS_MODE` in `.env` selects the snippet, so one image serves every option below.
+
+| Situation | `TLS_MODE` / Caddyfile `tls` | Notes |
 |---|---|---|
-| Public DNS, SaaS | one ACME certificate per fixed host (`shp`, `app`, `api`, `admin`, `monitor`, `docs`, `files`, `mail` under `subhambhandari.com.np`) | HTTP-01; no wildcard or on-demand TLS; certificates persist in the `caddy-data` volume; ports 80/443 must be reachable from the internet |
-| Public DNS, single on-prem host | default (automatic HTTPS for the one hostname) | HTTP-01; no wildcard needed |
-| Customer-provided certificate | `tls /certs/fullchain.pem /certs/privkey.pem` | mounted read-only; renewal is the customer's process |
-| No public DNS (intranet) | `tls internal` | Caddy's internal CA; export the root with `caddy trust`/`/data/caddy/pki/authorities/local/root.crt` and distribute via the customer's GPO/MDM |
+| Public DNS, SaaS | `acme`: one ACME certificate per fixed host (`shp`, `app`, `api`, `admin`, `monitor`, `docs`, `files`, `mail` under `subhambhandari.com.np`) | HTTP-01; no wildcard or on-demand TLS; certificates persist in the `caddy-data` volume; ports 80/443 must be reachable from the internet |
+| Public DNS, single on-prem host | `acme` (automatic HTTPS for the one hostname) | HTTP-01; no wildcard needed |
+| DNS not ready at first boot, or hosts added later | `on_demand`: `tls { on_demand }`, gated by `on_demand_tls { ask … }` | the certificate is requested at the first TLS handshake; the default ask endpoint (inside the proxy, `127.0.0.1:5555`) approves only the fixed platform hosts. MVP-SHORTCUT: the backend has no ask endpoint, so tenant custom domains are not possible; V1: V1-PL-10 sets `TLS_ASK_URL` to an app route |
+| Customer-provided certificate | `files`: `tls /certs/fullchain.pem /certs/privkey.pem` | `certs/` mounted read-only; renewal is the customer's process (replace the files, `docker compose restart proxy`) |
+| No public DNS (intranet) | `internal`: `tls internal` | Caddy's internal CA; export the root with `caddy trust`/`/data/caddy/pki/authorities/local/root.crt` and distribute via the customer's GPO/MDM |
 
 Behind Cloudflare, use the origin certificate option and set `TRUSTED_PROXIES` accordingly.
 
@@ -60,7 +70,7 @@ TENANCY_SINGLE_TENANT=corp        # every request runs in this tenant
 HOST_LAYOUT=single                # SPA at /, API at /api, platform admin at /admin, consoles at /monitor
 ```
 
-The tenant is created by `php artisan tenants:create corp --name="Corp Ltd" --owner=it@corp.local` during first deploy (Ansible runs it when `single_tenant` is set).
+The workspace is created by `php artisan platform:create-tenant corp "Corp Ltd" --owner=it@corp.local` during the first deploy (Ansible runs it on the owner connection when `single_tenant` is set and keeps the printed invitation link in `/opt/smart-helpdesk/.tenant-created`). Single-host mode has one known gap: the proxy strips `/files`, which breaks presigned upload signatures (MVP-SHORTCUT in `single-tenant.env.example`; V1: V1-PL-15), and the invitation link printed by the command still names `app.<domain>` (open it on the single host instead).
 
 ## Mail
 
@@ -68,25 +78,26 @@ Only SMTP is configured for on-prem: `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT
 
 ## Deploy and upgrade
 
-Performed by `ansible-playbook deploy.yml -e app_version=<tag>` ([ansible.md](ansible.md)); the manual equivalent:
+Performed by `ansible-playbook -i inventory/<env>.ini deploy.yml -e app_version=<tag>` ([ansible.md](ansible.md)); the manual equivalent (verified on the rehearsal host, M3-14):
 
 ```sh
 cd /opt/smart-helpdesk
-export APP_VERSION=2026.10.1
-docker compose pull
-docker compose run --rm app php artisan down --secret="$(openssl rand -hex 8)" --retry=30
-docker compose run --rm -e DB_USERNAME=helpdesk_owner -e DB_PASSWORD_FILE=/run/secrets/db_owner_password app php artisan migrate --force
-docker compose exec horizon php artisan horizon:terminate     # workers drain and restart on new code
-docker compose up -d --wait --remove-orphans                    # recreates app/scheduler/proxy on the new image
+helpdesk-backup pre-deploy                                            # dump + object archive in backups/
+sed -i 's/^APP_VERSION=.*/APP_VERSION=2026.10.1/; s#^BACKEND_IMAGE=.*#BACKEND_IMAGE=ghcr.io/subham/smart-helpdesk-backend:2026.10.1#; s#^PROXY_IMAGE=.*#PROXY_IMAGE=ghcr.io/subham/smart-helpdesk-proxy:2026.10.1#' .env
+docker compose pull app proxy                                         # or: gunzip -c images.tar.gz | docker load
+docker compose exec app php artisan down --retry=30
+docker compose run --rm migrate                                       # owner role (DB_CONNECTION=pgsql_owner)
+docker compose exec horizon php artisan horizon:terminate             # workers finish their jobs and restart
+docker compose up -d --wait --remove-orphans                          # recreates services on the new image
 docker compose exec app php artisan up
-docker compose exec app php artisan health:check
+./infra/scripts/smoke.sh                                              # with PLATFORM_DOMAIN, HOST_LAYOUT, SMOKE_CONNECT=127.0.0.1:443
 ```
 
 The maintenance window is a few seconds for normal releases. Zero-downtime deploys are not an MVP target (NFR-OPS-06).
 
 ### Rollback
 
-1. `export APP_VERSION=<previous>` and `docker compose up -d --wait`.
+1. Set `APP_VERSION`, `BACKEND_IMAGE` and `PROXY_IMAGE` in `.env` back to the previous tag and `docker compose up -d --wait`.
 2. If the release included a migration marked reversible in its release notes: `migrate:rollback --step=N` as the owner role before step 1.
 3. If not reversible: restore the pre-deploy backup ([disaster-recovery.md](disaster-recovery.md)); `deploy.yml` takes a `pg_dump` immediately before migrating for this reason.
 
@@ -95,7 +106,7 @@ The maintenance window is a few seconds for normal releases. Zero-downtime deplo
 | Endpoint | Auth | Used by |
 |---|---|---|
 | `GET /up` | none | Docker healthcheck (framework boot only) |
-| `GET /health` (JSON: database, Valkey, cache, queue, scheduler heartbeat, storage, disk, backups) | `HEALTH_TOKEN` header or platform admin session | uptime monitor, customer's ops |
+| `GET api.<domain>/v1/health` (JSON: database, Valkey, cache, queue, Horizon, scheduler heartbeat, SLA sweep, storage, disk) | `Authorization: Bearer <HEALTH_TOKEN>` | uptime monitor, customer's ops, `smoke.sh` when `HEALTH_TOKEN` is set |
 | `/horizon` | platform admin | queue state, failed jobs |
 | `/health` dashboard (HTML) | platform admin | human view |
 
@@ -141,3 +152,27 @@ Limits are in `prod.yaml` ([docker.md](docker.md)). Docker's `json-file` driver 
 | PTR | VM address | `mail.shp.subhambhandari.com.np` (set at the hosting provider) |
 | CAA (optional) | `shp` | `0 issue "letsencrypt.org"` |
 
+
+## Smoke test
+
+`infra/scripts/smoke.sh` (`just smoke` in development, `just prod-smoke <domain> [single]` against a server) checks every host of the layout: landing page, `/up`, `/v1/ping`, runtime `config.json`, the SPA deep link, admin and docs, `401` from `/v1/me` without a session, the proxy security headers, RustFS health and the bucket CORS preflight, and basic auth in front of `monitor`. Optional: `HEALTH_TOKEN` adds `/v1/health`; `SMOKE_EMAIL`/`SMOKE_PASSWORD` sign in through the SPA flow (CSRF cookie, login, `/v1/me`). `SMOKE_CONNECT=<ip>:<port>` connects to an address without changing Host or SNI, which tests a VM before DNS exists or a stack on another port:
+
+```sh
+PLATFORM_DOMAIN=shp.subhambhandari.com.np SMOKE_DEV=0 HEALTH_TOKEN=… ./infra/scripts/smoke.sh
+PLATFORM_DOMAIN=helpdesk.corp.local HOST_LAYOUT=single SMOKE_WORKSPACE=corp SMOKE_DEV=0 SMOKE_INSECURE=1 ./infra/scripts/smoke.sh
+PLATFORM_DOMAIN=shp.subhambhandari.com.np SMOKE_CONNECT=203.0.113.10:443 SMOKE_INSECURE=1 SMOKE_DEV=0 ./infra/scripts/smoke.sh   # before DNS
+```
+
+## As built and verified (M3-14, 2026-09-21)
+
+| Check | How | Result |
+|---|---|---|
+| Production overlay on this workstation | `docker compose -p shp-prodtest` with `compose.yaml` + `infra/compose/prod.yaml`, images built from the `production` targets, `.env` from `multi-tenant.env.example`, `TLS_MODE=internal`, ports 18080/18443 | all services healthy; only the proxy publishes ports; migrations as `helpdesk_owner`; workspace, owner invitation accepted through the API, platform admin; `smoke.sh` with sign-in passes |
+| Ansible, single-tenant | `site.yml` against a disposable Debian 13 container with systemd (privileged, nested Docker), `host_layout=single`, `tls_mode=internal`, images from an archive | first run 2 min 18 s, all green; second run `changed=0`; `smoke.sh` (single layout, sign-in as the invited owner) passes |
+| Ansible, multi-tenant | same host re-run with `host_layout=split` | `.env` re-rendered, stack converged, split-layout `smoke.sh` with sign-in passes |
+| Deploy | `deploy.yml` on the same host | pre-deploy dump, maintenance mode, migrate, Horizon restart, smoke: green |
+| TLS variants | `caddy validate` of both Caddyfiles in `acme`, `on_demand`, `internal`, `files`; ask endpoint answers 200 for the eight platform hosts and 403 otherwise | valid |
+
+`/v1/health` returned 503 in every rehearsal for two reasons that are not deployment faults: the workstation disk was 91–94 % full (`UsedDiskSpaceCheck` fails at 90 %), and `SlaSweepCheck` reports "has not run yet" although the sweep runs every minute, because the Valkey cache returns the heartbeat timestamp as a numeric string and the check requires an integer (reported to the backend track; the same happens on the development stack).
+
+Not done on this machine (no cloud credentials, no reachable VM): a public VM with real DNS and ACME certificates, and `tofu apply`. The commands for the owner are in [ansible.md](ansible.md#first-deployment-to-a-real-vm) and [terraform.md](terraform.md#commands).

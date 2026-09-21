@@ -1,0 +1,69 @@
+# First install only; the marker files make re-runs a no-op (ansible.md §Idempotency).
+- name: Read the first-run markers
+  ansible.builtin.stat:
+    path: "{{ app_dir }}/{{ item }}"
+  loop: [.seeded, .tenant-created, .admin-created]
+  register: app_markers
+
+- name: Remember which first-run steps are done
+  ansible.builtin.set_fact:
+    app_done: "{{ dict(app_markers.results | map(attribute='item') | zip(app_markers.results | map(attribute='stat.exists'))) }}"
+
+- name: Seed the platform defaults (permission catalogue)
+  community.docker.docker_compose_v2_run:
+    project_src: "{{ app_dir }}"
+    files: "{{ app_compose_files }}"
+    service: migrate
+    argv: [php, artisan, db:seed, --force, --no-interaction]
+    cleanup: true
+    no_deps: true
+  register: app_seed
+  when: not app_done['.seeded']
+
+- name: Mark the defaults as seeded  # noqa: no-handler (needed before the next task, not at the end of the play)
+  ansible.builtin.copy:
+    dest: "{{ app_dir }}/.seeded"
+    content: "{{ ansible_date_time.iso8601 }}\n"
+    mode: "0644"
+  when: app_seed is changed
+
+- name: Create the single-tenant workspace
+  community.docker.docker_compose_v2_run:
+    project_src: "{{ app_dir }}"
+    files: "{{ app_compose_files }}"
+    service: migrate
+    argv: "{{ ['php', 'artisan', 'platform:create-tenant', single_tenant, single_tenant_name, '--no-interaction']
+              + (['--owner=' + single_tenant_owner] if single_tenant_owner | length > 0 else []) }}"
+    cleanup: true
+    no_deps: true
+  register: app_tenant
+  when: single_tenant is defined and single_tenant | length > 0 and not app_done['.tenant-created']
+
+- name: Keep the owner invitation link on the host (0600)  # noqa: no-handler (needed before the next task, not at the end of the play)
+  ansible.builtin.copy:
+    dest: "{{ app_dir }}/.tenant-created"
+    content: "{{ app_tenant.stdout }}\n"
+    owner: root
+    group: root
+    mode: "0600"
+  when: app_tenant is changed
+
+- name: Create the platform super admin
+  community.docker.docker_compose_v2_run:
+    project_src: "{{ app_dir }}"
+    files: "{{ app_compose_files }}"
+    service: migrate
+    argv: [php, artisan, platform:create-admin, "--name={{ platform_admin_name }}", "--email={{ platform_admin_email }}",
+           "--password={{ app_secrets.platform_admin_password }}", --no-interaction]
+    cleanup: true
+    no_deps: true
+  register: app_admin
+  when: platform_admin_email | length > 0 and not app_done['.admin-created']
+  no_log: true
+
+- name: Mark the platform admin as created  # noqa: no-handler (needed before the next task, not at the end of the play)
+  ansible.builtin.copy:
+    dest: "{{ app_dir }}/.admin-created"
+    content: "{{ platform_admin_email }}\n"
+    mode: "0644"
+  when: app_admin is changed

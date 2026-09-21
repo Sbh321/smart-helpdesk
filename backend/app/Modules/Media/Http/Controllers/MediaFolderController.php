@@ -25,11 +25,13 @@ final class MediaFolderController
 {
     private const MAX_DEPTH = 5;
 
+    /** List media folders. */
     public function index(): AnonymousResourceCollection
     {
         return MediaFolderResource::collection(MediaFolder::query()->orderBy('name')->get());
     }
 
+    /** Create a media folder. */
     #[ScrambleResponse(status: 201, type: MediaFolderResource::class)]
     public function store(SaveMediaFolderRequest $request): JsonResponse
     {
@@ -48,6 +50,7 @@ final class MediaFolderController
         return (new MediaFolderResource($folder))->response()->setStatusCode(201);
     }
 
+    /** Rename or move a media folder. */
     public function update(UpdateMediaFolderRequest $request, MediaFolder $folder): MediaFolderResource
     {
         if ($folder->system_key !== null) {
@@ -74,6 +77,7 @@ final class MediaFolderController
         return new MediaFolderResource($folder);
     }
 
+    /** Delete a media folder. */
     public function destroy(MediaFolder $folder): Response
     {
         if ($folder->system_key !== null) {

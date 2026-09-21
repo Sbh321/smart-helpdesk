@@ -1,0 +1,18 @@
+# Multi-tenant SaaS on any cloud or VPS VM (ADR-0017). OpenTofu writes inventory/reference.ini with the
+# same variables (infra/tofu/envs/reference/inventory.tmpl); without OpenTofu copy this file instead.
+#   cp inventory/cloud.ini.example inventory/cloud.ini   # gitignored
+[helpdesk]
+reference ansible_host=203.0.113.10 ansible_user=deploy
+
+[helpdesk:vars]
+platform_domain=shp.subhambhandari.com.np
+host_layout=split
+tls_mode=acme
+platform_admin_email=ops@subhambhandari.com.np
+# RustFS on the VM; for a provider bucket set storage_profile=false and s3_endpoint/s3_bucket/s3_region
+# (keys in vault as vault_s3_key / vault_s3_secret, or s3_key / s3_secret from OpenTofu)
+storage_profile=true
+realtime_profile=false
+# mail_host=smtp.example.net
+# mail_username=...
+ssh_cidrs=["0.0.0.0/0"]

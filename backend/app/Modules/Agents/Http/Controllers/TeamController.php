@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 #[Group('Agents')]
 final class TeamController
 {
+    /** List teams. */
     public function index(IndexDirectoryRequest $request): AnonymousResourceCollection
     {
         $query = Team::query()->with('agents.user');
@@ -36,6 +37,7 @@ final class TeamController
         return TeamResource::collection($query->orderBy('id')->paginate($request->perPage())->withQueryString());
     }
 
+    /** Create a team. */
     #[ScrambleResponse(status: 201, type: TeamResource::class)]
     public function store(SaveTeamRequest $request): JsonResponse
     {
@@ -44,6 +46,7 @@ final class TeamController
         return (new TeamResource($team))->response()->setStatusCode(201);
     }
 
+    /** Update a team. */
     public function update(SaveTeamRequest $request, Team $team): TeamResource
     {
         $team->update($request->validated());
@@ -51,6 +54,7 @@ final class TeamController
         return new TeamResource($team->refresh()->load('agents.user'));
     }
 
+    /** Replace a team's members. */
     public function replaceMembers(ReplaceTeamMembersRequest $request, Team $team, Clock $clock): TeamResource
     {
         /** @var list<string> $agentIds */
@@ -72,6 +76,7 @@ final class TeamController
         });
     }
 
+    /** Delete a team. */
     public function destroy(Team $team, DirectoryUsage $usage): Response
     {
         $references = ['members' => $team->agents()->count(), ...$usage->teamReferences($team)];

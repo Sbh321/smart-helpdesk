@@ -8,7 +8,11 @@ use App\Modules\Media\Models\MediaFolder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin MediaFolder */
+/**
+ * A folder of the media library.
+ *
+ * @mixin MediaFolder
+ */
 final class MediaFolderResource extends JsonResource
 {
     public function toArray(Request $request): array

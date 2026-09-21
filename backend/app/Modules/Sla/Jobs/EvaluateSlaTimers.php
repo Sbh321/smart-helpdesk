@@ -70,11 +70,10 @@ final class EvaluateSlaTimers implements ShouldBeUnique, ShouldQueue
         $sweep = function () use ($now, $deadline, $strategies, $store): void {
             $failures = 0;
 
-            // MVP-SHORTCUT: this cross-tenant read works because row-level security is not enabled yet;
-            // V1: M3-07 gives the sweep a privileged read of the due tenant ids.
-            $tenantIds = $this->due(DB::table('ticket_sla_timers'), $now)->distinct()->pluck('tenant_id');
-
-            foreach (Tenant::active()->whereKey($tenantIds)->cursor() as $tenant) {
+            // Row-level security shows a connection one workspace at a time, so the sweep visits every
+            // active workspace rather than reading due tenant ids across all of them (M3-07). A
+            // workspace with nothing due costs one query on the partial due indexes.
+            foreach (Tenant::active()->cursor() as $tenant) {
                 if (hrtime(true) >= $deadline) {
                     Log::warning('SLA sweep used its time budget; the next sweep continues the backlog.');
                     break;

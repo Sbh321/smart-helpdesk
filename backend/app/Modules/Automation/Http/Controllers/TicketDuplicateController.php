@@ -28,6 +28,7 @@ use Illuminate\Support\Str;
 #[Group('Tickets')]
 final class TicketDuplicateController
 {
+    /** Find possible duplicates of a draft ticket. */
     public function preview(PreviewDuplicatesRequest $request, SuggestDuplicates $suggest, Clock $clock): DuplicatePreviewResource
     {
         $data = $request->validated();
@@ -51,12 +52,14 @@ final class TicketDuplicateController
         ));
     }
 
+    /** List a ticket's duplicate suggestions. */
     public function index(Ticket $ticket): AnonymousResourceCollection
     {
         return DuplicateSuggestionResource::collection($ticket->duplicateSuggestions()
             ->with('candidate')->orderByDesc('score')->orderBy('id')->get());
     }
 
+    /** Dismiss a duplicate suggestion. */
     public function dismiss(Request $request, Ticket $ticket, string $candidate, Clock $clock): DuplicateSuggestionResource
     {
         /** @var User $actor */
@@ -76,6 +79,7 @@ final class TicketDuplicateController
         });
     }
 
+    /** Mark a ticket as a duplicate. */
     public function mark(MarkDuplicateRequest $request, Ticket $ticket, MarkDuplicate $mark): TicketResource
     {
         /** @var User $actor */

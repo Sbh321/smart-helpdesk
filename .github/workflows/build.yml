@@ -22,7 +22,7 @@ jobs:
             file: backend/Dockerfile
             target: production
           - image: proxy
-            context: .
+            context: ./frontend
             file: frontend/Dockerfile
             target: runtime
 

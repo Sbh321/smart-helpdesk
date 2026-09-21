@@ -18,6 +18,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response as HttpResponse;
 
 final class RoleIsSystem extends DomainException
 {
@@ -56,7 +57,10 @@ final class RoleController
 
     /**
      * The permission catalogue, grouped by resource.
+     *
+     * Keys are resources, values their actions; a permission is `<resource>.<action>`, for example `tickets.assign`.
      */
+    #[Response(status: 200, type: 'array{data: array<string, list<string>>}', examples: [['data' => ['tickets' => ['view', 'create', 'assign'], 'integrations' => ['manage']]]])]
     public function permissions(): JsonResponse
     {
         return new JsonResponse(['data' => PermissionCatalogue::PERMISSIONS]);
@@ -112,10 +116,12 @@ final class RoleController
     }
 
     /**
-     * Delete a custom role. 409 `in_use` (`meta.users`) while users hold it: deleting it would silently
+     * Delete a custom role.
+     *
+     * 409 `in_use` (`meta.users`) while users hold it: deleting it would silently
      * take their permissions away.
      */
-    public function destroy(Role $role): JsonResponse
+    public function destroy(Role $role): HttpResponse
     {
         $this->ensureCustom($role);
 
@@ -127,7 +133,7 @@ final class RoleController
         $role->delete();
         Audit::record('role.deleted', $role);
 
-        return new JsonResponse(status: 204);
+        return response()->noContent();
     }
 
     private function ensureCustom(Role $role): void

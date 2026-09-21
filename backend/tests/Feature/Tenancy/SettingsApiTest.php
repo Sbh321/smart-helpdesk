@@ -133,6 +133,7 @@ it('keeps settings and their cache apart per workspace', function (): void {
     $other = createTenant('other-settings');
     actingAsRole($this->tenant, 'admin');
     $this->patchJson('/v1/settings/tickets', ['reopen_window_days' => 2])->assertOk();
+    tenancy()->end();
 
     $settings = app(Settings::class);
     expect($this->tenant->run(fn () => [$settings->get('tickets.reopen_window_days'), $settings->version()]))->toBe([2, 1])

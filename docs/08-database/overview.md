@@ -6,11 +6,11 @@ PostgreSQL 18 is the only database ([ADR-0005](../adr/0005-postgresql.md)); UUID
 
 | Role | Used by | Rights |
 |---|---|---|
-| `helpdesk_owner` | migrations, seeders, `Platform` provisioning connection (`pgsql_owner`) | owns all objects; DDL; bypasses RLS only where policies are not `FORCE`d (they all are) |
+| `helpdesk_owner` | migrations (`pgsql_owner`) and the E6 experiment's trigger toggle; nothing at runtime | owns all objects; DDL; every tenant table's policy is `FORCE`d, so the owner is filtered too ([tenancy.md](tenancy.md) §Where the owner connection is used) |
 | `helpdesk_app` | `app`, `horizon`, `scheduler`, `reverb` | `SELECT, INSERT, UPDATE, DELETE` on application tables; `SELECT, INSERT` only on `audit_logs`, `ticket_events`, `sla_events`; `USAGE` on the schema; **no** ownership, `NOBYPASSRLS`, `NOSUPERUSER` |
 | `postgres` | container bootstrap only | superuser; never referenced by the application |
 
-Connection config: `DB_USERNAME=helpdesk_app` by default; a second connection `pgsql_owner` with `DB_OWNER_USERNAME` is used by `migrate` and by `ProvisionTenant`.
+Connection config: `DB_USERNAME=helpdesk_app` by default; a second connection `pgsql_owner` with `DB_OWNER_USERNAME` is used by `migrate`. `ProvisionTenant` runs on the app role and seeds inside the new tenant (M3-07).
 
 ## Extensions
 

@@ -21,6 +21,19 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | ansible-core | 2.21.4 | + community.docker 5.3, ansible.posix 2.2, community.general 13.4 | `geerlingguy.docker` role |
 | mise / just | 2026.9 / 1.58 | | tool pinning + task runner |
 
+### Deployment tooling (verified 2026-09-21, M3-14)
+
+| Component | Version | Constraint | Notes |
+|---|---|---|---|
+| community.docker / ansible.posix / community.general | 5.3.0 / 2.2.2 / 13.4.0 | `>=5.3.0,<5.4.0` etc. in `infra/ansible/requirements.yml` | installed into `infra/ansible/collections` (gitignored) |
+| geerlingguy.docker (Ansible role) | 8.0.0 | exact | Docker CE + Compose plugin from download.docker.com; installed into `infra/ansible/galaxy_roles` |
+| ansible-lint | 26.8.0 | run with `uvx --from ansible-lint ansible-lint`, not installed | the `production` profile passes; CI check named in ansible.md |
+| OpenTofu provider `digitalocean/digitalocean` | 2.101.1 | `~> 2.100` | reference environment |
+| OpenTofu provider `hetznercloud/hcloud` | 1.69.0 | `~> 1.68` | `hcloud_zone` / `hcloud_zone_rrset` for DNS |
+| OpenTofu provider `hashicorp/aws` | 6.65.0 | `~> 6.65` | AWS folder and the Hetzner bucket (S3 API) |
+| OpenTofu provider `hashicorp/google` | 8.3.0 | `~> 8.3` | GCP folder; GCS through HMAC keys |
+| OpenTofu provider `hashicorp/local` | 2.9.1 | `~> 2.9` | writes the generated Ansible inventory |
+
 ## Backend packages
 
 | Package | Version | Constraint | Class |

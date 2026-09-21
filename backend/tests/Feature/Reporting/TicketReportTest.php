@@ -92,6 +92,8 @@ function workedExampleTicket(Tenant $tenant, bool $withCreatedEvent = true): arr
 beforeEach(function (): void {
     $this->app->instance(Clock::class, new FrozenClock(npt('2026-09-21 10:00')->toDateTimeString()));
     $this->tenant = createTenant('reports', ['timezone' => 'Asia/Kathmandu']);
+    // The assertions read this workspace's rows, which row-level security shows only inside it.
+    tenancy()->initialize($this->tenant);
 });
 
 it('reproduces the worked example intervals with wall-clock and business durations', function (): void {

@@ -167,7 +167,7 @@ Laravel default (`id varchar PK, user_id uuid N, ip_address, user_agent, payload
 | model_has_permissions | same shape with permission_id | direct grants (rarely used) |
 | role_has_permissions | permission_id, role_id; PK both | |
 
-RLS on `model_has_roles` and `model_has_permissions` (tenant-scoped); `roles` policy allows `tenant_id IS NULL OR tenant_id = current`.
+RLS on `model_has_roles` and `model_has_permissions` (tenant-scoped); `roles` reads `tenant_id IS NULL OR tenant_id = current`, but only the central context writes global roles ([tenancy.md](tenancy.md) §Row-level security).
 
 ### personal_access_tokens (sanctum)
 
@@ -175,7 +175,7 @@ Laravel default plus `tenant_id uuid N`. Present because Sanctum is installed; o
 
 ### oauth_clients, oauth_access_tokens, oauth_refresh_tokens, oauth_auth_codes, oauth_device_codes (passport)
 
-Passport 13 defaults; `oauth_clients` gains `tenant_id uuid NOT NULL FK`, `scopes text[]`, `created_by_user_id uuid N`, `last_used_at timestamptz N`, `revoked_at timestamptz N`; RLS on `oauth_clients`. Access tokens are JWTs; the `oauth_access_tokens` table records `client_id`, `scopes`, `revoked`, `expires_at` (Passport-managed, not RLS'd, no user data).
+Passport 13 defaults; `oauth_clients` gains `tenant_id uuid NOT NULL FK`, `scopes text[]`, `created_by_user_id uuid N`, `last_used_at timestamptz N`, `revoked_at timestamptz N`; a credential table read before the tenant is known, so no RLS (M3-04). Access tokens are JWTs; the `oauth_access_tokens` table records `client_id`, `scopes`, `revoked`, `expires_at` (Passport-managed, not RLS'd, no user data).
 
 ## Contacts
 
@@ -568,7 +568,7 @@ Quota: `tenants.storage_quota_bytes` (bigint, default from platform settings) an
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | | |
-| tenant_id | uuid | N until routed | RLS policy allows NULL rows only to the owner role; routing job runs on the owner connection, then sets tenant |
+| tenant_id | uuid | N until routed | Planned (M3-19): the owner role is filtered by the forced policies too, so unrouted NULL rows need a nullable-variant policy like `audit_logs` (central context only) rather than the owner connection |
 | message_id | varchar(512) | U | idempotency |
 | from_address, to_address | varchar(320) | | |
 | subject | varchar(500) | | |

@@ -12,6 +12,7 @@ use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Str;
 
 #[Group('Tags')]
@@ -54,10 +55,10 @@ final class TagController
     /**
      * Delete a tag and remove it from everything it labels.
      */
-    public function destroy(Tag $tag): JsonResponse
+    public function destroy(Tag $tag): HttpResponse
     {
         $tag->delete();
 
-        return new JsonResponse(status: 204);
+        return response()->noContent();
     }
 }

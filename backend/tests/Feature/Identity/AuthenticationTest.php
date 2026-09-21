@@ -17,6 +17,9 @@ beforeEach(function (): void {
         'email' => 'priya@acme.test',
         'password' => Hash::make('correct-horse'),
     ]);
+    // The test body reads and edits acme's rows, which row-level security shows only inside acme;
+    // every request still starts in the central context (Tests\TestCase::call()).
+    tenancy()->initialize($this->acme);
     fromSpaOrigin();
 });
 
@@ -200,5 +203,7 @@ it('keeps the sign-in inside the workspace even when another workspace has the s
     login(['password' => 'other-password'])->assertUnauthorized();
     login()->assertOk()->assertJsonPath('data.tenant.slug', 'acme');
 
-    expect(User::query()->withoutTenancy()->where('email', 'priya@acme.test')->count())->toBe(2);
+    $count = fn (): int => User::query()->where('email', 'priya@acme.test')->count();
+
+    expect($this->acme->run($count) + $this->globex->run($count))->toBe(2);
 });

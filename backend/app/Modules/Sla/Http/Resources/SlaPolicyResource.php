@@ -9,7 +9,11 @@ use App\Modules\Sla\Models\SlaTarget;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin SlaPolicy */
+/**
+ * An SLA policy: which tickets it matches, its calendar and the first-response and resolution targets per priority.
+ *
+ * @mixin SlaPolicy
+ */
 final class SlaPolicyResource extends JsonResource
 {
     public function toArray(Request $request): array

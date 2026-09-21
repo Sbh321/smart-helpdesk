@@ -152,13 +152,13 @@ it('returns workload counts and effective priority buckets from active assignmen
 it('never lets the settings of another workspace switch shift enforcement on', function (): void {
     $other = createTenant('candidates-b');
     // Workspace B stores `shifts.enforce = true`; the row is older, so an unscoped read finds it first.
-    DB::table('tenant_settings')->insert([
+    $other->run(fn () => DB::table('tenant_settings')->insert([
         'id' => (string) str()->uuid(),
         'tenant_id' => $other->id,
         'data' => json_encode(['shifts' => ['enforce' => true]], JSON_THROW_ON_ERROR),
         'created_at' => now(),
         'updated_at' => now(),
-    ]);
+    ]));
     $other->run(fn () => AgentProfile::factory()->count(2)->create());
 
     $this->tenant->run(function (): void {

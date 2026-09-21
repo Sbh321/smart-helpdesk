@@ -54,8 +54,8 @@ beforeEach(function (): void {
  */
 function deliveredPayloads(): array
 {
-    return WebhookDelivery::query()->withoutGlobalScopes()->orderBy('created_at')->orderBy('id')
-        ->get()->map(fn (WebhookDelivery $delivery): array => $delivery->payload)->all();
+    return test()->acme->run(fn (): array => WebhookDelivery::query()->orderBy('created_at')->orderBy('id')
+        ->get()->map(fn (WebhookDelivery $delivery): array => $delivery->payload)->all());
 }
 
 it('maps each domain event to its catalogue event and data', function (Closure $raise, array $types, Closure $check): void {
@@ -73,7 +73,7 @@ it('maps each domain event to its catalogue event and data', function (Closure $
     }
 
     Queue::assertPushed(DeliverWebhook::class, count($types));
-    expect(WebhookDelivery::query()->withoutGlobalScopes()->pluck('state')->unique()->all())->toBe($types === [] ? [] : [DeliveryState::Pending]);
+    expect($this->acme->run(fn (): array => WebhookDelivery::query()->pluck('state')->unique()->all()))->toBe($types === [] ? [] : [DeliveryState::Pending]);
 })->with([
     'ticket created' => [
         // Called directly: the real TicketCreated hook also runs automatic assignment.
@@ -164,13 +164,14 @@ it('only fans out to active subscriptions that listen to the event', function ()
 
     $this->acme->run(fn () => event(new TicketStatusChanged($this->acme->id, $this->ticket->id, null, 'in_progress', 'resolved')));
 
-    $deliveries = WebhookDelivery::query()->withoutGlobalScopes()->get();
+    $deliveries = $this->acme->run(fn () => WebhookDelivery::query()->get());
     expect($deliveries)->toHaveCount(2)
+        ->and($this->globex->run(fn (): int => WebhookDelivery::query()->count()))->toBe(0)
         ->and($deliveries->pluck('subscription_id')->unique()->all())->toBe([$this->webhook->id])
         ->and($deliveries->pluck('tenant_id')->unique()->all())->toBe([$this->acme->id])
         // Every delivery of one event shares its id, so receivers can deduplicate.
         ->and($deliveries->pluck('event_id')->unique())->toHaveCount(2)
-        ->and($onlyCreated->deliveries()->count())->toBe(0);
+        ->and($this->acme->run(fn (): int => $onlyCreated->deliveries()->count()))->toBe(0);
 });
 
 it('emits contact.created and contact.updated from the contacts API', function (): void {
@@ -184,7 +185,7 @@ it('emits contact.created and contact.updated from the contacts API', function (
     $payloads = deliveredPayloads();
     expect(array_column($payloads, 'type'))->toBe(['contact.created', 'contact.updated'])
         ->and($payloads[1]['data']['contact']['name'])->toBe('Priya S.')
-        ->and(Contact::query()->withoutGlobalScopes()->whereKey($id)->exists())->toBeTrue();
+        ->and(Contact::query()->whereKey($id)->exists())->toBeTrue();
 });
 
 it('emits ticket.status_changed and ticket.resolved when a ticket is resolved through the API', function (): void {

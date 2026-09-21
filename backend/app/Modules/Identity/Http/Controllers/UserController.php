@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\DB;
 #[Group('Users')]
 final class UserController
 {
+    /** List workspace users. */
     #[QueryParameter('search', 'Name or email contains.', type: 'string')]
     #[QueryParameter('filter[status]', '`active`, `invited` or `disabled`, comma separated.', type: 'string')]
     #[QueryParameter('filter[role]', 'Role names, comma separated.', type: 'string')]
@@ -72,12 +73,17 @@ final class UserController
         return WorkspaceUserResource::collection($query->orderBy('id')->paginate($request->perPage())->withQueryString());
     }
 
+    /** Get a workspace user. */
     public function show(User $user): WorkspaceUserResource
     {
         return new WorkspaceUserResource($user->load(['roles', 'latestInvitation']));
     }
 
-    /** Creates the user and mails a 48-hour invitation; the roles apply once it is accepted. */
+    /**
+     * Invite a user.
+     *
+     * Creates the user and mails a 48-hour invitation; the roles apply once it is accepted.
+     */
     #[Response(status: 201, type: WorkspaceUserResource::class)]
     public function invite(InviteUserRequest $request, InviteUser $invite): JsonResponse
     {
@@ -90,7 +96,11 @@ final class UserController
         return (new WorkspaceUserResource($user->load(['roles', 'latestInvitation'])))->response()->setStatusCode(201);
     }
 
-    /** A new invitation link; the previous one stops working. 409 `conflict` once accepted. */
+    /**
+     * Resend an invitation.
+     *
+     * A new invitation link; the previous one stops working. 409 `conflict` once accepted.
+     */
     public function resendInvitation(Request $request, User $user, ResendInvitation $resend): WorkspaceUserResource
     {
         /** @var User $actor */
@@ -101,6 +111,8 @@ final class UserController
     }
 
     /**
+     * Update a user.
+     *
      * Name and roles. 403 `forbidden` (`meta.roles`) for a role beyond the actor's reach; 422 `last_owner`
      * when the last active owner would lose the role.
      */
@@ -123,12 +135,17 @@ final class UserController
         return new WorkspaceUserResource($user->refresh()->load(['roles', 'latestInvitation']));
     }
 
-    /** 409 `conflict` (`self`) for the own account; 422 `last_owner` for the last active owner. */
+    /**
+     * Disable a user.
+     *
+     * 409 `conflict` (`self`) for the own account; 422 `last_owner` for the last active owner.
+     */
     public function disable(Request $request, User $user, SetUserActive $set): WorkspaceUserResource
     {
         return $this->setActive($request, $user, $set, false);
     }
 
+    /** Enable a user. */
     public function enable(Request $request, User $user, SetUserActive $set): WorkspaceUserResource
     {
         return $this->setActive($request, $user, $set, true);

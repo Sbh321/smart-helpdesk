@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Platform\Http\Controllers\PlatformAuthController;
 use App\Modules\Platform\Http\Controllers\TenantController;
+use App\Support\Http\Controllers\ApiDocsController;
 use Illuminate\Support\Facades\Route;
 
 // Platform API on the admin host (ADR-0021). Never runs inside a tenant.
@@ -25,4 +26,9 @@ Route::middleware('auth:platform')->group(function (): void {
     Route::patch('/tenants/{tenant}', [TenantController::class, 'update'])->name('platform.tenants.update');
     Route::post('/tenants/{tenant}/suspend', [TenantController::class, 'suspend'])->name('platform.tenants.suspend');
     Route::post('/tenants/{tenant}/reactivate', [TenantController::class, 'reactivate'])->name('platform.tenants.reactivate');
+
+    // The tenant API reference for Platform Super Admins (docs/07-api/documentation.md §Access). The docs
+    // host cannot serve them: the platform cookie is host-only on the admin host.
+    Route::get('/docs', [ApiDocsController::class, 'ui'])->middleware('can:viewApiDocs')->name('platform.api-docs.ui');
+    Route::get('/docs/openapi.json', [ApiDocsController::class, 'document'])->middleware('can:viewApiDocs')->name('platform.api-docs.document');
 });

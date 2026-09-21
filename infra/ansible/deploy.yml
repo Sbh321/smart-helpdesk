@@ -1,0 +1,103 @@
+# Upgrade to a release: ansible-playbook -i inventory/<env>.ini deploy.yml -e app_version=2026.10.1
+# (production.md §Deploy and upgrade). Pre-deploy dump → images → maintenance → migrate → restart → smoke.
+- name: Deploy a Smart Helpdesk release
+  hosts: helpdesk
+  become: true
+  roles: [helpdesk_defaults]
+  vars:
+    compose_files: [compose.yaml, infra/compose/prod.yaml]
+  tasks:
+    - name: Take a pre-deploy backup
+      ansible.builtin.command: /usr/local/bin/helpdesk-backup pre-deploy
+      environment: { HELPDESK_DIR: "{{ app_dir }}" }
+      changed_when: true
+
+    - name: Copy the release's Compose files and scripts
+      ansible.builtin.copy:
+        src: "{{ repo_root }}/{{ item.path }}"
+        dest: "{{ app_dir }}/{{ item.path }}"
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: "{{ item.mode | default('0644') }}"
+      loop:
+        - { path: compose.yaml }
+        - { path: infra/compose/prod.yaml }
+        - { path: infra/compose/tools.yaml }
+        - { path: infra/scripts/smoke.sh, mode: "0755" }
+
+    - name: Install the backup and restore scripts of the release
+      ansible.builtin.copy:
+        src: "{{ repo_root }}/infra/scripts/{{ item }}.sh"
+        dest: /usr/local/bin/{{ item }}
+        mode: "0755"
+      loop: [helpdesk-backup, helpdesk-restore]
+
+    - name: Load or pull the release images
+      ansible.builtin.include_role:
+        name: app
+        tasks_from: images.yml
+
+    - name: Point .env at the release
+      ansible.builtin.lineinfile:
+        path: "{{ app_dir }}/.env"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+      loop:
+        - { key: APP_VERSION, value: "{{ app_version }}" }
+        - { key: BACKEND_IMAGE, value: "{{ backend_image }}" }
+        - { key: PROXY_IMAGE, value: "{{ proxy_image }}" }
+
+    - name: Enter maintenance mode
+      community.docker.docker_compose_v2_exec:
+        project_src: "{{ app_dir }}"
+        service: app
+        command: php artisan down --retry=30
+      changed_when: true
+
+    - name: Migrate on the owner role
+      community.docker.docker_compose_v2_run:
+        project_src: "{{ app_dir }}"
+        files: "{{ compose_files }}"
+        service: migrate
+        cleanup: true
+        no_deps: true
+      register: deploy_migrate
+      changed_when: "'DONE' in deploy_migrate.stdout"
+
+    - name: Ask Horizon to finish its jobs and exit
+      community.docker.docker_compose_v2_exec:
+        project_src: "{{ app_dir }}"
+        service: horizon
+        command: php artisan horizon:terminate
+      failed_when: false
+      changed_when: true
+
+    - name: Recreate the services on the new images
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        files: "{{ compose_files }}"
+        state: present
+        pull: missing
+        remove_orphans: true
+        wait: true
+        wait_timeout: 300
+
+    - name: Leave maintenance mode
+      community.docker.docker_compose_v2_exec:
+        project_src: "{{ app_dir }}"
+        service: app
+        command: php artisan up
+      changed_when: true
+
+    - name: Smoke test
+      ansible.builtin.command:
+        argv: ["{{ app_dir }}/infra/scripts/smoke.sh"]
+      environment:
+        PLATFORM_DOMAIN: "{{ platform_domain }}"
+        HOST_LAYOUT: "{{ host_layout }}"
+        SMOKE_CONNECT: "127.0.0.1:{{ https_port }}"
+        SMOKE_INSECURE: "1"
+        SMOKE_DEV: "0"
+        SMOKE_STORAGE: "{{ '1' if storage_profile | bool else '0' }}"
+        SMOKE_WORKSPACE: "{{ single_tenant | default('acme') }}"
+      changed_when: false

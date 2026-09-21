@@ -94,7 +94,7 @@ final class HistoryExperiment implements Experiment
                 'latency' => $this->latency((string) $tenant->id, $end, $build['ids']),
             ];
         });
-        $overhead = $this->triggerOverhead($measured['build']['ids'], $random);
+        $overhead = $this->triggerOverhead((string) $tenant->id, $measured['build']['ids'], $random);
 
         $correctness = [...$measured['reconstruction'], ...$measured['agreement']];
         $context->output->csv('t10-history-correctness.csv', $correctness);
@@ -360,11 +360,13 @@ final class HistoryExperiment implements Experiment
     /**
      * (d) Ticket update latency with and without the capture trigger, on the owner connection inside
      * one transaction that is rolled back, so nothing is kept and the trigger is never left disabled.
+     * The owner is needed for `DISABLE TRIGGER`; FORCE row-level security applies to it as well, so
+     * the transaction sets the experiment workspace with `set_config(…, true)` (M3-07).
      *
      * @param  list<string>  $ids
      * @return array{rows: list<array{measure: string, runs: int, p50_ms: float, p95_ms: float, max_ms: float}>, summary: array<string, float>}
      */
-    private function triggerOverhead(array $ids, SeededRandom $random): array
+    private function triggerOverhead(string $tenantId, array $ids, SeededRandom $random): array
     {
         $owner = DB::connection('pgsql_owner');
         $update = fn (int $n) => fn () => $owner->update(
@@ -374,6 +376,7 @@ final class HistoryExperiment implements Experiment
 
         $owner->beginTransaction();
         try {
+            $owner->select("SELECT set_config('app.current_tenant', ?, true)", [$tenantId]);
             for ($n = 0; $n < 50; $n++) {
                 $update($n)(); // warm-up
             }

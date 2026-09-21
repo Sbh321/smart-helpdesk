@@ -8,11 +8,11 @@ Decisions: [ADR-0012](../adr/0012-deployment-architecture.md), [ADR-0017](../adr
 
 | Target | Provider folder | MVP status | Object storage | Notes |
 |---|---|---|---|---|
-| Existing VM / self-managed VPS / on-prem | `providers/none` (writes nothing; inventory by hand) | **tested** (primary path) | RustFS on the VM or any S3 endpoint | open 22, 80, 443 (+25 for the mail server) |
-| DigitalOcean | `providers/digitalocean` | reviewed; apply-tested only if the owner has an account | Spaces | all five contracts native |
-| AWS | `providers/aws` | reviewed, untested | S3 | EC2 + VPC + security group + S3 + Route 53; port 25 needs an AWS removal request, otherwise use `MAIL_RELAY_HOST` (SES) |
-| GCP | `providers/gcp` | reviewed, untested | GCS via S3-interoperability HMAC keys | Compute Engine + VPC firewall + Cloud DNS; outbound 25 blocked, use a relay |
-| Hetzner | `providers/hetzner` | reviewed, untested | Hetzner Object Storage (bucket via `aws` provider with custom endpoint) | cheapest; port 25 opened on request |
+| Existing VM / self-managed VPS / on-prem | `providers/none` via `envs/existing` (creates nothing; writes the inventory) | **tested**: `validate` and offline `plan`; the Ansible path it feeds was rehearsed (ansible.md) | RustFS on the VM or any S3 endpoint | open 22, 80, 443 (+25 for the mail server) |
+| DigitalOcean | `providers/digitalocean` via `envs/reference` | `validate` passes; not applied (no account on the build machine) | Spaces | all five contracts native |
+| AWS | `providers/aws` | `validate` passes; untested | S3 | EC2 + VPC + security group + S3 + Route 53; port 25 needs an AWS removal request, otherwise use `MAIL_RELAY_HOST` (SES) |
+| GCP | `providers/gcp` | `validate` passes; untested | GCS via S3-interoperability HMAC keys | Compute Engine + VPC firewall + Cloud DNS; outbound 25 blocked, use a relay |
+| Hetzner | `providers/hetzner` | `validate` passes; untested | Hetzner Object Storage (bucket via `aws` provider with custom endpoint) | cheapest; port 25 opened on request |
 
 The owner applies whichever provider they have credentials for; the others remain untested implementations of the same contracts, marked as such in `infra/tofu/README.md`.
 
@@ -35,18 +35,22 @@ infra/tofu/
 │   ├── gcp/{network,firewall,compute,storage,dns}/
 │   └── hetzner/{network,firewall,compute,storage,dns}/
 ├── envs/
-│   └── reference/
-│       ├── main.tf          # wires the five modules from one provider folder
-│       ├── variables.tf
-│       ├── outputs.tf
-│       ├── inventory.tmpl   # Ansible inventory template
-│       └── terraform.tfvars.example
-└── cloud-init/docker-host.yaml
+│   ├── reference/           # DigitalOcean wiring (switch provider by editing the provider block and `source` lines)
+│   │   ├── main.tf  variables.tf  outputs.tf  .terraform.lock.hcl
+│   │   ├── inventory.tmpl   # Ansible inventory template
+│   │   └── terraform.tfvars.example
+│   └── existing/            # provider `none`: only writes infra/ansible/inventory/existing.ini
+├── cloud-init/docker-host.yaml
+└── README.md                # per-folder test status
 ```
+
+As built, every `providers/<p>/<m>/variables.tf` is a **symbolic link** to `modules/<m>/variables.tf`, so an implementation cannot drift from the contract's inputs; provider-specific extras live in the implementation's `main.tf` (`none/compute`: `existing_ipv4`; `none/storage`: `existing_endpoint` and keys; `hetzner/storage`: `access_key`/`secret_key`, because Hetzner S3 keys are created in the console). `infra/scripts/tofu-check.sh` checks the links and that every implementation declares the contract's outputs.
 
 The neutrality trick: every provider folder implements the same input/output variable names, so `envs/reference/main.tf` changes only its `source` lines to switch clouds.
 
 ## Module contracts
+
+`network_id` means "what compute attaches to": the VPC on DigitalOcean, the network on Hetzner, the subnet on AWS and GCP (the firewall looks the VPC or network up from it), empty for `none`. The `dns` implementations create the zone for the platform domain and also output `name_servers`, which the owner delegates to from the parent zone (`subhambhandari.com.np` stays where it is).
 
 | Module | Inputs | Outputs |
 |---|---|---|
@@ -135,7 +139,7 @@ module "dns" {
   wildcard = false                        # fixed host list (ADR-0021)
 }
 
-resource "local_file" "inventory" {
+resource "local_sensitive_file" "inventory" {   # as built: sensitive, since it contains the S3 keys
   filename        = "${path.root}/../../../ansible/inventory/reference.ini"
   file_permission = "0600"
   content = templatefile("${path.root}/inventory.tmpl", {
@@ -212,3 +216,32 @@ The minimum is one 2 vCPU / 4 GB VM with 40 GB disk plus a domain; object storag
 ## Out of scope for the MVP
 
 Managed PostgreSQL, load balancers, multiple VMs, autoscaling, Kubernetes, CDN, private container registry (GHCR is used), multi-region. Each is a V1 item with an entry criterion in [roadmap/10-future-architecture.md](../../roadmap/10-future-architecture.md).
+
+## As built and verified (M3-14, 2026-09-21)
+
+Provider versions (resolved by `tofu init`, recorded in [versions.md](../01-research/versions.md)): `digitalocean/digitalocean` 2.101.1 (`~> 2.100`), `hetznercloud/hcloud` 1.69.0 (`~> 1.68`), `hashicorp/aws` 6.65.0 (`~> 6.65`), `hashicorp/google` 8.3.0 (`~> 8.3`), `hashicorp/local` 2.9.1 (`~> 2.9`). Implementation notes that differ from the sketch above:
+
+| Provider | Notes |
+|---|---|
+| DigitalOcean | `digitalocean_spaces_key` with a read-write grant on the one bucket supplies the application's S3 keys (the provider-level Spaces key only creates the bucket); droplet with IPv6 and a 40 GB ext4 volume; firewall also opens 25/tcp for the mail server |
+| AWS | VPC + public subnet + IGW + route table; security group attached to the instance's primary interface; Elastic IP for stable DNS/PTR; encrypted gp3 root disk, IMDSv2 required; IAM user with a bucket-only policy for the keys; Route 53 hosted zone |
+| GCP | image must run cloud-init (Ubuntu images do, GCP's Debian images do not); static address; firewall rules by network tag; bucket-scoped service account with an HMAC key for the S3-interoperability API; outbound 25 is blocked by GCP, use `MAIL_RELAY_HOST` |
+| Hetzner | subnet in the location's network zone; `hcloud_firewall_attachment`; automounted ext4 volume; DNS with `hcloud_zone` + `hcloud_zone_rrset`; bucket through the `aws` provider with the Hetzner endpoint, keys passed in |
+| none | outputs only; `envs/existing` turns an address into `inventory/existing.ini` and lists the DNS names to create by hand |
+
+Verification on the build machine (no cloud credentials): `infra/scripts/tofu-check.sh` passes — `tofu fmt -check -recursive`, contract links and output names, `tofu init -backend=false` + `tofu validate` for all 25 provider modules and both environments — and `tofu -chdir=envs/existing plan -var ipv4=203.0.113.10` plans the inventory file and the eight DNS names. Nothing was applied.
+
+### What the owner runs to apply (DigitalOcean example)
+
+```sh
+cd infra/tofu/envs/reference
+cp terraform.tfvars.example terraform.tfvars          # do_token, spaces keys, ssh_key_ids, deploy_ssh_public_key
+export TF_VAR_state_passphrase='<at least 16 characters, kept in the password manager>'
+tofu init && tofu plan -out plan.bin && tofu apply plan.bin
+tofu output name_servers                                # add NS records for shp at the subhambhandari.com.np DNS host
+cd ../../../ansible && ansible-playbook -i inventory/reference.ini site.yml
+PLATFORM_DOMAIN=shp.subhambhandari.com.np SMOKE_DEV=0 ../scripts/smoke.sh
+cd ../tofu/envs/reference && tofu destroy                # after the demo, to stop billing
+```
+
+For AWS, GCP or Hetzner, copy `envs/reference` to `envs/<provider>`, change the `required_providers` entry, the provider block (credentials from the provider's usual environment variables) and the five `source` lines to `../../providers/<provider>/…`, and set `size`/`image`/`region` to that provider's values (`t3.medium` + a Debian 13 AMI id, `e2-medium` + `ubuntu-os-cloud/ubuntu-2404-lts-amd64`, `cx23` + `debian-13`).

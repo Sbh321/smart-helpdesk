@@ -19,11 +19,13 @@ use Illuminate\Support\Facades\DB;
 #[Group('SLA')]
 final class SlaPolicyController
 {
+    /** List SLA policies. */
     public function index(): AnonymousResourceCollection
     {
         return SlaPolicyResource::collection(SlaPolicy::query()->with('targets')->orderBy('name')->get());
     }
 
+    /** Create an SLA policy. */
     #[ScrambleResponse(status: 201, type: SlaPolicyResource::class)]
     public function store(SavePolicyRequest $request): JsonResponse
     {
@@ -51,11 +53,13 @@ final class SlaPolicyController
         return (new SlaPolicyResource($policy->refresh()->load('targets')))->response()->setStatusCode(201);
     }
 
+    /** Get an SLA policy. */
     public function show(SlaPolicy $policy): SlaPolicyResource
     {
         return new SlaPolicyResource($policy->load('targets'));
     }
 
+    /** Update an SLA policy. */
     public function update(SavePolicyRequest $request, SlaPolicy $policy): SlaPolicyResource
     {
         DB::transaction(function () use ($request, $policy): void {
@@ -89,6 +93,7 @@ final class SlaPolicyController
         return new SlaPolicyResource($policy->refresh()->load('targets'));
     }
 
+    /** Delete an SLA policy. */
     public function destroy(SlaPolicy $policy): Response
     {
         $usedBy = array_keys(array_filter([

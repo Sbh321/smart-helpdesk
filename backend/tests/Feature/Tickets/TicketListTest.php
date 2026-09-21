@@ -142,7 +142,7 @@ it('shows a ticket and its history, newest first', function (): void {
 });
 
 it('answers 404 for another workspace ticket', function (): void {
-    $foreign = Ticket::query()->withoutTenancy()->where('tenant_id', $this->globex->id)->sole();
+    $foreign = $this->globex->run(fn (): Ticket => Ticket::query()->sole());
 
     $this->getJson("/v1/tickets/{$foreign->id}")->assertNotFound();
     $this->getJson("/v1/tickets/{$foreign->id}/history")->assertNotFound();

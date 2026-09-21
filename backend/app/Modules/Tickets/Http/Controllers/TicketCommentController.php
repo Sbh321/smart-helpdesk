@@ -22,6 +22,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 #[Group('Tickets')]
 final class TicketCommentController
 {
+    /** List a ticket's comments. */
     #[QueryParameter('page', 'One-based page number.', type: 'integer')]
     public function index(Request $request, Ticket $ticket): AnonymousResourceCollection
     {
@@ -39,6 +40,7 @@ final class TicketCommentController
         return TicketCommentResource::collection($page);
     }
 
+    /** Add a comment to a ticket. */
     #[ScrambleResponse(status: 201, type: TicketCommentResource::class)]
     public function store(AddCommentRequest $request, Ticket $ticket, AddComment $add): JsonResponse
     {

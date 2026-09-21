@@ -8,7 +8,11 @@ use App\Modules\Reporting\Reports\ReportRecord;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin ReportRecord */
+/**
+ * One record behind a report number (drill-down).
+ *
+ * @mixin ReportRecord
+ */
 final class ReportRecordResource extends JsonResource
 {
     public function toArray(Request $request): array

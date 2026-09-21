@@ -1,0 +1,61 @@
+name: infra
+
+# Static checks for the deployment code (docs/09-infrastructure/ansible.md §Commands, terraform.md).
+# No cloud credentials: nothing is provisioned or deployed here.
+on:
+  push:
+    branches: [main]
+    paths: ['infra/**', 'compose.yaml', 'frontend/docker/Caddyfile*', '.github/workflows/infra.yml']
+  pull_request:
+    paths: ['infra/**', 'compose.yaml', 'frontend/docker/Caddyfile*', '.github/workflows/infra.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: infra/ansible
+    steps:
+      - uses: actions/checkout@v4
+      - run: pipx install ansible-core==2.21.4
+      - run: ansible-galaxy install -r requirements.yml -p galaxy_roles && ansible-galaxy collection install -r requirements.yml -p collections
+      - run: cp inventory/onprem.ini.example inventory/onprem.ini
+      - run: ansible-playbook --syntax-check site.yml deploy.yml backup.yml restore.yml
+      - run: pipx run --spec ansible-lint==26.8.0 ansible-lint --offline site.yml deploy.yml backup.yml restore.yml roles/
+        env:
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/infra/ansible/collections
+
+  opentofu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          curl -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh
+          sh install-opentofu.sh --install-method standalone --opentofu-version 1.12.6 --skip-verify
+      - run: infra/scripts/tofu-check.sh
+
+  compose-and-caddy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Production Compose file renders with the example environment
+        run: |
+          mkdir -p secrets && for f in db_superuser_password db_owner_password db_app_password db_backup_password oauth-private.key oauth-public.key; do touch secrets/$f; done
+          for example in infra/env/*.env.example; do
+            cp "$example" .env   # the server layout: one .env for Compose and the backend (BACKEND_ENV_FILE=.env)
+            docker compose config --quiet && echo "ok $example"
+          done
+      - name: Caddyfiles are valid in every TLS mode
+        run: |
+          mkdir -p certs && openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=x.test -keyout certs/privkey.pem -out certs/fullchain.pem
+          for f in Caddyfile Caddyfile.single; do for m in acme on_demand internal files; do
+            docker run --rm -e PLATFORM_DOMAIN=x.test -e TLS_MODE=$m -e MONITOR_USER=u -e 'MONITOR_PASSWORD_HASH=$2a$14$x' \
+              -v "$PWD/frontend/docker:/w:ro" -v "$PWD/certs:/certs:ro" caddy:2.11-alpine caddy validate --config /w/$f --adapter caddyfile
+          done; done
+      - run: bash -n infra/scripts/*.sh

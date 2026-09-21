@@ -8,7 +8,11 @@ use App\Modules\Tickets\Domain\DuplicatePreview;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin DuplicatePreview */
+/**
+ * Possible duplicates of a ticket that is not saved yet, with the strategy name and version.
+ *
+ * @mixin DuplicatePreview
+ */
 final class DuplicatePreviewResource extends JsonResource
 {
     public function toArray(Request $request): array

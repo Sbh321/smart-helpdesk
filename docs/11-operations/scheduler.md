@@ -43,7 +43,7 @@ Laravel 13's `Schedule::group()` applies `onOneServer()->timezone('UTC')` to the
 
 Two patterns, chosen per task:
 
-1. **Row-oriented sweeps** (`sla:evaluate`, `webhooks:retry-due`): a single query across all tenants on the central connection with the RLS setting unset would return nothing, so these commands run as jobs that select `DISTINCT tenant_id` with due work first, then `tenancy()->run($tenant, fn() => ...)` per tenant. This keeps RLS in force and tags jobs per tenant.
+1. **Row-oriented sweeps** (`sla:evaluate`, `webhooks:retry-due`, `webhooks:prune`): a query across all tenants with the RLS setting unset returns nothing, so these visit every active tenant (`webhooks:prune`: every tenant) and query the due rows inside `$tenant->run(...)`; a tenant with nothing due costs one indexed query. No privileged connection is involved and jobs are tagged per tenant (M3-07, [tenancy.md](../08-database/tenancy.md) §Where the owner connection is used).
 2. **Tenant-oriented maintenance** (`tickets:auto-close`, `tickets:reevaluate-priority`): `Tenant::active()->each(fn ($t) => tenancy()->run($t, ...))`, equivalent to stancl's `tenants:run` but with explicit batching and per-tenant timing in the log.
 
 ## Heartbeat and health

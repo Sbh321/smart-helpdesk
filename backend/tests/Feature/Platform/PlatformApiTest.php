@@ -155,6 +155,8 @@ it('suspends and reactivates a workspace, locking its users out in between', fun
     actingAsTenantUser($this->acme, $user);
     $this->getJson(onApiHost('/v1/me'))->assertOk();
 
+    // Platform entries have no tenant; row-level security shows them in the central context only.
+    tenancy()->end();
     expect(AuditLog::query()->whereIn('action', ['tenant.suspended', 'tenant.reactivated'])->count())->toBe(2);
 });
 

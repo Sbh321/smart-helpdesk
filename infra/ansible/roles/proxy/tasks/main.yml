@@ -1,0 +1,32 @@
+# The Caddyfile is baked into the proxy image and selects the TLS mode and host layout from the
+# environment (frontend/docker/Caddyfile, TLS_MODE / HOST_LAYOUT in .env). This role validates the
+# choice and installs the customer certificate for tls_mode=files.
+- name: Validate the TLS mode and host layout
+  ansible.builtin.assert:
+    that:
+      - tls_mode in ['acme', 'on_demand', 'files', 'internal']
+      - host_layout in ['split', 'single']
+      - tls_mode != 'files' or (tls_cert_file | length > 0 and tls_key_file | length > 0)
+    fail_msg: "tls_mode={{ tls_mode }} host_layout={{ host_layout }}; files mode needs tls_cert_file and tls_key_file"
+    quiet: true
+
+- name: Create the certificate directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}/certs"
+    state: directory
+    owner: root
+    group: "{{ deploy_user }}"
+    mode: "0750"
+
+- name: Install the customer certificate
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ app_dir }}/certs/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: "{{ tls_cert_file }}", dest: fullchain.pem, mode: "0644" }
+    - { src: "{{ tls_key_file }}", dest: privkey.pem, mode: "0600" }
+  when: tls_mode == 'files'
+  notify: Recreate the proxy

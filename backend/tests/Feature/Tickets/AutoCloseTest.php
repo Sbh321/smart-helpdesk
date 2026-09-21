@@ -22,7 +22,8 @@ beforeEach(function (): void {
     $this->resolved = fn (Tenant $tenant, string $at, array $attributes = []): Ticket => Ticket::factory()->forTenant($tenant)->create([
         'status' => TicketStatus::Resolved, 'resolved_at' => $at, ...$attributes,
     ]);
-    $this->fresh = fn (Ticket $ticket): Ticket => Ticket::query()->withoutTenancy()->findOrFail($ticket->id);
+    // Read inside the ticket's own workspace (row-level security).
+    $this->fresh = fn (Ticket $ticket): Ticket => findInAnyTenant(Ticket::class, $ticket->id);
 });
 
 it('closes tickets resolved longer ago than the period, as the system, with history and events', function (): void {
@@ -39,7 +40,7 @@ it('closes tickets resolved longer ago than the period, as the system, with hist
         ->and(($this->fresh)($recent)->status)->toBe(TicketStatus::Resolved)
         ->and(($this->fresh)($open)->status)->toBe(TicketStatus::InProgress);
 
-    $event = TicketEvent::query()->withoutTenancy()->where('ticket_id', $old->id)->sole();
+    $event = $this->tenant->run(fn (): TicketEvent => TicketEvent::query()->where('ticket_id', $old->id)->sole());
     expect($event->getAttribute('type'))->toBe('status_changed')
         ->and($event->getAttribute('actor_type'))->toBe('system')
         ->and($event->getAttribute('actor_id'))->toBeNull()
@@ -68,7 +69,7 @@ it('runs twice without closing anything twice', function (): void {
     $this->artisan('tickets:auto-close')->assertSuccessful();
     $this->artisan('tickets:auto-close')->expectsOutputToContain('Closed 0 resolved tickets.')->assertSuccessful();
 
-    expect(TicketEvent::query()->withoutTenancy()->where('ticket_id', $ticket->id)->count())->toBe(1);
+    expect($this->tenant->run(fn (): int => TicketEvent::query()->where('ticket_id', $ticket->id)->count()))->toBe(1);
 });
 
 it('is scheduled daily at 03:10 on one server without overlapping', function (): void {

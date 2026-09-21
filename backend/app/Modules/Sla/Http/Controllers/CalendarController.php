@@ -19,11 +19,13 @@ use Illuminate\Support\Facades\DB;
 #[Group('SLA')]
 final class CalendarController
 {
+    /** List business calendars. */
     public function index(): AnonymousResourceCollection
     {
         return BusinessCalendarResource::collection(BusinessCalendar::query()->with('holidays')->orderBy('name')->get());
     }
 
+    /** Create a business calendar. */
     #[ScrambleResponse(status: 201, type: BusinessCalendarResource::class)]
     public function store(SaveCalendarRequest $request): JsonResponse
     {
@@ -40,11 +42,13 @@ final class CalendarController
         return (new BusinessCalendarResource($calendar->refresh()->load('holidays')))->response()->setStatusCode(201);
     }
 
+    /** Get a business calendar. */
     public function show(BusinessCalendar $calendar): BusinessCalendarResource
     {
         return new BusinessCalendarResource($calendar->load('holidays'));
     }
 
+    /** Update a business calendar. */
     public function update(SaveCalendarRequest $request, BusinessCalendar $calendar): BusinessCalendarResource
     {
         $data = $request->validated();
@@ -68,6 +72,7 @@ final class CalendarController
         return new BusinessCalendarResource($calendar->refresh()->load('holidays'));
     }
 
+    /** Delete a business calendar. */
     public function destroy(BusinessCalendar $calendar): Response
     {
         $usedBy = array_keys(array_filter([

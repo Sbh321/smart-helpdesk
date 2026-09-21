@@ -43,12 +43,17 @@ final class ReportController
         return ReportDefinitionResource::collection(array_map(ReportDescription::of(...), $this->catalogue->visibleTo($user)));
     }
 
+    /** Get a report definition. */
     public function show(Request $request, string $report): ReportDefinitionResource
     {
         return new ReportDefinitionResource(ReportDescription::of($this->report($request, $report)));
     }
 
-    /** Rows per value of the chosen dimension, totals, and the previous period's totals. */
+    /**
+     * Run a report.
+     *
+     * Rows per value of the chosen dimension, totals, and the previous period's totals.
+     */
     #[BodyParameter('period', 'today, yesterday, last_7d, last_30d (default), last_90d, this_month, last_month or this_year.', type: 'string')]
     #[BodyParameter('from', 'First day (YYYY-MM-DD, workspace time zone); with `to` it replaces `period`.', type: 'string')]
     #[BodyParameter('to', 'Last day, inclusive (YYYY-MM-DD).', type: 'string')]
@@ -67,7 +72,11 @@ final class ReportController
         ));
     }
 
-    /** The records behind one number: `key` is the dimension value of the row (omit it for the totals). */
+    /**
+     * List the records behind a report number.
+     *
+     * The records behind one number: `key` is the dimension value of the row (omit it for the totals).
+     */
     #[QueryParameter('period', 'As for the run.', type: 'string')]
     #[QueryParameter('from', 'As for the run.', type: 'string')]
     #[QueryParameter('to', 'As for the run.', type: 'string')]

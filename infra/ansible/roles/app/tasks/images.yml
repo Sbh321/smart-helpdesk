@@ -1,0 +1,32 @@
+# Images come from the registry (GHCR) or, for air-gapped installs, from a `docker save` archive.
+- name: Log in to the registry
+  community.docker.docker_login:
+    registry_url: "{{ image_registry.split('/')[0] }}"
+    username: "{{ registry_username }}"
+    password: "{{ registry_password }}"
+  when: registry_username | length > 0 and image_archive | length == 0
+  no_log: true
+
+- name: Copy the image archive
+  ansible.builtin.copy:
+    src: "{{ image_archive }}"
+    dest: "{{ app_dir }}/images-{{ app_version }}.tar{{ '.gz' if image_archive.endswith('.gz') else '' }}"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0600"
+  register: app_image_archive
+  when: image_archive | length > 0
+
+- name: Load the image archive  # noqa: no-handler (needed before the next task, not at the end of the play)
+  ansible.builtin.shell:
+    cmd: set -o pipefail && {{ 'gunzip -c' if image_archive.endswith('.gz') else 'cat' }} {{ app_image_archive.dest }} | docker load
+    executable: /bin/bash
+  when: app_image_archive is changed
+  changed_when: true
+
+- name: Pull the release images
+  community.docker.docker_image_pull:
+    name: "{{ item }}"
+    pull: not_present
+  loop: ["{{ backend_image }}", "{{ proxy_image }}"]
+  when: image_archive | length == 0

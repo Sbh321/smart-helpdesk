@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * An Organisation: the company contacts belong to; its tier feeds priority and SLA policy selection.
+ *
  * @mixin Organization
  */
 final class OrganizationResource extends JsonResource

@@ -24,6 +24,8 @@ require_once __DIR__.'/ReportingHelpers.php';
 beforeEach(function (): void {
     $this->app->instance(Clock::class, new FrozenClock('2026-09-21 06:00:00'));
     $this->tenant = createTenant('snapshots', ['timezone' => 'Asia/Kathmandu']);
+    // Raw reads in the test body see this workspace's rows only (row-level security).
+    tenancy()->initialize($this->tenant);
 });
 
 /** @return array<string, array<string, int>> dimension => key => backlog, counted ticket by ticket in PHP */

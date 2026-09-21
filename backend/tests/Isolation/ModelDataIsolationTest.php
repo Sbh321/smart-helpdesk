@@ -14,8 +14,8 @@ use Tests\Support\TenantModelInventory;
  *
  * The dataset is the PRIMARY list of Tests\Support\TenantModelInventory, minus the models that
  * have no factory yet, so every model added in M2 is covered the moment it is classified and
- * seedable. Row-level security is the second line of defence and is asserted from M3-07 on (see
- * SchemaTest.php); everything here is the Eloquent global scope.
+ * seedable. Everything here is the Eloquent global scope; row-level security, the second line of
+ * defence, has its own proof in RowLevelSecurityTest.php (M3-07).
  */
 
 /**
@@ -80,7 +80,8 @@ it('cannot read, update or delete another tenant row by its primary key', functi
 
     tenancy()->end();
 
-    expect($model::query()->withoutTenancy()->whereKey($theirs->getKey())->exists())->toBeTrue();
+    // Row-level security shows B's row only inside B.
+    expect($this->globex->run(fn (): bool => $model::query()->whereKey($theirs->getKey())->exists()))->toBeTrue();
 })->with('primary models');
 
 it('fills tenant_id from the current tenant on create', function (string $model): void {
@@ -95,8 +96,9 @@ it('fills tenant_id from the current tenant on create', function (string $model)
 })->with('primary models');
 
 it('refuses to create a row outside a tenant, so a factory without a tenant fails loudly', function (string $model): void {
+    // Row-level security refuses the row before the NOT NULL constraint on tenant_id is checked.
     expect(fn () => $model::factory()->create())
-        ->toThrow(QueryException::class, 'tenant_id');
+        ->toThrow(QueryException::class, 'row-level security');
 })->with('primary models');
 
 it('never lets a query in tenant A reach a row of tenant B through a where clause', function (string $model): void {

@@ -1,0 +1,26 @@
+# Back up now: ansible-playbook -i inventory/<env>.ini backup.yml [-e fetch_backup=true]
+- name: Back up Smart Helpdesk
+  hosts: helpdesk
+  become: true
+  roles: [helpdesk_defaults]
+  vars:
+    fetch_backup: false
+    fetch_dir: "{{ playbook_dir }}/backups/{{ inventory_hostname }}"
+  tasks:
+    - name: Dump the database and archive the objects
+      ansible.builtin.command: /usr/local/bin/helpdesk-backup manual
+      environment: { HELPDESK_DIR: "{{ app_dir }}" }
+      register: backup_run
+      changed_when: true
+
+    - name: Show the backup files
+      ansible.builtin.debug:
+        var: backup_run.stdout_lines
+
+    - name: Copy the backup files to the controller (off-host copy)
+      ansible.builtin.fetch:
+        src: "{{ item.split(': ')[1].split(' (')[0] | trim }}"
+        dest: "{{ fetch_dir }}/"
+        flat: true
+      loop: "{{ backup_run.stdout_lines | select('match', '^(database|objects):') | list }}"
+      when: fetch_backup | bool

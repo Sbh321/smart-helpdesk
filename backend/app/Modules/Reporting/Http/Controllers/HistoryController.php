@@ -43,6 +43,8 @@ final class HistoryController
     }
 
     /**
+     * Get a record as of an instant.
+     *
      * The record's recorded attributes at an instant, and which of them differ from now. `exists` is
      * false for an instant before the record was created (or after it was deleted).
      */
