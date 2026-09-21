@@ -33,14 +33,13 @@ function blocking(violations: Result[]): string[] {
  * Enter animations fade and scale, and a half-faded element makes axe measure a blended colour. Waiting
  * for the animations to finish keeps the contrast rule measuring the colours a user actually sees.
  */
-async function settle(root: HTMLElement): Promise<void> {
-  await Promise.all(
-    root.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => undefined)),
-  )
+async function settle(): Promise<void> {
+  // The whole document: dialogs and menus open in a portal outside the rendered container.
+  await Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => undefined)))
 }
 
 async function scan(container: HTMLElement): Promise<string[]> {
-  await settle(container)
+  await settle()
   const results = await axe.run(container, { runOnly: { type: 'tag', values: WCAG_TAGS } })
   return blocking(results.violations)
 }

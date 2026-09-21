@@ -10,7 +10,7 @@ Decisions: [ADR-0012](../adr/0012-deployment-architecture.md), [ADR-0017](../adr
 |---|---|---|---|---|
 | Existing VM / self-managed VPS / on-prem | `providers/none` via `envs/existing` (creates nothing; writes the inventory) | **tested**: `validate` and offline `plan`; the Ansible path it feeds was rehearsed (ansible.md) | RustFS on the VM or any S3 endpoint | open 22, 80, 443 (+25 for the mail server) |
 | DigitalOcean | `providers/digitalocean` via `envs/reference` | `validate` passes; not applied (no account on the build machine) | Spaces | all five contracts native |
-| AWS | `providers/aws` | `validate` passes; untested | S3 | EC2 + VPC + security group + S3 + Route 53; port 25 needs an AWS removal request, otherwise use `MAIL_RELAY_HOST` (SES) |
+| AWS | `providers/aws` via `envs/aws` | **applied** (2026-09-21, §AWS environment): network, compute, firewall; DNS through `providers/cloudflare/dns`; storage/Route 53 not used | RustFS on the VM (S3 module available, not applied) | EC2 + VPC + security group + Elastic IP; port 25 needs an AWS removal request, otherwise use `MAIL_RELAY_HOST` (SES) |
 | GCP | `providers/gcp` | `validate` passes; untested | GCS via S3-interoperability HMAC keys | Compute Engine + VPC firewall + Cloud DNS; outbound 25 blocked, use a relay |
 | Hetzner | `providers/hetzner` | `validate` passes; untested | Hetzner Object Storage (bucket via `aws` provider with custom endpoint) | cheapest; port 25 opened on request |
 
@@ -33,13 +33,15 @@ infra/tofu/
 │   ├── digitalocean/{network,firewall,compute,storage,dns}/   # implementations of the contracts
 │   ├── aws/{network,firewall,compute,storage,dns}/
 │   ├── gcp/{network,firewall,compute,storage,dns}/
-│   └── hetzner/{network,firewall,compute,storage,dns}/
+│   ├── hetzner/{network,firewall,compute,storage,dns}/
+│   └── cloudflare/dns/                                        # DNS only: records in an existing parent zone
 ├── envs/
 │   ├── reference/           # DigitalOcean wiring (switch provider by editing the provider block and `source` lines)
 │   │   ├── main.tf  variables.tf  outputs.tf  .terraform.lock.hcl
 │   │   ├── inventory.tmpl   # Ansible inventory template
 │   │   └── terraform.tfvars.example
-│   └── existing/            # provider `none`: only writes infra/ansible/inventory/existing.ini
+│   ├── existing/            # provider `none`: only writes infra/ansible/inventory/existing.ini
+│   └── aws/                 # the deployed environment: AWS compute + Cloudflare DNS (§AWS environment)
 ├── cloud-init/docker-host.yaml
 └── README.md                # per-folder test status
 ```
@@ -193,7 +195,9 @@ Docker is deliberately left to Ansible so the on-prem and cloud paths are identi
 
 ## State
 
-Local `terraform.tfstate` with OpenTofu state encryption (passphrase in `TF_VAR_state_passphrase`, never committed); `.gitignore` excludes `*.tfstate*` and `*.tfvars`. Move to a Spaces backend when a second operator exists.
+Local `terraform.tfstate` with OpenTofu state encryption (passphrase in `TF_VAR_state_passphrase`, never committed); `.gitignore` excludes `*.tfstate*`, `terraform.tfvars` and `*.tfplan`. Move to a Spaces backend when a second operator exists.
+
+`envs/aws` declares an empty `backend "local" {}` and takes the path at init (`-backend-config="path=$HOME/.config/smart-helpdesk/tofu/aws.tfstate"`), so the encrypted state stays out of the working tree and no personal path is committed. `infra/scripts/tofu-check.sh` validates each folder with a throwaway `TF_DATA_DIR`, so it never reads an operator's initialised backend.
 
 ## Commands
 
@@ -245,3 +249,35 @@ cd ../tofu/envs/reference && tofu destroy                # after the demo, to st
 ```
 
 For AWS, GCP or Hetzner, copy `envs/reference` to `envs/<provider>`, change the `required_providers` entry, the provider block (credentials from the provider's usual environment variables) and the five `source` lines to `../../providers/<provider>/…`, and set `size`/`image`/`region` to that provider's values (`t3.medium` + a Debian 13 AMI id, `e2-medium` + `ubuntu-os-cloud/ubuntu-2404-lts-amd64`, `cx23` + `debian-13`).
+
+## AWS environment (deployed 2026-09-21)
+
+`envs/aws` wires `providers/aws/{network,compute,firewall}` with `providers/cloudflare/dns`: the owner's domain `subhambhandari.com.np` is on Cloudflare, so the eight fixed hosts (ADR-0021) become records in that zone instead of a delegated Route 53 zone. Files stay in RustFS on the VM (`storage_profile=true`), the path the M3-14 restore rehearsal covered; the S3 module is not used.
+
+| Choice | Value | Why |
+|---|---|---|
+| Region | `ap-south-1` (Mumbai) | nearest AWS region to Nepal; the account's default |
+| Instance | `t3.small` (2 vCPU, 2 GB) + 4 GB swap (`swap_size_mb`) | the account is on the AWS Free plan: `t3.medium` is not eligible (`InvalidParameterCombination`); the eligible 4 GB type (`c7i-flex.large`) costs about US$2 a day of credits against about US$0.55 for `t3.small` |
+| Image | newest official Debian 13 amd64 AMI (`data "aws_ami"`, owner `136693071363`) | cloud-init capable; matches the rehearsal target |
+| Disk | 30 GB encrypted gp3 | inside the Free plan's EBS allowance |
+| SSH | security group allows 22 only from the operator's address (`ssh_cidrs`); the host firewall allows 22 from anywhere | one place to change when the operator's address changes |
+| DNS | Cloudflare A records, **DNS only**, TTL 300 | Cloudflare's free certificate covers one label below the zone (`*.subhambhandari.com.np`), not `app.shp.…`; Caddy on the VM obtains Let's Encrypt certificates itself (`tls_mode=acme`) |
+| Images | `ghcr.io/sbh321/smart-helpdesk-{backend,proxy}:sha-<commit>` (public packages) | the build workflow pushes `main` and `sha-<commit>` on every push to `main`; a deploy pins the commit |
+
+Credentials: AWS from the CLI session (`aws login`), Cloudflare from `CLOUDFLARE_API_TOKEN` (a token limited to Zone → DNS → Edit on the parent zone), the state passphrase from `TF_VAR_state_passphrase`. Personal deploy settings (image tag, platform admin e-mail, swap) live in an extra-vars file outside the repository.
+
+```sh
+cd infra/tofu/envs/aws
+cp terraform.tfvars.example terraform.tfvars      # ssh keys, ssh_cidrs, size (gitignored)
+export TF_VAR_state_passphrase="$(cat ~/.config/smart-helpdesk/tofu-state-passphrase)"
+export CLOUDFLARE_API_TOKEN=…                     # Zone → DNS → Edit
+tofu init -backend-config="path=$HOME/.config/smart-helpdesk/tofu/aws.tfstate"
+tofu plan -out aws.tfplan && tofu apply aws.tfplan    # writes infra/ansible/inventory/aws.ini
+cd ../../../ansible
+ansible-galaxy install -r requirements.yml -p galaxy_roles && ansible-galaxy collection install -r requirements.yml -p collections
+ansible-playbook -i inventory/aws.ini site.yml -e @$HOME/.config/smart-helpdesk/aws-vars.yml
+# a new release: set app_version to the new sha-<commit> tag, then
+ansible-playbook -i inventory/aws.ini deploy.yml -e @$HOME/.config/smart-helpdesk/aws-vars.yml
+cd ../tofu/envs/aws && tofu destroy                 # removes the VM, Elastic IP and DNS records
+```
+

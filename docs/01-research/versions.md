@@ -33,6 +33,7 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | OpenTofu provider `hashicorp/aws` | 6.65.0 | `~> 6.65` | AWS folder and the Hetzner bucket (S3 API) |
 | OpenTofu provider `hashicorp/google` | 8.3.0 | `~> 8.3` | GCP folder; GCS through HMAC keys |
 | OpenTofu provider `hashicorp/local` | 2.9.1 | `~> 2.9` | writes the generated Ansible inventory |
+| OpenTofu provider `cloudflare/cloudflare` | 5.25.0 | `~> 5.25` | DNS records in the parent zone for the AWS environment (`providers/cloudflare/dns`); the owner's domain is on Cloudflare |
 
 ## Backend packages
 

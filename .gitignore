@@ -23,6 +23,8 @@ coverage/
 .terraform/
 *.tfstate
 *.tfstate.*
+terraform.tfvars
+*.tfplan
 .claude/settings.local.json
 
 # experiments: datasets and results are committed; scratch output is not

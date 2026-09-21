@@ -27,14 +27,18 @@ for module in modules/*/; do
 done
 
 echo "tofu validate"
+# A throwaway TF_DATA_DIR per folder: an operator's initialised .terraform (backend settings pointing at a
+# real, encrypted state) is neither read nor rewritten by the check.
 for dir in providers/*/*/ envs/*/; do
-  if out="$(tofu -chdir="$dir" init -backend=false -input=false -no-color 2>&1)" &&
-    out="$(tofu -chdir="$dir" validate -no-color 2>&1)"; then
+  data="$(mktemp -d)"
+  if out="$(TF_DATA_DIR="$data" tofu -chdir="$dir" init -backend=false -input=false -no-color 2>&1)" &&
+    out="$(TF_DATA_DIR="$data" tofu -chdir="$dir" validate -no-color 2>&1)"; then
     printf '  ok    %s\n' "${dir%/}"
   else
     fail "${dir%/}"
     printf '%s\n' "$out" | tail -15
   fi
+  rm -rf "$data"
 done
 
 if [[ $failures -gt 0 ]]; then

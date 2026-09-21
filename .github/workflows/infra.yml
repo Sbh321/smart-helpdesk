@@ -21,9 +21,12 @@ jobs:
         working-directory: infra/ansible
     steps:
       - uses: actions/checkout@v4
-      # The runner image ships its own ansible-core, so plain `pipx install` keeps that one; --force pins ours,
-      # and ansible-lint is injected into the same environment so it sees the same core and collections.
-      - run: pipx install --force ansible-core==2.21.4 && pipx inject --include-apps ansible-core ansible-lint==26.8.0
+      # The runner image ships its own ansible-core under a read-only /opt/pipx, so pipx cannot pin ours;
+      # one private virtualenv holds both pins, and ansible-lint sees the same core and collections.
+      - run: |
+          python3 -m venv "$RUNNER_TEMP/ansible"
+          "$RUNNER_TEMP/ansible/bin/pip" install --quiet ansible-core==2.21.4 ansible-lint==26.8.0
+          echo "$RUNNER_TEMP/ansible/bin" >> "$GITHUB_PATH"
       - run: ansible-galaxy install -r requirements.yml -p galaxy_roles && ansible-galaxy collection install -r requirements.yml -p collections
       - run: cp inventory/onprem.ini.example inventory/onprem.ini
       - run: ansible-playbook --syntax-check site.yml deploy.yml backup.yml restore.yml
