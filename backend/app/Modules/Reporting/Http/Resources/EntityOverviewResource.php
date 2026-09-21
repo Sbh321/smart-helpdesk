@@ -22,8 +22,11 @@ final class EntityOverviewResource extends JsonResource
             'entity' => $this->entity,
             'id' => $this->id,
             'title' => $this->title,
+            /** @var array<string, int|float|string|null> */
             'metrics' => (object) $this->metrics,
+            /** @var array<string, mixed> */
             'related' => (object) $this->related,
+            /** @var array<string, list<array<string, mixed>>> */
             'trends' => (object) $this->trends,
         ];
     }

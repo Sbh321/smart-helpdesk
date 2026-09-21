@@ -61,12 +61,18 @@ final class MediaUses
      * `media.view`: a library file (no links, or linked to something that is not a ticket) is open
      * to every viewer; a file that only lives on tickets needs `tickets.view`, and one that only
      * lives on internal notes needs `comments.internal` as well. The uploader can always read
-     * their own file back.
+     * their own file back. A file the server generated (`source = system`: a report export, stored
+     * in the `Reports` folder) is readable by its requester (the uploader) only, wherever it is
+     * moved and whatever the reader's other permissions.
      */
     public function canDownload(User $user, MediaItem $item): bool
     {
         if ($item->uploaded_by_user_id === $user->id) {
             return true;
+        }
+
+        if ($item->source === 'system') {
+            return false;
         }
 
         $links = $this->links($item->tenant_id, [$item->id])

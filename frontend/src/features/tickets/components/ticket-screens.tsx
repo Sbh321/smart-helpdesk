@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { type ReactNode, useEffect, useState } from 'react'
 import { BackLink } from '@/components/shared/back-link'
+import type { DetailTab } from '@/components/shared/detail-tabs'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { NotFoundState } from '@/components/shared/not-found-state'
@@ -193,8 +194,19 @@ function TicketHistory({
   )
 }
 
-/** Ticket workspace; subsequent tasks connect comments, media, SLA and automation. */
-export function TicketScreen({ workspace, ticketId }: { workspace: string; ticketId: string }) {
+/**
+ * Ticket workspace; subsequent tasks connect comments, media, SLA and automation. The route adds the
+ * Overview and History tabs (M3-21) through `tabs`.
+ */
+export function TicketScreen({
+  workspace,
+  ticketId,
+  tabs = [],
+}: {
+  workspace: string
+  ticketId: string
+  tabs?: readonly DetailTab[]
+}) {
   const allowed = useCan('tickets.view')
   const canReply = useCan('tickets.update')
   const [activityTab, setActivityTab] = useState('timeline')
@@ -298,6 +310,11 @@ export function TicketScreen({ workspace, ticketId }: { workspace: string; ticke
                   {copy.tickets.detail[tab]}
                 </TabsTrigger>
               ))}
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.value} value={tab.value}>
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
             <TabsContent value="timeline">
               <section aria-labelledby="ticket-history" className="flex flex-col gap-4">
@@ -316,6 +333,11 @@ export function TicketScreen({ workspace, ticketId }: { workspace: string; ticke
             <TabsContent value="duplicates">
               <TicketDuplicatesPanel tenantId={tenantId} workspace={workspace} ticket={current} />
             </TabsContent>
+            {tabs.map((tab) => (
+              <TabsContent key={tab.value} value={tab.value}>
+                {tab.content}
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
         <aside className="flex min-w-0 flex-col gap-6">

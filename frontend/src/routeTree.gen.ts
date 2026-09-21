@@ -22,6 +22,8 @@ import { Route as WorkspaceAuthLoginRouteImport } from './routes/$workspace/_aut
 import { Route as WorkspaceAuthResetPasswordRouteImport } from './routes/$workspace/_auth/reset-password'
 import { Route as PlatformPlatformIndexRouteImport } from './routes/_platform.platform.index'
 import { Route as PlatformPlatformTenantsRouteImport } from './routes/_platform.platform.tenants'
+import { Route as WorkspaceAppAgentsAgentIdRouteImport } from './routes/$workspace/_app/agents/$agentId'
+import { Route as WorkspaceAppCategoriesCategoryIdRouteImport } from './routes/$workspace/_app/categories/$categoryId'
 import { Route as WorkspaceAppContactsIndexRouteImport } from './routes/$workspace/_app/contacts/index'
 import { Route as WorkspaceAppContactsContactIdRouteImport } from './routes/$workspace/_app/contacts/$contactId'
 import { Route as WorkspaceAppContactsNewRouteImport } from './routes/$workspace/_app/contacts/new'
@@ -47,6 +49,8 @@ import { Route as WorkspaceAppSettingsSlaRouteImport } from './routes/$workspace
 import { Route as WorkspaceAppSettingsTeamsRouteImport } from './routes/$workspace/_app/settings/teams'
 import { Route as WorkspaceAppSettingsTicketsRouteImport } from './routes/$workspace/_app/settings/tickets'
 import { Route as WorkspaceAppSettingsUsersRouteImport } from './routes/$workspace/_app/settings/users'
+import { Route as WorkspaceAppSettingsWebhooksRouteImport } from './routes/$workspace/_app/settings/webhooks'
+import { Route as WorkspaceAppTeamsTeamIdRouteImport } from './routes/$workspace/_app/teams/$teamId'
 import { Route as WorkspaceAppTicketsIndexRouteImport } from './routes/$workspace/_app/tickets/index'
 import { Route as WorkspaceAppTicketsTicketIdRouteImport } from './routes/$workspace/_app/tickets/$ticketId'
 import { Route as WorkspaceAppTicketsNewRouteImport } from './routes/$workspace/_app/tickets/new'
@@ -116,6 +120,18 @@ const PlatformPlatformTenantsRoute = PlatformPlatformTenantsRouteImport.update({
   path: '/platform/tenants',
   getParentRoute: () => PlatformRoute,
 } as any)
+const WorkspaceAppAgentsAgentIdRoute =
+  WorkspaceAppAgentsAgentIdRouteImport.update({
+    id: '/agents/$agentId',
+    path: '/agents/$agentId',
+    getParentRoute: () => WorkspaceAppRoute,
+  } as any)
+const WorkspaceAppCategoriesCategoryIdRoute =
+  WorkspaceAppCategoriesCategoryIdRouteImport.update({
+    id: '/categories/$categoryId',
+    path: '/categories/$categoryId',
+    getParentRoute: () => WorkspaceAppRoute,
+  } as any)
 const WorkspaceAppContactsIndexRoute =
   WorkspaceAppContactsIndexRouteImport.update({
     id: '/contacts/',
@@ -264,6 +280,17 @@ const WorkspaceAppSettingsUsersRoute =
     path: '/users',
     getParentRoute: () => WorkspaceAppSettingsRoute,
   } as any)
+const WorkspaceAppSettingsWebhooksRoute =
+  WorkspaceAppSettingsWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppTeamsTeamIdRoute = WorkspaceAppTeamsTeamIdRouteImport.update({
+  id: '/teams/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => WorkspaceAppRoute,
+} as any)
 const WorkspaceAppTicketsIndexRoute =
   WorkspaceAppTicketsIndexRouteImport.update({
     id: '/tickets/',
@@ -293,6 +320,8 @@ export interface FileRoutesByFullPath {
   '/platform/tenants': typeof PlatformPlatformTenantsRoute
   '/$workspace/': typeof WorkspaceAppIndexRoute
   '/platform/': typeof PlatformPlatformIndexRoute
+  '/$workspace/agents/$agentId': typeof WorkspaceAppAgentsAgentIdRoute
+  '/$workspace/categories/$categoryId': typeof WorkspaceAppCategoriesCategoryIdRoute
   '/$workspace/contacts/$contactId': typeof WorkspaceAppContactsContactIdRoute
   '/$workspace/contacts/new': typeof WorkspaceAppContactsNewRoute
   '/$workspace/organizations/$organizationId': typeof WorkspaceAppOrganizationsOrganizationIdRoute
@@ -314,6 +343,8 @@ export interface FileRoutesByFullPath {
   '/$workspace/settings/teams': typeof WorkspaceAppSettingsTeamsRoute
   '/$workspace/settings/tickets': typeof WorkspaceAppSettingsTicketsRoute
   '/$workspace/settings/users': typeof WorkspaceAppSettingsUsersRoute
+  '/$workspace/settings/webhooks': typeof WorkspaceAppSettingsWebhooksRoute
+  '/$workspace/teams/$teamId': typeof WorkspaceAppTeamsTeamIdRoute
   '/$workspace/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
   '/$workspace/tickets/new': typeof WorkspaceAppTicketsNewRoute
   '/$workspace/contacts/': typeof WorkspaceAppContactsIndexRoute
@@ -331,6 +362,8 @@ export interface FileRoutesByTo {
   '/$workspace/reset-password': typeof WorkspaceAuthResetPasswordRoute
   '/platform/tenants': typeof PlatformPlatformTenantsRoute
   '/platform': typeof PlatformPlatformIndexRoute
+  '/$workspace/agents/$agentId': typeof WorkspaceAppAgentsAgentIdRoute
+  '/$workspace/categories/$categoryId': typeof WorkspaceAppCategoriesCategoryIdRoute
   '/$workspace/contacts/$contactId': typeof WorkspaceAppContactsContactIdRoute
   '/$workspace/contacts/new': typeof WorkspaceAppContactsNewRoute
   '/$workspace/organizations/$organizationId': typeof WorkspaceAppOrganizationsOrganizationIdRoute
@@ -352,6 +385,8 @@ export interface FileRoutesByTo {
   '/$workspace/settings/teams': typeof WorkspaceAppSettingsTeamsRoute
   '/$workspace/settings/tickets': typeof WorkspaceAppSettingsTicketsRoute
   '/$workspace/settings/users': typeof WorkspaceAppSettingsUsersRoute
+  '/$workspace/settings/webhooks': typeof WorkspaceAppSettingsWebhooksRoute
+  '/$workspace/teams/$teamId': typeof WorkspaceAppTeamsTeamIdRoute
   '/$workspace/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
   '/$workspace/tickets/new': typeof WorkspaceAppTicketsNewRoute
   '/$workspace/contacts': typeof WorkspaceAppContactsIndexRoute
@@ -375,6 +410,8 @@ export interface FileRoutesById {
   '/_platform/platform/tenants': typeof PlatformPlatformTenantsRoute
   '/$workspace/_app/': typeof WorkspaceAppIndexRoute
   '/_platform/platform/': typeof PlatformPlatformIndexRoute
+  '/$workspace/_app/agents/$agentId': typeof WorkspaceAppAgentsAgentIdRoute
+  '/$workspace/_app/categories/$categoryId': typeof WorkspaceAppCategoriesCategoryIdRoute
   '/$workspace/_app/contacts/$contactId': typeof WorkspaceAppContactsContactIdRoute
   '/$workspace/_app/contacts/new': typeof WorkspaceAppContactsNewRoute
   '/$workspace/_app/organizations/$organizationId': typeof WorkspaceAppOrganizationsOrganizationIdRoute
@@ -396,6 +433,8 @@ export interface FileRoutesById {
   '/$workspace/_app/settings/teams': typeof WorkspaceAppSettingsTeamsRoute
   '/$workspace/_app/settings/tickets': typeof WorkspaceAppSettingsTicketsRoute
   '/$workspace/_app/settings/users': typeof WorkspaceAppSettingsUsersRoute
+  '/$workspace/_app/settings/webhooks': typeof WorkspaceAppSettingsWebhooksRoute
+  '/$workspace/_app/teams/$teamId': typeof WorkspaceAppTeamsTeamIdRoute
   '/$workspace/_app/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
   '/$workspace/_app/tickets/new': typeof WorkspaceAppTicketsNewRoute
   '/$workspace/_app/contacts/': typeof WorkspaceAppContactsIndexRoute
@@ -417,6 +456,8 @@ export interface FileRouteTypes {
     | '/platform/tenants'
     | '/$workspace/'
     | '/platform/'
+    | '/$workspace/agents/$agentId'
+    | '/$workspace/categories/$categoryId'
     | '/$workspace/contacts/$contactId'
     | '/$workspace/contacts/new'
     | '/$workspace/organizations/$organizationId'
@@ -438,6 +479,8 @@ export interface FileRouteTypes {
     | '/$workspace/settings/teams'
     | '/$workspace/settings/tickets'
     | '/$workspace/settings/users'
+    | '/$workspace/settings/webhooks'
+    | '/$workspace/teams/$teamId'
     | '/$workspace/tickets/$ticketId'
     | '/$workspace/tickets/new'
     | '/$workspace/contacts/'
@@ -455,6 +498,8 @@ export interface FileRouteTypes {
     | '/$workspace/reset-password'
     | '/platform/tenants'
     | '/platform'
+    | '/$workspace/agents/$agentId'
+    | '/$workspace/categories/$categoryId'
     | '/$workspace/contacts/$contactId'
     | '/$workspace/contacts/new'
     | '/$workspace/organizations/$organizationId'
@@ -476,6 +521,8 @@ export interface FileRouteTypes {
     | '/$workspace/settings/teams'
     | '/$workspace/settings/tickets'
     | '/$workspace/settings/users'
+    | '/$workspace/settings/webhooks'
+    | '/$workspace/teams/$teamId'
     | '/$workspace/tickets/$ticketId'
     | '/$workspace/tickets/new'
     | '/$workspace/contacts'
@@ -498,6 +545,8 @@ export interface FileRouteTypes {
     | '/_platform/platform/tenants'
     | '/$workspace/_app/'
     | '/_platform/platform/'
+    | '/$workspace/_app/agents/$agentId'
+    | '/$workspace/_app/categories/$categoryId'
     | '/$workspace/_app/contacts/$contactId'
     | '/$workspace/_app/contacts/new'
     | '/$workspace/_app/organizations/$organizationId'
@@ -519,6 +568,8 @@ export interface FileRouteTypes {
     | '/$workspace/_app/settings/teams'
     | '/$workspace/_app/settings/tickets'
     | '/$workspace/_app/settings/users'
+    | '/$workspace/_app/settings/webhooks'
+    | '/$workspace/_app/teams/$teamId'
     | '/$workspace/_app/tickets/$ticketId'
     | '/$workspace/_app/tickets/new'
     | '/$workspace/_app/contacts/'
@@ -626,6 +677,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform/tenants'
       preLoaderRoute: typeof PlatformPlatformTenantsRouteImport
       parentRoute: typeof PlatformRoute
+    }
+    '/$workspace/_app/agents/$agentId': {
+      id: '/$workspace/_app/agents/$agentId'
+      path: '/agents/$agentId'
+      fullPath: '/$workspace/agents/$agentId'
+      preLoaderRoute: typeof WorkspaceAppAgentsAgentIdRouteImport
+      parentRoute: typeof WorkspaceAppRoute
+    }
+    '/$workspace/_app/categories/$categoryId': {
+      id: '/$workspace/_app/categories/$categoryId'
+      path: '/categories/$categoryId'
+      fullPath: '/$workspace/categories/$categoryId'
+      preLoaderRoute: typeof WorkspaceAppCategoriesCategoryIdRouteImport
+      parentRoute: typeof WorkspaceAppRoute
     }
     '/$workspace/_app/contacts/': {
       id: '/$workspace/_app/contacts/'
@@ -802,6 +867,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceAppSettingsUsersRouteImport
       parentRoute: typeof WorkspaceAppSettingsRoute
     }
+    '/$workspace/_app/settings/webhooks': {
+      id: '/$workspace/_app/settings/webhooks'
+      path: '/webhooks'
+      fullPath: '/$workspace/settings/webhooks'
+      preLoaderRoute: typeof WorkspaceAppSettingsWebhooksRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/teams/$teamId': {
+      id: '/$workspace/_app/teams/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/$workspace/teams/$teamId'
+      preLoaderRoute: typeof WorkspaceAppTeamsTeamIdRouteImport
+      parentRoute: typeof WorkspaceAppRoute
+    }
     '/$workspace/_app/tickets/': {
       id: '/$workspace/_app/tickets/'
       path: '/tickets'
@@ -843,6 +922,7 @@ interface WorkspaceAppSettingsRouteChildren {
   WorkspaceAppSettingsTeamsRoute: typeof WorkspaceAppSettingsTeamsRoute
   WorkspaceAppSettingsTicketsRoute: typeof WorkspaceAppSettingsTicketsRoute
   WorkspaceAppSettingsUsersRoute: typeof WorkspaceAppSettingsUsersRoute
+  WorkspaceAppSettingsWebhooksRoute: typeof WorkspaceAppSettingsWebhooksRoute
   WorkspaceAppSettingsIndexRoute: typeof WorkspaceAppSettingsIndexRoute
 }
 
@@ -863,6 +943,7 @@ const WorkspaceAppSettingsRouteChildren: WorkspaceAppSettingsRouteChildren = {
   WorkspaceAppSettingsTeamsRoute: WorkspaceAppSettingsTeamsRoute,
   WorkspaceAppSettingsTicketsRoute: WorkspaceAppSettingsTicketsRoute,
   WorkspaceAppSettingsUsersRoute: WorkspaceAppSettingsUsersRoute,
+  WorkspaceAppSettingsWebhooksRoute: WorkspaceAppSettingsWebhooksRoute,
   WorkspaceAppSettingsIndexRoute: WorkspaceAppSettingsIndexRoute,
 }
 
@@ -873,11 +954,14 @@ interface WorkspaceAppRouteChildren {
   WorkspaceAppNotificationsRoute: typeof WorkspaceAppNotificationsRoute
   WorkspaceAppSettingsRoute: typeof WorkspaceAppSettingsRouteWithChildren
   WorkspaceAppIndexRoute: typeof WorkspaceAppIndexRoute
+  WorkspaceAppAgentsAgentIdRoute: typeof WorkspaceAppAgentsAgentIdRoute
+  WorkspaceAppCategoriesCategoryIdRoute: typeof WorkspaceAppCategoriesCategoryIdRoute
   WorkspaceAppContactsContactIdRoute: typeof WorkspaceAppContactsContactIdRoute
   WorkspaceAppContactsNewRoute: typeof WorkspaceAppContactsNewRoute
   WorkspaceAppOrganizationsOrganizationIdRoute: typeof WorkspaceAppOrganizationsOrganizationIdRoute
   WorkspaceAppOrganizationsNewRoute: typeof WorkspaceAppOrganizationsNewRoute
   WorkspaceAppReportsReportKeyRoute: typeof WorkspaceAppReportsReportKeyRoute
+  WorkspaceAppTeamsTeamIdRoute: typeof WorkspaceAppTeamsTeamIdRoute
   WorkspaceAppTicketsTicketIdRoute: typeof WorkspaceAppTicketsTicketIdRoute
   WorkspaceAppTicketsNewRoute: typeof WorkspaceAppTicketsNewRoute
   WorkspaceAppContactsIndexRoute: typeof WorkspaceAppContactsIndexRoute
@@ -890,12 +974,15 @@ const WorkspaceAppRouteChildren: WorkspaceAppRouteChildren = {
   WorkspaceAppNotificationsRoute: WorkspaceAppNotificationsRoute,
   WorkspaceAppSettingsRoute: WorkspaceAppSettingsRouteWithChildren,
   WorkspaceAppIndexRoute: WorkspaceAppIndexRoute,
+  WorkspaceAppAgentsAgentIdRoute: WorkspaceAppAgentsAgentIdRoute,
+  WorkspaceAppCategoriesCategoryIdRoute: WorkspaceAppCategoriesCategoryIdRoute,
   WorkspaceAppContactsContactIdRoute: WorkspaceAppContactsContactIdRoute,
   WorkspaceAppContactsNewRoute: WorkspaceAppContactsNewRoute,
   WorkspaceAppOrganizationsOrganizationIdRoute:
     WorkspaceAppOrganizationsOrganizationIdRoute,
   WorkspaceAppOrganizationsNewRoute: WorkspaceAppOrganizationsNewRoute,
   WorkspaceAppReportsReportKeyRoute: WorkspaceAppReportsReportKeyRoute,
+  WorkspaceAppTeamsTeamIdRoute: WorkspaceAppTeamsTeamIdRoute,
   WorkspaceAppTicketsTicketIdRoute: WorkspaceAppTicketsTicketIdRoute,
   WorkspaceAppTicketsNewRoute: WorkspaceAppTicketsNewRoute,
   WorkspaceAppContactsIndexRoute: WorkspaceAppContactsIndexRoute,

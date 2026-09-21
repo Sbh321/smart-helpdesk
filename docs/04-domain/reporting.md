@@ -85,7 +85,7 @@ Decision: [ADR-0022](../adr/0022-reporting-and-history.md). Algorithms: [history
 - Period comparison shows the change against the previous period. Ageing (T05) and at-risk (S04) describe now: the page hides the period and comparison controls for them (MVP-SHORTCUT: the keys are listed in the SPA; V1: a `period_applies` flag in the definition).
 - Time zone: the tenant default calendar's zone for date bucketing; durations in business time when the relevant policy has a calendar, otherwise wall-clock (always labelled). The page says which zone days are counted in.
 - Every chart has an accessible table alternative ([accessibility](../06-design-system/accessibility.md)); on the report page it is the data table, on the dashboard each chart's own table (visually hidden, toggleable).
-- Exports: CSV and XLSX of the table (queued, delivered through the media library) arrive with M3-09; until then the buttons are present and disabled ("Arrives with M3-09"). "Print" uses the print stylesheet: navigation, parameter bar and buttons hidden, tables unclipped.
+- Exports: "Export CSV" and "Export XLSX" queue a file of the table with the page's current parameters (see [As built (M3-09)](#as-built-m3-09)); the ticket list has the same two buttons for its current filters, search and sort. Shown with `reports.export`. "Print" uses the print stylesheet: navigation, parameter bar and buttons hidden, tables unclipped.
 - Saved reports (Should): not built. Scheduled delivery by email (Could).
 
 ## Dashboard (M3-01)
@@ -102,6 +102,26 @@ Decision: [ADR-0022](../adr/0022-reporting-and-history.md). Algorithms: [history
 | Agent | profile, skills, teams, shifts; workload trend; performance; current queue; change log; as-of view |
 | Team | members over time; backlog and performance; change log |
 | Category | required skills history; volume and times; top agents |
+
+### As built (M3-21)
+
+Confirmed against the table above, with these differences. Every page has **Overview** (the
+`/overview` endpoint: key figures, related records, trends) and **History** (change log and as-of view)
+tabs; contacts, organisations and tickets keep their own details as the first tab, agents, teams and
+categories get a read-only page linked from Settings and from report drill-downs. Ticket: key figures,
+lifecycle trace (RPT-T12, the intervals of `report_ticket_intervals`, the open one running to now) and
+SLA timers; comments, attachments and the domain-event timeline stay on their own tabs, and History merges
+field changes with the domain events. Contact: figures over all its tickets, organisation, recent tickets,
+tickets per week; emails wait for M3-19. Organisation: tier and contacts, top categories, tier history,
+tickets per week. Agent: capacity, availability, open tickets, 30-day performance, skills, teams, backlog
+per day (shifts stay on Settings → Shifts). Team: 30-day performance, members with join date, backlog per
+day ("members over time" beyond the join date is not shown). Category: ticket figures, required skills,
+top Agents, tickets per week ("required skills history" is visible in its History tab). The as-of view
+shows each earlier state (for example a contact's organisation before each move), the differences from
+now and "did not exist" before creation. History tabs follow [security.md](../03-architecture/security.md)
+§History as built; audit entries join the timeline with M3-03. `EntityOverviewResource` and
+`AsOfResource` now declare the shapes of `metrics`, `related`, `trends`, `attributes` and `differences`
+for the OpenAPI document (they were typed as strings).
 
 ## API
 
@@ -138,3 +158,17 @@ Decision: [ADR-0022](../adr/0022-reporting-and-history.md). Algorithms: [history
 - **Deferred reports.** E01 email channel arrives with M3-19, I01 webhook reliability with M3-05, I02 API client activity with M3-04: their tables do not exist yet.
 - **Tests.** `tests/Feature/Reporting/Catalogue*Test.php`: every report runs with its defaults in under a second on 40 seeded tickets and with every dimension; each report's key total is checked against an independent SQL or PHP computation; permission and isolation cases per group. The fixture is `catalogueWorkspace()` in `CatalogueHelpers.php`.
 - **Entity overviews.** `GET /v1/{tickets|contacts|organizations|agents|teams|categories}/{id}/overview` (`Overviews\EntityOverviews`, `EntityOverviewResource`): `{entity, id, title, metrics, related, trends}`, each needing the entity's view permission (`tickets.view`, `contacts.view`, `agents.view`), 404 across workspaces. Ticket: lifecycle trace from the intervals (the open one runs to now) and SLA timers. Contact and organisation: tickets, open, reopen rate, breaches, SLA compliance, median first response and resolution, recent tickets, tier history from `entity_changes` (creation counts as the first tier), top categories, 12-week trend. Agent and team: skills, teams or members, current queue, 30-day performance from the facts, 30-day backlog from the snapshots. Category: required skills, the same ticket metrics, top agents. Drill-down rows share one shape: `{id, entity, label, subtitle, status}`.
+
+### As built (M3-09)
+
+- **Table.** `report_exports` (Reporting module migration `…_create_report_exports_table`): `report_key` (a catalogue id or `tickets-list`), `parameters` jsonb, `format` (`csv`, `xlsx`), `state` (`queued, running, ready, failed`), `requested_by_user_id` (FK users, cascade), `media_item_id` (FK media_items, set null), `row_count`, `error` (`too_large`, `quota_exceeded`, `forbidden`, `failed`), `started_at`, `finished_at`. Tenant-scoped (`TenantTables`, immutable `tenant_id`, index `(tenant_id, requested_by_user_id, created_at)`); not reportable: an export is a delivery, like a notification.
+- **Requests.** `POST /v1/reports/{report}/exports` validates the parameters exactly as a run does (`ReportRunner::parameters`, errors keyed `parameters.*`) and stores them with the period fixed as local `from`/`to` dates plus `period_name`, so a `last_7d` export queued before midnight covers the week that was asked for. `POST /v1/exports/tickets` reuses `IndexTicketsRequest`'s rules (`ExportTicketsRequest` extends it) and stores the list criteria (`filter`, `search`, `sort`, `explicit_sort`); `me` in the assignee filter is resolved against the requester when the job runs. `TicketListQuery` now takes a `TicketListCriteria` value (built by `IndexTicketsRequest::criteria()` or from the stored parameters) and exposes `query()` besides `paginate()`. Both answer 202 with the export; both are throttled to 10 a minute per user (`throttle:exports`).
+- **Cap.** A ticket-list export is refused with 422 on `filter` above 50 000 tickets (`ExportTables::TICKET_ROW_CAP`, counted when requested); the job also stops at 50 000 rows. A report export is the run's rows (the runner's own row cap applies) plus a `Total` row.
+- **Job.** `Jobs\ExportReport` on the `reports` queue (`supervisor-1`; job timeout 80 s, below the redis `retry_after` of 90 s; two tries): checks the requester again (active, `reports.export`, and the report's permissions or `tickets.view`, else `failed`/`forbidden`), runs the report through `ReportRunner` (so the file equals the page and shares its five-minute cache) or the list through `TicketListQuery` in chunks of 1 000 (`lazy()`, the list order ends with `id`), writes a temporary file with `Exports\ExportFileWriter`, stores it and fires `Events\ReportExportReady`. A ready or failed export is never written again; `failed()` marks the export `failed`/`failed` after the last try. On the dev stack the 5 118 active tickets export in about two seconds (918 KB CSV).
+- **Files.** CSV: UTF-8 with a byte-order mark, `fputcsv` with RFC 4180 quoting and no escape character; a text value starting with `=`, `+`, `-`, `@`, tab or CR gets a leading apostrophe (CSV injection). XLSX: openspout 5.11 (`openspout/openspout ^5.11`, [versions](../01-research/versions.md)), one sheet named after the report, bold header, strings always string cells (openspout would turn a leading `=` into a formula), numbers numeric. Report headers are the dimension label and the measure labels with the unit (`(seconds)`, `(%)`, `(bytes)`); values are the raw numbers of the API (durations in seconds). Ticket columns: Number, Title, Status, Priority (effective), Impact, Urgency, Category, Team, Assignee, Contact, Contact email, Organisation, Created, Updated, First response, Resolved, SLA state, SLA due; times `YYYY-MM-DD HH:MM` in the workspace time zone. `row_count` counts data rows, not the header or `Total`. File name `{report title or "Tickets"} {YYYY-MM-DD HHMM}.{csv|xlsx}` in the workspace zone.
+- **Storage.** `Media\Actions\StoreGeneratedFile` stores the file as a `ready` Media item with `source = system` in the system `Reports` folder ([media.md](media.md)), under the same quota rules as an upload: a `pending` item reserves the bytes under the tenant lock, the object is streamed to `media/{id}/original.{ext}` (`MediaStorage::putStream`), and the item turns `ready` with the counter update last. Over the quota → `failed`/`quota_exceeded`; over the 25 MiB file limit → `failed`/`too_large`.
+- **Access.** `GET /v1/exports/{export}` shows the requester's own exports only; anyone else gets 404. The file downloads through `GET /v1/media/{id}/download` (`media.view`), which for a `system` item answers 404 to anyone but its requester, so a workspace owner does not read a manager's export either.
+- **Notification.** "Export ready" (in-app and broadcast, not mailed, as the [notifications matrix](notifications.md) says) to the requester, with the file's Media id and name.
+- **SPA.** `ExportControls` (report page header and ticket list): request → toast "Export queued" → poll `GET /v1/exports/{id}` every 2 s until ready or failed → a download link with the file name and row count (and a toast); a refused request shows the field error (the 50 000 cap) or the problem detail; a failed export names its reason. The bell and the notifications page show "Your export is ready" with a link to the file.
+- **Not built.** A list of my exports, retention (storage.md's 7-day lifecycle rule applied to exports: they are Media items now and stay until trashed), scheduled delivery.
+- **Tests.** `tests/Feature/Reporting/ExportTest.php` (CSV and XLSX for a report and for the ticket list, headers, rows and totals against the run, list order, formula-safe text, notification, requester-only access across users and workspaces, permissions, validation, quota, re-check in the job); rows in `RoleMatrixTest` and `RouteProtectionTest`; SPA `src/features/reports/exports.browser.test.tsx`.

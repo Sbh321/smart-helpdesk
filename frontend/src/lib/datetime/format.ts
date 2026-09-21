@@ -13,3 +13,28 @@ export function formatInZone(isoUtc: string, timeZone: string, pattern = 'd MMM 
 export function durationBetween(fromIsoUtc: string, toIsoUtc: string): string {
   return formatDistanceStrict(new Date(fromIsoUtc), new Date(toIsoUtc))
 }
+
+/**
+ * A `datetime-local` input value ("2026-09-21T14:30") read as a wall time in `timeZone`, as an ISO UTC
+ * instant; `null` when the value is not a complete date and time.
+ */
+export function zonedInputToIso(value: string, timeZone: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value)
+  if (!match) return null
+  const [, year, month, day, hour, minute, second] = match.map(Number)
+  const date = new TZDate(
+    year as number,
+    (month as number) - 1,
+    day as number,
+    hour as number,
+    minute as number,
+    Number.isNaN(second) ? 0 : (second as number),
+    timeZone,
+  )
+  return Number.isNaN(date.getTime()) ? null : new Date(date.getTime()).toISOString()
+}
+
+/** An ISO instant as a `datetime-local` value in `timeZone` (to the second). */
+export function isoToZonedInput(isoUtc: string, timeZone: string): string {
+  return format(new TZDate(isoUtc, timeZone), "yyyy-MM-dd'T'HH:mm:ss")
+}

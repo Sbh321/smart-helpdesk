@@ -6,6 +6,7 @@ namespace App\Modules\Notifications\Notifications;
 
 use App\Models\User;
 use App\Modules\Notifications\Channels\TenantDatabaseChannel;
+use App\Modules\Notifications\Contracts\StorableNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -17,7 +18,7 @@ use Illuminate\Notifications\Notification;
  * kind, its sentence and whether it is also mailed; the channel list per kind is static in the MVP.
  * The payload carries ids and a summary only; the SPA refetches what it shows.
  */
-abstract class TicketNotification extends Notification implements ShouldQueue
+abstract class TicketNotification extends Notification implements ShouldQueue, StorableNotification
 {
     use Queueable;
 

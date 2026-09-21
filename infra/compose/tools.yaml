@@ -13,3 +13,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Development receiver for outbound webhooks (docs/07-api/webhooks.md, tools/webhook-echo):
+  # verifies the signature and the 5-minute window with the documented snippet and prints each
+  # delivery (`docker compose logs -f webhook-echo`). Subscribe to http://webhook-echo:9100/hook;
+  # `webhook-echo` must be in WEBHOOK_DEV_ALLOWED_HOSTS (backend/.env). Set WEBHOOK_ECHO_SECRET
+  # to the secret shown when the subscription was created, then `docker compose up -d webhook-echo`.
+  webhook-echo:
+    image: ${NODE_IMAGE:-node:24-alpine}
+    profiles: [dev, demo]
+    working_dir: /srv/webhook-echo
+    command: ["node", "server.mjs"]
+    environment:
+      WEBHOOK_ECHO_SECRET: ${WEBHOOK_ECHO_SECRET:-}
+      WEBHOOK_ECHO_STATUS: ${WEBHOOK_ECHO_STATUS:-}
+      WEBHOOK_ECHO_PORT: "9100"
+    volumes:
+      - ../../tools/webhook-echo:/srv/webhook-echo:ro
+    ports: ["127.0.0.1:${WEBHOOK_ECHO_PORT:-9100}:9100"]
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9100/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { copy } from '@/copy/en'
 import { OrganizationScreen } from '@/features/contacts'
+import { useEntityTabs } from '@/features/reports'
 
 export const Route = createFileRoute('/$workspace/_app/organizations/$organizationId')({
   component: OrganizationPage,
@@ -9,5 +10,6 @@ export const Route = createFileRoute('/$workspace/_app/organizations/$organizati
 
 function OrganizationPage() {
   const { workspace, organizationId } = Route.useParams()
-  return <OrganizationScreen workspace={workspace} organizationId={organizationId} />
+  const tabs = useEntityTabs('organizations', organizationId, workspace)
+  return <OrganizationScreen workspace={workspace} organizationId={organizationId} tabs={tabs} />
 }

@@ -22,7 +22,10 @@ use App\Modules\Tickets\Events\TicketStatusChanged;
 use App\Modules\Tickets\Events\TicketUpdated;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Auth\Events\Authenticated;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schedule;
 
 final class ReportingServiceProvider extends ModuleServiceProvider
@@ -35,6 +38,10 @@ final class ReportingServiceProvider extends ModuleServiceProvider
 
     protected function bootModule(): void
     {
+        // Ten export requests a minute per user: each one queues a job that may write 50 000 rows.
+        RateLimiter::for('exports', fn (Request $request): Limit => Limit::perMinute(10)
+            ->by('exports:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         // Change capture reads app.actor_* from the PostgreSQL session (ADR-0022 §1). Tenancy is
         // initialised before `auth:sanctum,api` runs, so the actor is only known once a guard
         // resolves its principal. EnsureTenantMembership refreshes it for every authenticated

@@ -904,6 +904,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/{report}/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export a report
+         * @description Queues a CSV or XLSX file of the report's data table: one row per group, the measures asked
+         *     for and a `Total` row. The period is fixed when the export is requested.
+         */
+        post: operations["reports.exports.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exports/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export the ticket list
+         * @description Queues a CSV or XLSX file of the ticket list with the filters, search and sort of
+         *     `GET /v1/tickets` (in the body), one ticket per row. At most 50 000 tickets: a larger list
+         *     answers 422 on `filter`.
+         */
+        post: operations["exports.tickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exports/{export}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Show one of my exports
+         * @description Only the requester sees an export; anyone else gets 404. When `state` is `ready`,
+         *     `download_url` points at the Media download route.
+         */
+        get: operations["exports.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tickets/{id}/overview": {
         parameters: {
             query?: never;
@@ -1609,6 +1673,182 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the workspace's webhook subscriptions, newest first */
+        get: operations["webhooks.index"];
+        put?: never;
+        /** Create a subscription. The response carries `secret`, which is shown only this once */
+        post: operations["webhooks.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The event catalogue a subscription can listen to */
+        get: operations["webhooks.events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["webhooks.show"];
+        put?: never;
+        post?: never;
+        /** Delete a subscription and its delivery log */
+        delete: operations["webhooks.destroy"];
+        options?: never;
+        head?: never;
+        /** Edit the name, URL or events of a subscription */
+        patch: operations["webhooks.update"];
+        trace?: never;
+    };
+    "/webhooks/{webhook}/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["webhooks.enable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["webhooks.disable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}/rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replace the signing secret. The response carries the new `secret` once; the old one keeps
+         *     signing (as a second `v1=` entry) for 24 hours
+         */
+        post: operations["webhooks.rotate-secret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Queue a `ping` delivery to the subscription (also when it is disabled). Answers 202 with the
+         *     delivery; follow it in the delivery log
+         */
+        post: operations["webhooks.test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The subscription's delivery log, newest first (cursor pagination) */
+        get: operations["webhooks.deliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhook-deliveries/{delivery}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One delivery with the envelope that is sent */
+        get: operations["webhook-deliveries.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhook-deliveries/{delivery}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry a failed or dead delivery now, with a fresh retry schedule (at most five manual retries) */
+        post: operations["webhook-deliveries.retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ping": {
         parameters: {
             query?: never;
@@ -1762,8 +2002,15 @@ export interface components {
             entity_id: string;
             at: string;
             exists: boolean;
-            attributes: string | null;
-            differences: string;
+            attributes: {
+                [key: string]: unknown;
+            } | null;
+            differences: {
+                [key: string]: {
+                    then: unknown;
+                    now: unknown;
+                };
+            };
             versions_after: number;
         };
         /**
@@ -1991,6 +2238,12 @@ export interface components {
                 truncated: boolean;
             }[];
         };
+        /**
+         * DeliveryState
+         * @description `pending`: queued for its next attempt. `failed`: the last attempt failed and a retry is scheduled at `next_attempt_at`. `succeeded` and `dead` are final (a manual retry reopens `failed`/`dead`).
+         * @enum {string}
+         */
+        DeliveryState: "pending" | "succeeded" | "failed" | "dead";
         /** DuplicatePreviewMatchResource */
         DuplicatePreviewMatchResource: {
             ticket_id: string;
@@ -2045,9 +2298,38 @@ export interface components {
             entity: string;
             id: string;
             title: string;
-            metrics: string;
-            related: string;
-            trends: string;
+            metrics: {
+                [key: string]: number | string | null;
+            };
+            related: {
+                [key: string]: unknown;
+            };
+            trends: {
+                [key: string]: {
+                    [key: string]: unknown;
+                }[];
+            };
+        };
+        /**
+         * ExportTicketsRequest
+         * @description `POST /v1/exports/tickets`: the ticket-list query of `GET /v1/tickets` (`filter[…]`, `search`,
+         *     `sort`) in the body, validated by the same rules, plus the format. Paging is ignored.
+         */
+        ExportTicketsRequest: {
+            page?: number;
+            per_page?: number;
+            sort?: string;
+            /** @description Filter name => comma list, as `filter[…]` of `GET /v1/tickets`. */
+            filter?: {
+                [key: string]: string;
+            };
+            search?: string | null;
+            include?: string;
+            /**
+             * @description csv or xlsx.
+             * @enum {string}
+             */
+            format: "csv" | "xlsx";
         };
         /** ForgotPasswordRequest */
         ForgotPasswordRequest: {
@@ -2161,9 +2443,13 @@ export interface components {
         NotificationResource: {
             id: string;
             kind: string;
-            ticket_id: string;
-            ticket_number: number;
-            ticket_title: string;
+            /** @description Ticket notifications name the ticket; `export_ready` names the export and its file instead. */
+            ticket_id: string | null;
+            ticket_number: number | null;
+            ticket_title: string | null;
+            export_id: string | null;
+            media_id: string | null;
+            file_name: string | null;
             summary: string;
             read_at: string | null;
             created_at: string;
@@ -2333,6 +2619,25 @@ export interface components {
                 labels: string | null;
             }[];
         };
+        /** ReportExportResource */
+        ReportExportResource: {
+            id: string;
+            /** @description A catalogue id (`rpt-t01`) or `tickets-list`. */
+            report_key: string;
+            /** @enum {string} */
+            format: "csv" | "xlsx";
+            /** @enum {string} */
+            state: "queued" | "running" | "ready" | "failed";
+            row_count: number | null;
+            /** @description Why a failed export failed: too_large, quota_exceeded, forbidden or failed. */
+            error: string | null;
+            media_id: string | null;
+            file_name: string | null;
+            size_bytes: number | null;
+            download_url: string | null;
+            created_at: string;
+            finished_at: string | null;
+        };
         /** ReportRecordResource */
         ReportRecordResource: {
             id: string;
@@ -2374,7 +2679,7 @@ export interface components {
         /** RoleRequest */
         RoleRequest: {
             name: string;
-            permissions: ("tickets.view" | "tickets.create" | "tickets.update" | "tickets.assign" | "tickets.resolve" | "tickets.close" | "tickets.reopen" | "tickets.delete" | "comments.internal" | "contacts.view" | "contacts.manage" | "agents.view" | "agents.manage" | "teams.manage" | "sla.manage" | "calendars.manage" | "shifts.manage" | "media.view" | "media.upload" | "media.manage" | "mail.manage" | "settings.manage" | "users.manage" | "roles.manage" | "integrations.manage" | "reports.view" | "history.view" | "audit.view")[];
+            permissions: ("tickets.view" | "tickets.create" | "tickets.update" | "tickets.assign" | "tickets.resolve" | "tickets.close" | "tickets.reopen" | "tickets.delete" | "comments.internal" | "contacts.view" | "contacts.manage" | "agents.view" | "agents.manage" | "teams.manage" | "sla.manage" | "calendars.manage" | "shifts.manage" | "media.view" | "media.upload" | "media.manage" | "mail.manage" | "settings.manage" | "users.manage" | "roles.manage" | "integrations.manage" | "reports.view" | "reports.export" | "history.view" | "audit.view")[];
         };
         /** RoleResource */
         RoleResource: {
@@ -2527,6 +2832,30 @@ export interface components {
             name: string;
             scopes: ("tickets:read" | "tickets:write" | "contacts:read" | "contacts:write" | "catalog:read" | "webhooks:manage")[];
         };
+        /**
+         * StoreReportExportRequest
+         * @description `POST /v1/reports/{report}/exports`: the format and the report parameters as for a run
+         *     (`period` or `from`+`to`, `group`, `measures`, `filter`, `compare`), validated against the report.
+         */
+        StoreReportExportRequest: {
+            /**
+             * @description csv or xlsx.
+             * @enum {string}
+             */
+            format: "csv" | "xlsx";
+            /** @description As for `POST /v1/reports/{report}/run`; the report's defaults when omitted. */
+            parameters?: {
+                period?: string;
+                from?: string;
+                to?: string;
+                group?: string;
+                measures?: string;
+                filter?: {
+                    [key: string]: string;
+                };
+                compare?: boolean;
+            };
+        };
         /** StoreTicketAttachmentsRequest */
         StoreTicketAttachmentsRequest: {
             media_ids: string[];
@@ -2547,6 +2876,16 @@ export interface components {
             urgency: number;
             tags?: string[];
             attachment_ids?: string[];
+        };
+        /**
+         * StoreWebhookRequest
+         * @description `POST /v1/webhooks`. The URL is checked again by the SSRF guard (422 `webhook_url_rejected`).
+         */
+        StoreWebhookRequest: {
+            name: string;
+            /** Format: uri */
+            url: string;
+            events: ("ticket.created" | "ticket.updated" | "ticket.assigned" | "ticket.status_changed" | "ticket.priority_changed" | "ticket.resolved" | "ticket.closed" | "ticket.comment_added" | "ticket.sla_breached" | "contact.created" | "contact.updated")[];
         };
         /** TagRequest */
         TagRequest: {
@@ -2780,6 +3119,16 @@ export interface components {
             name?: string;
             roles?: string[];
         };
+        /**
+         * UpdateWebhookRequest
+         * @description `PATCH /v1/webhooks/{webhook}`: any of name, URL and events. A changed URL passes the SSRF guard.
+         */
+        UpdateWebhookRequest: {
+            name?: string;
+            /** Format: uri */
+            url?: string;
+            events?: ("ticket.created" | "ticket.updated" | "ticket.assigned" | "ticket.status_changed" | "ticket.priority_changed" | "ticket.resolved" | "ticket.closed" | "ticket.comment_added" | "ticket.sla_breached" | "contact.created" | "contact.updated")[];
+        };
         /** UploadIntentRequest */
         UploadIntentRequest: {
             filename: string;
@@ -2810,6 +3159,88 @@ export interface components {
                 [key: string]: unknown;
             };
             last_login_at: string | null;
+        };
+        /** WebhookDeliveryDetailResource */
+        WebhookDeliveryDetailResource: {
+            id: string;
+            subscription_id: string;
+            event_id: string;
+            event_type: string;
+            state: components["schemas"]["DeliveryState"];
+            attempt: number;
+            manual_retries: number;
+            next_attempt_at: string | null;
+            last_attempted_at: string | null;
+            response_status: number | null;
+            response_excerpt: string | null;
+            error: string | null;
+            duration_ms: number | null;
+            created_at: string;
+            payload: {
+                [key: string]: unknown;
+            };
+        };
+        /** WebhookDeliveryResource */
+        WebhookDeliveryResource: {
+            id: string;
+            subscription_id: string;
+            event_id: string;
+            event_type: string;
+            state: components["schemas"]["DeliveryState"];
+            attempt: number;
+            manual_retries: number;
+            next_attempt_at: string | null;
+            last_attempted_at: string | null;
+            response_status: number | null;
+            response_excerpt: string | null;
+            error: string | null;
+            duration_ms: number | null;
+            created_at: string;
+        };
+        /**
+         * WebhookEventType
+         * @description The v1 event catalogue (docs/07-api/webhooks.md §Event catalogue). `ping` is the test event: it is sent by `POST /v1/webhooks/{webhook}/test` and cannot be subscribed to.
+         * @enum {string}
+         */
+        WebhookEventType: "ticket.created" | "ticket.updated" | "ticket.assigned" | "ticket.status_changed" | "ticket.priority_changed" | "ticket.resolved" | "ticket.closed" | "ticket.comment_added" | "ticket.sla_breached" | "contact.created" | "contact.updated" | "ping";
+        /** WebhookEventTypeResource */
+        WebhookEventTypeResource: {
+            type: components["schemas"]["WebhookEventType"];
+            /** @enum {string} */
+            description: "A ticket was created" | "Ticket fields were edited" | "A ticket was assigned or reassigned" | "A ticket changed status" | "A ticket's priority level changed" | "A ticket was resolved" | "A ticket was closed" | "A public reply was added to a ticket" | "An SLA timer of a ticket was breached" | "A contact was created" | "A contact was updated" | "Test delivery";
+        };
+        /** WebhookSubscriptionResource */
+        WebhookSubscriptionResource: {
+            id: string;
+            name: string;
+            url: string;
+            events: string[];
+            api_version: string;
+            is_active: boolean;
+            disabled_at: string | null;
+            disabled_reason: string | null;
+            consecutive_failures: number;
+            previous_secret_expires_at: string | null;
+            last_delivery_at: string | null;
+            created_at: string;
+            updated_at: string;
+        };
+        /** WebhookSubscriptionWithSecretResource */
+        WebhookSubscriptionWithSecretResource: {
+            id: string;
+            name: string;
+            url: string;
+            events: string[];
+            api_version: string;
+            is_active: boolean;
+            disabled_at: string | null;
+            disabled_reason: string | null;
+            consecutive_failures: number;
+            previous_secret_expires_at: string | null;
+            last_delivery_at: string | null;
+            created_at: string;
+            updated_at: string;
+            secret: string;
         };
         /** WorkspaceUserResource */
         WorkspaceUserResource: {
@@ -5631,6 +6062,118 @@ export interface operations {
             };
         };
     };
+    "reports.exports.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreReportExportRequest"];
+            };
+        };
+        responses: {
+            /** @description `ReportExportResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReportExportResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "exports.tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportTicketsRequest"];
+            };
+        };
+        responses: {
+            /** @description `ReportExportResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReportExportResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "exports.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                export: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ReportExportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReportExportResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "tickets.overview": {
         parameters: {
             query?: never;
@@ -5905,7 +6448,8 @@ export interface operations {
                                 "manage"
                             ];
                             reports: [
-                                "view"
+                                "view",
+                                "export"
                             ];
                             history: [
                                 "view"
@@ -7934,6 +8478,492 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["WorkspaceUserResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `WebhookSubscriptionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookSubscriptionResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreWebhookRequest"];
+            };
+        };
+        responses: {
+            /** @description `WebhookSubscriptionWithSecretResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookSubscriptionWithSecretResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `WebhookEventTypeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookEventTypeResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookSubscriptionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookSubscriptionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateWebhookRequest"];
+            };
+        };
+        responses: {
+            /** @description `WebhookSubscriptionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookSubscriptionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookSubscriptionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookSubscriptionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookSubscriptionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookSubscriptionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookSubscriptionWithSecretResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookSubscriptionWithSecretResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookDeliveryResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookDeliveryResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhooks.deliveries": {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from `meta.next_cursor` of the previous page. */
+                cursor?: string;
+                /** @description Page size, 1 to 100 (default 25). */
+                per_page?: number;
+                /** @description Only deliveries in this state: pending, succeeded, failed or dead. */
+                "filter[state]"?: string;
+            };
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `WebhookDeliveryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookDeliveryResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhook-deliveries.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The delivery ID */
+                delivery: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookDeliveryDetailResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookDeliveryDetailResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "webhook-deliveries.retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The delivery ID */
+                delivery: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookDeliveryResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookDeliveryResource"];
                     };
                 };
             };

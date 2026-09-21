@@ -35,6 +35,7 @@ const sections = [
   { slug: 'priority', label: copy.priority.settingsTitle, permission: 'settings.manage' },
   { slug: 'media', label: copy.media.title, permission: 'media.view' },
   { slug: 'api-clients', label: copy.apiClients.nav, permission: 'integrations.manage' },
+  { slug: 'webhooks', label: copy.webhooks.nav, permission: 'integrations.manage' },
 ] as const satisfies readonly { slug: string; label: string; permission: SectionPermission }[]
 
 function SettingsLayout() {

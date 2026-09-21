@@ -39,6 +39,7 @@ final class TenantTables
         'notifications',
         'organizations',
         'report_daily_snapshots',
+        'report_exports',
         'report_ticket_facts',
         'report_ticket_intervals',
         'sla_events',
@@ -57,6 +58,8 @@ final class TenantTables
         'ticket_sla_timers',
         'tickets',
         'users',
+        'webhook_deliveries',
+        'webhook_subscriptions',
     ];
 
     /** Tables with a nullable tenant_id (platform-level rows have none). */

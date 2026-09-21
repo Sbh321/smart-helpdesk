@@ -3,6 +3,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { BackLink } from '@/components/shared/back-link'
+import { type DetailTab, DetailTabs } from '@/components/shared/detail-tabs'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
@@ -92,8 +93,19 @@ function ContactFacts({ contact, timeZone }: { contact: Contact; timeZone: strin
   )
 }
 
-/** `/$workspace/contacts/$contactId`: edit form (or read-only facts) plus archive / restore. */
-export function ContactScreen({ workspace, contactId }: { workspace: string; contactId: string }) {
+/**
+ * `/$workspace/contacts/$contactId`: edit form (or read-only facts) plus archive / restore; the route
+ * adds the Overview and History tabs (M3-21) through `tabs`.
+ */
+export function ContactScreen({
+  workspace,
+  contactId,
+  tabs = [],
+}: {
+  workspace: string
+  contactId: string
+  tabs?: readonly DetailTab[]
+}) {
   const allowed = useCan('contacts.view')
   const canManage = useCan('contacts.manage')
   const tenantId = useTenantId()
@@ -182,14 +194,21 @@ export function ContactScreen({ workspace, contactId }: { workspace: string; con
           })}
         </p>
       ) : null}
-      {canManage ? (
-        <ContactForm key={current.id} contact={current} onSaved={() => undefined} />
-      ) : (
-        <>
-          <p className="text-sm text-muted-foreground">{copy.contacts.detail.readOnly}</p>
-          <ContactFacts contact={current} timeZone={timeZone} />
-        </>
-      )}
+      <DetailTabs
+        label={copy.entity360.tabs}
+        detailsLabel={copy.entity360.details}
+        tabs={tabs}
+        details={
+          canManage ? (
+            <ContactForm key={current.id} contact={current} onSaved={() => undefined} />
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">{copy.contacts.detail.readOnly}</p>
+              <ContactFacts contact={current} timeZone={timeZone} />
+            </>
+          )
+        }
+      />
     </>
   )
 }

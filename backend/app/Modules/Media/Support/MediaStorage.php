@@ -111,6 +111,16 @@ final class MediaStorage
         return (bool) $this->disk()->put($key, $contents, ['ContentType' => $mime]);
     }
 
+    /**
+     * Streams a server-generated file (a report export) to its key without loading it into memory.
+     *
+     * @param  resource  $stream
+     */
+    public function putStream(string $key, $stream, string $mime): bool
+    {
+        return (bool) $this->disk()->writeStream($key, $stream, ['ContentType' => $mime]);
+    }
+
     public function move(string $from, string $to): bool
     {
         return $this->disk()->move($from, $to);

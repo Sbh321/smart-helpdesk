@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { copy } from '@/copy/en'
 import { useDirectoryNames } from '@/features/agents'
 import { organizationQueries, tagQueries } from '@/features/contacts'
+import { ExportControls, exportTickets } from '@/features/reports'
 import { useCan, useSession } from '@/lib/auth'
 import { useListParams } from '@/lib/list-params'
 import {
@@ -70,6 +71,7 @@ export function TicketList({ workspace }: { workspace: string }) {
   const canUpdate = useCan('tickets.update')
   const canAssign = useCan('tickets.assign')
   const canBulk = canUpdate || canAssign
+  const canExport = useCan('reports.export')
   const list = useListParams(ticketListSchema)
   const enabled = tenantId !== ''
   const tickets = useQuery({ ...ticketQueries.list(tenantId, list.apiQuery), enabled })
@@ -150,7 +152,11 @@ export function TicketList({ workspace }: { workspace: string }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <TicketQuickViews params={list.params} views={quickViews} onSelect={selectQuickView} />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <TicketQuickViews params={list.params} views={quickViews} onSelect={selectQuickView} />
+        {/* Exports the list as filtered, searched and sorted now (roadmap M3-09). */}
+        {canExport ? <ExportControls onRequest={(format) => exportTickets(list.apiQuery, format)} /> : null}
+      </div>
       <DataTable
         id="tickets"
         label={copy.tickets.list.label}

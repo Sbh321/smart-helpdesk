@@ -6,7 +6,6 @@ namespace App\Modules\Tickets\Queries;
 
 use App\Modules\Agents\Models\AgentProfile;
 use App\Modules\Tickets\Domain\TicketStatus;
-use App\Modules\Tickets\Http\Requests\IndexTicketsRequest;
 use App\Modules\Tickets\Models\Ticket;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -28,15 +27,25 @@ final readonly class TicketListQuery
      */
     private const RESOLUTION_TIMER = "SELECT %s FROM ticket_sla_timers t WHERE t.tenant_id = tickets.tenant_id AND t.ticket_id = tickets.id AND t.kind = 'resolution' ORDER BY t.cycle DESC LIMIT 1";
 
-    public function __construct(private IndexTicketsRequest $request) {}
+    public function __construct(private TicketListCriteria $criteria) {}
 
     /**
      * @return LengthAwarePaginator<int, Ticket>
      */
-    public function paginate(): LengthAwarePaginator
+    public function paginate(int $perPage): LengthAwarePaginator
+    {
+        return $this->query()->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * The filtered, searched and sorted list without paging; every sort ends with `id`.
+     *
+     * @return Builder<Ticket>
+     */
+    public function query(): Builder
     {
         // The latest resolution timer's state and due time travel with each row (list-only fields).
-        $query = Ticket::query()->with($this->request->includes())
+        $query = Ticket::query()->with($this->criteria->includes)
             ->select('tickets.*')
             ->selectRaw('('.sprintf(self::RESOLUTION_TIMER, 't.state').') AS sla_state')
             ->selectRaw('('.sprintf(self::RESOLUTION_TIMER, "CASE WHEN t.state IN ('running', 'warning', 'breached', 'paused') THEN t.due_at END").') AS sla_due_at');
@@ -44,8 +53,8 @@ final readonly class TicketListQuery
         $this->applyFilters($query);
         $ranked = $this->applySearch($query);
 
-        if (! $ranked || $this->request->hasExplicitSort()) {
-            foreach ($this->request->sortColumns() as [$column, $direction]) {
+        if (! $ranked || $this->criteria->explicitSort) {
+            foreach ($this->criteria->sort as [$column, $direction]) {
                 $expression = match ($column) {
                     'priority_level' => self::EFFECTIVE_PRIORITY,
                     // Tickets without a running resolution timer go last either way.
@@ -57,7 +66,7 @@ final readonly class TicketListQuery
             }
         }
 
-        return $query->orderBy('id')->paginate($this->request->perPage())->withQueryString();
+        return $query->orderBy('id');
     }
 
     /**
@@ -65,7 +74,7 @@ final readonly class TicketListQuery
      */
     private function applyFilters(Builder $query): void
     {
-        $status = $this->request->filterValues('status');
+        $status = $this->criteria->filterValues('status');
         if ($status !== []) {
             if (in_array('active', $status, true)) {
                 $status = [...array_diff($status, ['active']), ...array_map(fn (TicketStatus $s): string => $s->value, TicketStatus::active())];
@@ -73,27 +82,27 @@ final readonly class TicketListQuery
             $query->whereIn('status', array_values(array_unique($status)));
         }
 
-        $priority = $this->request->filterValues('priority');
+        $priority = $this->criteria->filterValues('priority');
         if ($priority !== []) {
             $query->whereIn(DB::raw(self::EFFECTIVE_PRIORITY), $priority);
         }
 
         $this->applyNullableIds($query, 'assigned_agent_id', $this->assignees(), 'unassigned');
-        $this->applyNullableIds($query, 'team_id', $this->request->filterValues('team_id'), 'none');
+        $this->applyNullableIds($query, 'team_id', $this->criteria->filterValues('team_id'), 'none');
 
         foreach (['category_id', 'organization_id', 'contact_id', 'impact', 'urgency', 'number'] as $column) {
-            $values = $this->request->filterValues($column);
+            $values = $this->criteria->filterValues($column);
             if ($values !== []) {
                 $query->whereIn($column, $values);
             }
         }
 
-        $tags = $this->request->filterValues('tag');
+        $tags = $this->criteria->filterValues('tag');
         if ($tags !== []) {
             $query->whereHas('tags', fn (Builder $tag) => $tag->whereIn('slug', $tags));
         }
 
-        $range = $this->request->filterValues('created_between');
+        $range = $this->criteria->filterValues('created_between');
         if (count($range) === 2) {
             // Dates are in the workspace time zone, inclusive at both ends.
             $zone = (string) (tenant('timezone') ?? 'UTC');
@@ -102,19 +111,19 @@ final readonly class TicketListQuery
             $query->where('created_at', '>=', $from)->where('created_at', '<', $to);
         }
 
-        $slaStates = $this->request->filterValues('sla_state');
+        $slaStates = $this->criteria->filterValues('sla_state');
         if ($slaStates !== []) {
             $placeholders = implode(', ', array_fill(0, count($slaStates), '?'));
             $query->whereRaw('('.sprintf(self::RESOLUTION_TIMER, 't.state').") IN ({$placeholders})", $slaStates);
         }
 
-        if ($this->request->filterValues('has_duplicate_suggestion') === ['true']) {
+        if ($this->criteria->filterValues('has_duplicate_suggestion') === ['true']) {
             $query->whereExists(fn ($exists) => $exists->selectRaw('1')->from('ticket_duplicate_suggestions as s')
                 ->whereColumn('s.tenant_id', 'tickets.tenant_id')->whereColumn('s.ticket_id', 'tickets.id')
                 ->where('s.decision', 'pending'));
         }
 
-        $since = $this->request->filterValues('updated_since')[0] ?? null;
+        $since = $this->criteria->filterValues('updated_since')[0] ?? null;
         if ($since !== null) {
             $query->where('updated_at', '>=', CarbonImmutable::parse($since)->utc());
         }
@@ -127,12 +136,12 @@ final readonly class TicketListQuery
      */
     private function assignees(): array
     {
-        $values = $this->request->filterValues('assignee_id');
+        $values = $this->criteria->filterValues('assignee_id');
         if (! in_array('me', $values, true)) {
             return $values;
         }
 
-        $mine = AgentProfile::query()->where('user_id', $this->request->user()?->getAuthIdentifier())->value('id');
+        $mine = $this->criteria->userId === null ? null : AgentProfile::query()->where('user_id', $this->criteria->userId)->value('id');
         $values = array_values(array_diff($values, ['me']));
 
         // The nil UUID matches nothing, so "me" never widens the filter when there is no profile.
@@ -170,7 +179,7 @@ final readonly class TicketListQuery
      */
     private function applySearch(Builder $query): bool
     {
-        $search = $this->request->search();
+        $search = $this->criteria->search;
 
         if ($search === null) {
             return false;
@@ -191,7 +200,7 @@ final readonly class TicketListQuery
             }
         });
 
-        if ($this->request->hasExplicitSort()) {
+        if ($this->criteria->explicitSort) {
             return true;
         }
 

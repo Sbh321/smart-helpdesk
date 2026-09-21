@@ -1,5 +1,5 @@
 import { HttpResponse, http } from 'msw'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { copy, fill } from '@/copy/en'
 import { setupMswWorker } from '@/test/msw/browser'
 import { db, NOTIFICATION_FIXTURES } from '@/test/msw/data'
@@ -72,19 +72,24 @@ test('opening a notification goes to its ticket and marks it read', async () => 
 test('a rising count is announced politely, and the first reading is not', async () => {
   signedIn()
   const { screen, queryClient } = await renderApp('/acme')
-  const status = screen
-    .getByRole('status')
-    .filter({ hasText: /new notifications|^$/ })
-    .first()
   await expect.element(screen.getByRole('button', { name: new RegExp(`^${bell.label}: 2`) })).toBeVisible()
   expect(document.body.textContent).not.toContain('new notifications')
+  // The button can show the session's count before the bell's own first reading lands; wait for that
+  // reading, or the new notification below becomes part of it and nothing is announced.
+  await vi.waitFor(() => {
+    const reading = queryClient.getQueryCache().findAll({ queryKey: ['notifications'] })
+    expect(reading.some((query) => query.queryKey.at(-1) === 'unread' && query.state.data === 2)).toBe(true)
+  })
 
   // The next poll, triggered directly: waiting out the 30 s interval with fake timers was flaky under load.
   db.notifications.unshift({ ...first, id: `${first.id.slice(0, -1)}f`, read_at: null })
   await queryClient.refetchQueries({ queryKey: ['notifications'] })
 
   await expect.element(screen.getByRole('button', { name: new RegExp(`^${bell.label}: 3`) })).toBeVisible()
-  await expect.element(status).toMatchTextContent(fill(bell.announce, { count: 1 }))
+  // Found by its text: the page has other, empty, status regions (dashboard, exports) that load in any order.
+  await expect
+    .element(screen.getByRole('status').filter({ hasText: fill(bell.announce, { count: 1 }) }))
+    .toBeInTheDocument()
 })
 
 test('the bell polls the unread count every 30 seconds', () => {

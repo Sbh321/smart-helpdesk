@@ -30,7 +30,8 @@ final class PermissionCatalogue
         'users' => ['manage'],
         'roles' => ['manage'],
         'integrations' => ['manage'],
-        'reports' => ['view'],
+        // `export`: CSV/XLSX report and ticket-list exports (M3-09, security.md matrix).
+        'reports' => ['view', 'export'],
         // Entity change logs and as-of views (ADR-0022 §8, security.md §History).
         'history' => ['view'],
         'audit' => ['view'],
@@ -64,7 +65,7 @@ final class PermissionCatalogue
         $manager = [
             ...$agent,
             'tickets.assign', 'tickets.delete', 'agents.manage', 'teams.manage', 'sla.manage',
-            'calendars.manage', 'shifts.manage', 'media.manage', 'history.view',
+            'calendars.manage', 'shifts.manage', 'media.manage', 'history.view', 'reports.export',
         ];
 
         $admin = [

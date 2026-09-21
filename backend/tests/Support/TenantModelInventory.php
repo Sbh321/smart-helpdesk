@@ -22,6 +22,8 @@ use App\Modules\Identity\Models\Role;
 use App\Modules\Integrations\Models\AccessToken;
 use App\Modules\Integrations\Models\ApiClient;
 use App\Modules\Integrations\Models\IdempotencyKey;
+use App\Modules\Integrations\Models\WebhookDelivery;
+use App\Modules\Integrations\Models\WebhookSubscription;
 use App\Modules\Media\Models\Mediable;
 use App\Modules\Media\Models\MediaFolder;
 use App\Modules\Media\Models\MediaItem;
@@ -29,6 +31,7 @@ use App\Modules\Notifications\Models\Notification;
 use App\Modules\Platform\Models\PlatformUser;
 use App\Modules\Reporting\Models\EntityChange;
 use App\Modules\Reporting\Models\ReportDailySnapshot;
+use App\Modules\Reporting\Models\ReportExport;
 use App\Modules\Reporting\Models\ReportTicketFact;
 use App\Modules\Reporting\Models\ReportTicketInterval;
 use App\Modules\Sla\Models\BusinessCalendar;
@@ -86,6 +89,7 @@ final class TenantModelInventory
         Notification::class,
         Organization::class,
         ReportDailySnapshot::class,
+        ReportExport::class,
         ReportTicketFact::class,
         ReportTicketInterval::class,
         SlaEvent::class,
@@ -103,6 +107,8 @@ final class TenantModelInventory
         TicketEvent::class,
         TicketSlaTimer::class,
         User::class,
+        WebhookDelivery::class,
+        WebhookSubscription::class,
     ];
 
     /**

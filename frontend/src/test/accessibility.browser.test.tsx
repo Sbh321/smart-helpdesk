@@ -410,6 +410,41 @@ test('the API clients page, its create dialog and the one-time secret have no se
   expect(await scan(document.body)).toEqual([])
 })
 
+test('the webhooks page, its delivery log, create dialog and one-time secret have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ['tickets.view', 'integrations.manage'] }) }),
+    ),
+  )
+  const text = copy.webhooks
+  const { screen } = await renderApp('/acme/settings/webhooks')
+  await expect
+    .element(screen.getByRole('table', { name: text.listLabel }).getByText('CRM sync'))
+    .toBeVisible()
+  await screen.getByRole('button', { name: fill(text.showDeliveriesNamed, { name: 'CRM sync' }) }).click()
+  await expect
+    .element(screen.getByRole('table', { name: fill(text.deliveries.label, { name: 'CRM sync' }) }))
+    .toBeVisible()
+  expect(await scan(screen.container)).toEqual([])
+  await screen.getByRole('button', { name: text.deliveries.close }).click()
+
+  await screen.getByRole('button', { name: text.create }).click()
+  const dialog = screen.getByRole('dialog', { name: text.createTitle })
+  await dialog.getByRole('button', { name: text.save }).click()
+  await expect
+    .element(dialog.getByRole('textbox', { name: text.name }))
+    .toHaveAttribute('aria-invalid', 'true')
+  expect(await scan(document.body)).toEqual([])
+
+  await dialog.getByRole('textbox', { name: text.name }).fill('Status page')
+  await dialog.getByRole('textbox', { name: text.url }).fill('https://status.example.com/hooks')
+  await dialog.getByRole('checkbox', { name: /^ticket\.resolved/ }).click()
+  await dialog.getByRole('button', { name: text.save }).click()
+  const secret = screen.getByRole('dialog', { name: 'Status page' })
+  await expect.element(secret.getByRole('textbox', { name: text.secret })).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+})
+
 const REPORT_PERMISSIONS = ['reports.view', 'tickets.view', 'contacts.view', 'agents.view']
 
 test('the dashboard (KPI tiles, six charts and their tables) has no serious or critical axe violations', async () => {
@@ -442,6 +477,47 @@ test.each([
     .element(screen.getByRole('table', { name: fill(copy.reports.tableLabel, { title }) }))
     .toBeVisible()
   await expect.element(screen.getByRole('heading', { name: copy.reports.totals })).toBeVisible()
+
+  expect(await scan(screen.container)).toEqual([])
+})
+
+const ENTITY_PERMISSIONS = ['tickets.view', 'contacts.view', 'agents.view', 'history.view']
+
+test('an Entity 360 overview (KPI tiles, lifecycle trace, related records, trend) has no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ENTITY_PERMISSIONS }) }),
+    ),
+  )
+  const ticket = db.tickets[0]
+  const { screen } = await renderApp(`/acme/tickets/${ticket?.id}`)
+  await screen.getByRole('tab', { name: copy.entity360.overview }).click()
+  await expect.element(screen.getByRole('list', { name: copy.entity360.lifecycle.chartLabel })).toBeVisible()
+  await expect.element(screen.getByRole('table', { name: copy.entity360.slaTimers.title })).toBeVisible()
+  expect(await scan(screen.container)).toEqual([])
+
+  const agent = AGENT_FIXTURES[0]
+  const agentPage = await renderApp(`/acme/agents/${agent?.id}`)
+  await expect
+    .element(agentPage.screen.getByRole('heading', { name: copy.entity360.trendTitles.backlog_per_day }))
+    .toBeVisible()
+  expect(await scan(agentPage.screen.container)).toEqual([])
+})
+
+test('an Entity 360 history tab with its as-of view has no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ENTITY_PERMISSIONS }) }),
+    ),
+  )
+  const contact = db.contacts[0]
+  const { screen } = await renderApp(`/acme/contacts/${contact?.id}`)
+  await screen.getByRole('tab', { name: copy.entity360.history }).click()
+  const asOf = screen.getByRole('region', { name: copy.entity360.asOf.title })
+  await asOf.getByLabelText(copy.entity360.asOf.label).fill('2026-09-12T10:00')
+  await asOf.getByRole('button', { name: copy.entity360.asOf.show }).click()
+  await expect.element(asOf.getByRole('table', { name: copy.entity360.asOf.differences })).toBeVisible()
+  await expect.element(screen.getByRole('list', { name: copy.entity360.timeline.label })).toBeVisible()
 
   expect(await scan(screen.container)).toEqual([])
 })

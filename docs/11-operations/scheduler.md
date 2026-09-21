@@ -13,8 +13,8 @@ One `scheduler` container runs `php artisan schedule:work` (exactly one replica)
 | `media:cleanup` | hourly at :20 | `media` | pending uploads > 1 h; trashed items > 30 days (objects and variants deleted, quota released) | Media |
 | `mail:fetch-inbound` | every minute | inline fetch, `mail` queue per message | IMAP fetch of the inbound mailbox; idempotent on `message_id`; `withoutOverlapping` | Mail |
 | `agents:reconcile-workload` | daily 03:30 | `default` | recompute `active_ticket_count` from tickets; log discrepancies | Agents |
-| `webhooks:retry-due` | every minute | dispatches `DeliverWebhook` for deliveries with `next_attempt_at ≤ now` | all tenants, tenant-tagged jobs | Integrations |
-| `webhooks:prune` | daily 03:40 | inline | deliveries older than 30 days | Integrations |
+| `webhooks:retry-due` | every minute (`onOneServer`, `withoutOverlapping`) | dispatches `DeliverWebhook` on `webhooks` for `failed` deliveries with `next_attempt_at ≤ now`, and for `pending` ones whose job was lost (5 min overdue); built in M3-05 | reads the due `tenant_id`s, then `tenancy()->run()` per active tenant, tenant-tagged jobs | Integrations |
+| `webhooks:prune` | daily 03:40 | inline, batches of 5 000 | deliveries older than `helpdesk.webhooks.retention_days` (30; `--days=`), all tenants; built in M3-05 | Integrations |
 | `notifications:prune` | daily 03:50 | inline | read notifications older than 90 days | Notifications |
 | `exports:prune` | daily 04:00 | inline | `report_exports` rows and their media items older than 7 days | Reporting |
 | `sanctum:prune-expired --hours=24` | daily 04:10 | inline | central | Identity |

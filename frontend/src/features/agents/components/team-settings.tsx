@@ -36,6 +36,7 @@ import {
   useDirectory,
 } from './directory-shared'
 import { DirectoryTable } from './directory-table'
+import { RecordLink } from './record-link'
 
 function initialValues(team: Team | null): TeamFormValues {
   return {
@@ -214,6 +215,7 @@ export function TeamSettings() {
           list={list}
           defaultSort={directoryListSchema.defaultSort}
           sortableName
+          renderName={(row) => <RecordLink kind="teams" id={row.id} name={row.name} />}
           onEdit={
             canManage
               ? (id) => {

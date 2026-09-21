@@ -255,9 +255,9 @@ Agent PATCH accepts partial fields, including availability alone. A manager can 
 | GET | `/v1/reports/{report}` | S | `reports.view` — definition: dimensions, measures, filters, chart |
 | POST | `/v1/reports/{report}/run` | S | `reports.view` — parameters → rows, totals, comparison |
 | GET | `/v1/reports/{report}/records` | S | `reports.view` + entity view permission — drill-down, paginated |
-| POST | `/v1/reports/{report}/exports` | S | `reports.export` — 202, `{format: csv|xlsx, parameters}` |
-| POST | `/v1/exports/tickets` | S | `reports.export` — 202, body = current ticket-list filters |
-| GET | `/v1/exports/{export}` | S | `reports.export` (own) — status + download URL |
+| POST | `/v1/reports/{report}/exports` | S | `reports.export` + the report's permissions — 202 `ReportExportResource`, body `{format: csv\|xlsx, parameters}` (parameters as for the run); 10 requests/min per user |
+| POST | `/v1/exports/tickets` | S | `reports.export` + `tickets.view` — 202, body = the `GET /v1/tickets` query (`filter`, `search`, `sort`) + `format`; more than 50 000 tickets → 422 on `filter`; 10/min per user |
+| GET | `/v1/exports/{export}` | S | `reports.export`; own exports only (anyone else: 404) — `state` (`queued, running, ready, failed`), `row_count`, `error`, and when ready `media_id`, `file_name`, `download_url` (the Media download route, which signs a five-minute URL per request) |
 | GET | `/v1/{tickets|contacts|organizations|agents|teams|categories}/{id}/overview` | S | entity view permission — 360 metrics and related records |
 | GET | `/v1/history/{entity_type}/{id}` | S | `history.view` — change log, cursor |
 | GET | `/v1/history/{entity_type}/{id}/as-of?at=` | S | `history.view` — reconstructed attributes and diff to now |
@@ -271,12 +271,13 @@ Agent PATCH accepts partial fields, including availability alone. A manager can 
 | GET | `/v1/api-clients/scopes` | S | `integrations.manage` — scopes with description and granted permissions |
 | POST | `/v1/api-clients` | S | `integrations.manage` — `{name, scopes[]}`; 201 with `client_id` and `client_secret` (shown once) |
 | POST | `/v1/api-clients/{client}/revoke` | S | `integrations.manage` — immediate, idempotent |
-| GET/POST | `/v1/webhooks` | S, C | `integrations.manage` |
+| GET/POST | `/v1/webhooks` | S, C | `integrations.manage` — POST `{name, url, events[]}` → 201 with `secret` (shown once); the URL passes the SSRF guard (422 `webhook_url_rejected`) |
+| GET | `/v1/webhooks/events` | S, C | `integrations.manage` — the subscribable catalogue with descriptions |
 | GET/PATCH/DELETE | `/v1/webhooks/{webhook}` | S, C | `integrations.manage` |
-| POST | `/v1/webhooks/{webhook}/test`, `/enable`, `/disable`, `/rotate-secret` | S, C | `integrations.manage` |
-| GET | `/v1/webhooks/{webhook}/deliveries` | S, C | `integrations.manage` — cursor feed |
+| POST | `/v1/webhooks/{webhook}/test`, `/enable`, `/disable`, `/rotate-secret` | S, C | `integrations.manage` — `test` → 202 with the queued `ping` delivery (10/min per workspace); `rotate-secret` returns the new `secret` once |
+| GET | `/v1/webhooks/{webhook}/deliveries` | S, C | `integrations.manage` — cursor feed, newest first; `filter[state]` |
 | GET | `/v1/webhook-deliveries/{delivery}` | S, C | `integrations.manage` |
-| POST | `/v1/webhook-deliveries/{delivery}/retry` | S, C | `integrations.manage` |
+| POST | `/v1/webhook-deliveries/{delivery}/retry` | S, C | `integrations.manage` — 202; 409 `delivery_not_retryable` |
 | GET | `/v1/audit-logs` | S | `audit.view` — cursor feed |
 | GET | `/docs/api`, `/docs/api.json` | — | public reference, no tenant data ([documentation.md](documentation.md)) |
 

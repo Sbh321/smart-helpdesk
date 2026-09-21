@@ -23,7 +23,9 @@ final class AsOfResource extends JsonResource
             'entity_id' => $this->entityId,
             'at' => $this->at,
             'exists' => $this->attributes !== null,
+            /** @var array<string, mixed>|null */
             'attributes' => $this->attributes === null ? null : (object) $this->attributes,
+            /** @var array<string, array{then: mixed, now: mixed}> */
             'differences' => (object) $this->differences,
             'versions_after' => $this->versionsAfter,
         ];

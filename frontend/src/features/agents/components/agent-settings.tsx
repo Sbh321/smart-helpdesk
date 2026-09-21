@@ -42,6 +42,7 @@ import {
   useDirectory,
 } from './directory-shared'
 import { DirectoryTable } from './directory-table'
+import { RecordLink } from './record-link'
 
 const DEFAULT_LEVEL = '3'
 const AVAILABILITY_OPTIONS = AGENT_AVAILABILITIES.map((value) => ({
@@ -308,6 +309,7 @@ export function AgentSettings() {
           list={list}
           defaultSort={agentListSchema.defaultSort}
           sortableName={false}
+          renderName={(row) => <RecordLink kind="agents" id={row.id} name={row.name} />}
           onEdit={
             canManage
               ? (id) => {

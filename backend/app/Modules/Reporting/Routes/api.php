@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Reporting\Http\Controllers\DashboardController;
+use App\Modules\Reporting\Http\Controllers\ExportController;
 use App\Modules\Reporting\Http\Controllers\HistoryController;
 use App\Modules\Reporting\Http\Controllers\OverviewController;
 use App\Modules\Reporting\Http\Controllers\ReportController;
@@ -22,6 +23,15 @@ Route::middleware('can:reports.view')->group(function (): void {
     Route::get('/reports/{report}', [ReportController::class, 'show'])->where('report', 'rpt-[a-z0-9]+')->name('reports.show');
     Route::post('/reports/{report}/run', [ReportController::class, 'run'])->where('report', 'rpt-[a-z0-9]+')->name('reports.run');
     Route::get('/reports/{report}/records', [ReportController::class, 'records'])->where('report', 'rpt-[a-z0-9]+')->name('reports.records');
+});
+
+// Exports (docs/04-domain/reporting.md §Exports): queued files; the caller sees their own exports only.
+Route::middleware('can:reports.export')->group(function (): void {
+    Route::post('/reports/{report}/exports', [ExportController::class, 'report'])->where('report', 'rpt-[a-z0-9]+')
+        ->middleware(['can:reports.view', 'throttle:exports'])->name('reports.exports.store');
+    Route::post('/exports/tickets', [ExportController::class, 'tickets'])
+        ->middleware(['can:tickets.view', 'throttle:exports'])->name('exports.tickets');
+    Route::get('/exports/{export}', [ExportController::class, 'show'])->whereUuid('export')->name('exports.show');
 });
 
 // Entity 360 overviews: the entity's own view permission.

@@ -62,7 +62,7 @@ Development mirrors the production host layout ([ADR-0021](../adr/0021-host-layo
 127.0.0.1 shp.localhost app.shp.localhost api.shp.localhost admin.shp.localhost monitor.shp.localhost docs.shp.localhost files.shp.localhost mail.shp.localhost
 ```
 
-Caddy issues certificates from its internal CA (`tls internal`); trust it once with `docker compose exec proxy caddy trust` or accept the browser warning. Playwright runs with `ignoreHTTPSErrors: true` locally.
+Caddy issues certificates from its internal CA (`tls internal`); trust its root on the host once (`docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt`, then add it to the system store with `update-ca-certificates` and to the browser's store; `caddy trust` inside the container only trusts it there) or accept the browser warning once per host — `app`, `api` and `files`, because the SPA calls the other two in the background and a rejected certificate there shows only "Network error". Playwright runs with `ignoreHTTPSErrors: true` locally.
 
 | URL | What |
 |---|---|
@@ -79,7 +79,7 @@ Caddy issues certificates from its internal CA (`tls internal`); trust it once w
 | https://docs.shp.localhost | OpenAPI UI |
 | https://files.shp.localhost | S3 endpoint used by presigned URLs |
 | https://mail.shp.localhost | Mailpit (all outgoing mail in dev) |
-| http://localhost:9100 | webhook-echo (demo profile): prints and verifies signed deliveries |
+| http://localhost:9100 | webhook-echo (`dev` and `demo` profiles): verifies and prints signed webhook deliveries (see §Webhooks below) |
 
 Seeded logins are printed by the seeder (`owner@acme.test`, `manager@acme.test`, `agent1@acme.test` … password `password`, plus `admin@platform.test`).
 
@@ -93,6 +93,28 @@ docker compose exec app php artisan platform:create-tenant acme "Acme Corp" --ow
 
 The last command prints an invitation link; open it in the SPA to set the owner's password, or find
 the invitation mail in Mailpit. `identity:sync-permissions` re-syncs the catalogue at any time.
+
+## Webhooks (webhook-echo)
+
+`tools/webhook-echo` is a dependency-free Node receiver (Compose service `webhook-echo`, profiles `dev`
+and `demo`) that checks each delivery with the verification snippet of
+[webhooks.md](../07-api/webhooks.md) — signature and the five-minute window — prints it as one JSON line
+and answers 204, or 401 when it does not verify. `backend/.env` must list it in
+`WEBHOOK_DEV_ALLOWED_HOSTS=webhook-echo` so the SSRF guard lets `http://webhook-echo:9100` through
+(development only).
+
+```sh
+docker compose --profile dev up -d webhook-echo
+# Settings → Webhooks → Add webhook: URL http://webhook-echo:9100/hook, pick events, copy the secret
+WEBHOOK_ECHO_SECRET='<secret>' docker compose --profile dev up -d webhook-echo   # recreate with the secret
+docker compose logs -f webhook-echo                                             # resolve a ticket, watch
+WEBHOOK_ECHO_STATUS=503 WEBHOOK_ECHO_SECRET='<secret>' docker compose --profile dev up -d webhook-echo  # watch retries
+node --test tools/webhook-echo/verify.test.mjs                                  # the snippet's own tests
+```
+
+After a code change to webhooks restart the workers (`docker compose restart horizon scheduler`);
+deliveries run on the `webhooks` queue (`supervisor-webhooks` in Horizon) and retries are queued by
+`webhooks:retry-due` every minute.
 
 ## justfile
 
@@ -153,7 +175,7 @@ deploy env:              cd infra/tofu/envs/{{env}} && tofu apply && cd ../../..
 | Symptom | Cause | Fix |
 |---|---|---|
 | `permission denied` writing `storage/` | container UID ≠ host UID | set `PUID`/`PGID` in `.env` to `id -u`/`id -g`, `docker compose up -d --force-recreate app` |
-| `NET::ERR_CERT_AUTHORITY_INVALID` | Caddy internal CA not trusted | `docker compose exec proxy caddy trust`, or accept once per host |
+| `NET::ERR_CERT_AUTHORITY_INVALID`, or "Network error" in the SPA | Caddy internal CA not trusted for `api`/`files` | trust the exported root on the host (see §HTTPS above), or open `https://api.shp.localhost/up` and `https://files.shp.localhost` once and accept |
 | Login returns 419 | CSRF cookie not shared between `app` and `api` | open `app.shp.localhost`, not `localhost:5173`; check `SESSION_DOMAIN=.shp.localhost` and `SANCTUM_STATEFUL_DOMAINS=app.shp.localhost` |
 | Workspace page shows "workspace not found" | slug not seeded or reserved | `php artisan tenants:list`; use a seeded slug |
 | Uploads fail with CORS error | bucket CORS missing after `down -v` | `php artisan storage:ensure-bucket` (runs in `just setup`) |

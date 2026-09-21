@@ -39,4 +39,10 @@ One `Notification` class per row, implementing Laravel's `via()` with the channe
 - **API.** `GET /v1/notifications` (unread first, then newest; `filter[unread]=true`; `per_page` up to 100), `POST /v1/notifications/{id}/read` (idempotent), `POST /v1/notifications/read-all`. No permission: every query is limited to the signed-in user. `/v1/me` counts the unread ones.
 - **SPA.** The bell polls the unread count every 30 s; see [components.md](../06-design-system/components.md) §NotificationBell.
 - **Volume.** Every breach mails the managers once. The first sweep over the ~5 000 back-dated sample tickets on the dev stack produced 6 696 breach notifications; digests and backlog suppression are V1-NT-01.
-- **Not built:** per-user preferences, export-ready notifications (with exports), realtime delivery (M3-16).
+- **Not built:** per-user preferences, realtime delivery (M3-16).
+
+### As built (M3-09): Export ready
+
+- `Reporting\Jobs\ExportReport` fires `Reporting\Events\ReportExportReady` (export id, requester id) once the file is stored; `Listeners\SendExportNotifications` sends `Notifications\ExportReady` to the requester if still active. In-app and broadcast, not mailed (the matrix above). Key `export_ready:{export_id}`.
+- Payload: `kind: export_ready`, `export_id`, `media_id`, `file_name`, `row_count`, `summary`. `TenantDatabaseChannel` now stores any `Contracts\StorableNotification` (kind, key, payload), not only ticket notifications.
+- `NotificationResource`: `ticket_id`, `ticket_number` and `ticket_title` are null for an export; `export_id`, `media_id` and `file_name` are null for the ticket kinds. The SPA links an export notification to `GET /v1/media/{media_id}/download`.

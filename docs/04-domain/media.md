@@ -38,7 +38,7 @@ erDiagram
 
 - Every file in the platform is a media item; ticket and comment attachments are `mediables` with role `attachment`, so the library shows "Used in #1042".
 - The default workspace quota is 5 GiB (`config/helpdesk.php`); the tenant row stores the limit and the locked counter row stores used bytes.
-- Folders are per tenant, max depth 5; a system folder `Tickets` receives attachments uploaded from tickets; `Email` receives inbound attachments; `Branding` holds logos.
+- Folders are per tenant, max depth 5; a system folder `Tickets` receives attachments uploaded from tickets; `Email` receives inbound attachments; `Branding` holds logos; `Reports` receives report and ticket-list exports (M3-09).
 - Upload: intent (validates type/size/quota, creates `pending` item and presigned PUT) → complete (HEAD, size, MIME sniff, checksum, dimensions for images, `ready`, quota counter, variant job).
 - Variants are generated asynchronously as WebP: `thumb` fits within 240×240, `preview` within 1200×1200, preserving aspect ratio. The UI shows the original until `thumb` exists.
 - Trash keeps objects for 30 days; purge deletes objects and variants and releases quota; an item linked to a ticket cannot be purged while the ticket exists (unlink first).
@@ -82,6 +82,12 @@ Decisions made while building:
 - Not built: multipart or resumable uploads, per-folder permissions, optimistic locking on rename, unlinking from the library (links are removed from the ticket side).
 
 Tests: `tests/Feature/Media/*` (upload flow, folders, items, trash and quota, download policy, variants, permission matrix, quota SQL) and `tests/Unit/Media/*` (filenames, keys, allow-list, inspector). Feature tests run on the `local` disk re-rooted per tenant, so keys keep their real layout.
+
+### As built (M3-09): generated files and the Reports folder
+
+- A migration (Reporting module, `…_create_report_exports_table`) adds `reports` to `media_folders_system_check` and creates the `Reports` folder in every existing workspace; `ProvisionTenant` creates it for new ones, and `StoreGeneratedFile` creates it on first use (`firstOrCreate` by `system_key`).
+- `Actions\StoreGeneratedFile` stores a file the server wrote (a report export) as a `ready` item with `source = system`, owned (`uploaded_by_user_id`) by the requester: quota reserved under the tenant advisory lock by a `pending` item, object streamed with `MediaStorage::putStream` to `media/{id}/original.{ext}`, then `ready` and the counter update last, exactly as the upload commit. The file is not sniffed (the server wrote it); its type comes from the allow-listed extension (`csv`, `xlsx`). SHA-256 is recorded. Exports count against the workspace quota; an export that does not fit fails.
+- Download policy: a `system` item is readable by its owner only. `MediaUses::canDownload` returns false for anyone else, and the download and variant routes answer 404 to them (the item does not exist for another reader, like the export itself). The item is listed in the library like any other; media managers can trash and purge it.
 
 ## Permissions
 

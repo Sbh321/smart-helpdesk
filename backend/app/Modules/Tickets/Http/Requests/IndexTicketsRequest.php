@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Tickets\Http\Requests;
 
+use App\Modules\Tickets\Queries\TicketListCriteria;
 use App\Support\Http\Requests\ListRequest;
 use Illuminate\Validation\Validator;
 
 /**
  * `GET /v1/tickets` (docs/07-api/pagination-filtering.md §Ticket list filters).
  */
-final class IndexTicketsRequest extends ListRequest
+class IndexTicketsRequest extends ListRequest
 {
     public const INCLUDES = ['contact', 'organization', 'category', 'tags'];
 
@@ -41,6 +42,24 @@ final class IndexTicketsRequest extends ListRequest
                 $validator->errors()->add('filter.created_between', 'Use two dates, start first: YYYY-MM-DD,YYYY-MM-DD.');
             }
         });
+    }
+
+    /** The validated list request as criteria for `TicketListQuery`. */
+    public function criteria(): TicketListCriteria
+    {
+        $filters = [];
+        foreach (array_keys($this->filterRules()) as $key) {
+            $values = $this->filterValues($key);
+            if ($values !== []) {
+                $filters[$key] = $values;
+            }
+        }
+        $userId = $this->user()?->getAuthIdentifier();
+
+        return new TicketListCriteria(
+            $filters, $this->search(), $this->sortColumns(), $this->hasExplicitSort(),
+            is_string($userId) ? $userId : null, $this->includes(),
+        );
     }
 
     /**

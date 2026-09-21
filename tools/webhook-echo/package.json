@@ -1,0 +1,7 @@
+{
+  "name": "webhook-echo",
+  "private": true,
+  "type": "module",
+  "description": "Development receiver that verifies and prints Smart Helpdesk webhook deliveries",
+  "scripts": { "start": "node server.mjs", "test": "node --test verify.test.mjs" }
+}

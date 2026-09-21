@@ -17,7 +17,6 @@ Decision: [ADR-0008](../adr/0008-object-storage.md). Single Laravel `s3` disk; p
 tenants/{tenant_id}/media/{item_id}/original.{ext}             any media item (ticket attachments included)
 tenants/{tenant_id}/media/{item_id}/thumb.webp | preview.webp   generated variants
 tenants/{tenant_id}/branding/logo-{hash}.{ext}
-tenants/{tenant_id}/exports/{export_id}.csv
 tenants/{tenant_id}/backups/...                                  (spatie backup, separate disk/prefix)
 ```
 
@@ -58,4 +57,4 @@ M2-08 implementation status: the intent/complete API and tenant-scoped metadata 
 
 ## Operations
 
-Buckets are private; lifecycle rule (where supported) expires `exports/` after 7 days; backups go to a separate disk/prefix with its own credentials on-prem. Malware scanning (ClamAV job) is V1.
+Buckets are private; report exports are ordinary Media items in the `Reports` folder since M3-09 (`media/{id}/original.csv|xlsx`), so there is no `exports/` prefix to expire; they stay until trashed (retention of exports is V1); backups go to a separate disk/prefix with its own credentials on-prem. Malware scanning (ClamAV job) is V1.

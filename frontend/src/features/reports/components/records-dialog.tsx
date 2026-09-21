@@ -24,7 +24,7 @@ export interface RecordsDialogProps {
   onClose: () => void
 }
 
-/** The record's own page, where the SPA has one (agents get theirs with M3-21). */
+/** The record's own page, where the SPA has one (agents, teams and categories since M3-21). */
 function RecordLink({ workspace, record }: { workspace: string; record: ReportRecord }) {
   const className = 'font-medium underline-offset-4 hover:underline'
   switch (record.entity) {
@@ -53,6 +53,32 @@ function RecordLink({ workspace, record }: { workspace: string; record: ReportRe
         <Link
           to="/$workspace/organizations/$organizationId"
           params={{ workspace, organizationId: record.id }}
+          className={className}
+        >
+          {record.label}
+        </Link>
+      )
+    case 'agents':
+      return (
+        <Link
+          to="/$workspace/agents/$agentId"
+          params={{ workspace, agentId: record.id }}
+          className={className}
+        >
+          {record.label}
+        </Link>
+      )
+    case 'teams':
+      return (
+        <Link to="/$workspace/teams/$teamId" params={{ workspace, teamId: record.id }} className={className}>
+          {record.label}
+        </Link>
+      )
+    case 'categories':
+      return (
+        <Link
+          to="/$workspace/categories/$categoryId"
+          params={{ workspace, categoryId: record.id }}
           className={className}
         >
           {record.label}

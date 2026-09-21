@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { copy, fill } from '@/copy/en'
+import { apiUrl } from '@/lib/api/client'
 import { formatInZone } from '@/lib/datetime/format'
 import { cn } from '@/lib/utils'
 import type { NotificationItem } from '../api/notification-queries'
@@ -12,8 +13,8 @@ export function notificationText(item: NotificationItem): string {
 }
 
 /**
- * One notification: what happened, on which ticket, when. Opening the ticket marks it read; unread
- * rows carry a visible dot and the word "Unread" for screen readers.
+ * One notification: what happened, on which ticket (or which export file), when. Opening the ticket or
+ * the file marks it read; unread rows carry a visible dot and the word "Unread" for screen readers.
  */
 export function NotificationRow({
   item,
@@ -44,14 +45,25 @@ export function NotificationRow({
           {unread ? <span className="sr-only">{text.unread}: </span> : null}
           {notificationText(item)}
         </p>
-        <Link
-          to="/$workspace/tickets/$ticketId"
-          params={{ workspace, ticketId: item.ticket_id }}
-          className="block truncate text-sm text-primary underline-offset-2 hover:underline"
-          onClick={() => onOpen(item)}
-        >
-          {fill(text.ticket, { number: item.ticket_number, title: item.ticket_title })}
-        </Link>
+        {item.ticket_id !== null ? (
+          <Link
+            to="/$workspace/tickets/$ticketId"
+            params={{ workspace, ticketId: item.ticket_id }}
+            className="block truncate text-sm text-primary underline-offset-2 hover:underline"
+            onClick={() => onOpen(item)}
+          >
+            {fill(text.ticket, { number: item.ticket_number ?? '', title: item.ticket_title ?? '' })}
+          </Link>
+        ) : item.media_id !== null ? (
+          // An export (M3-09): the Media download route signs a fresh short-lived URL on each click.
+          <a
+            href={apiUrl(`/v1/media/${item.media_id}/download`)}
+            className="block truncate text-sm text-primary underline-offset-2 hover:underline"
+            onClick={() => onOpen(item)}
+          >
+            {fill(text.download, { name: item.file_name ?? '' })}
+          </a>
+        ) : null}
         <p className="text-xs text-muted-foreground">
           <time dateTime={item.created_at}>{formatInZone(item.created_at, timeZone)}</time>
         </p>

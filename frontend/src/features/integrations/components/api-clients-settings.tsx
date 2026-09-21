@@ -1,6 +1,6 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CopyIcon, KeyRoundIcon, PlusIcon } from 'lucide-react'
+import { KeyRoundIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
@@ -21,8 +21,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { FieldGroup } from '@/components/ui/field'
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { copy, fill } from '@/copy/en'
@@ -42,44 +40,9 @@ import {
   revokeApiClient,
 } from '../api/api-client-queries'
 import { type ApiClientFormValues, apiClientFormSchema } from '../schemas'
+import { CopyableValue } from './copyable-value'
 
 const text = copy.apiClients
-
-/** A read-only credential with a copy button; the input stays selectable when the clipboard is blocked. */
-function CopyableValue({ id, label, value }: { id: string; label: string; value: string }) {
-  async function copyValue() {
-    try {
-      await navigator.clipboard.writeText(value)
-      toast.success(fill(text.copied, { name: label }))
-    } catch {
-      toast.error(text.copyFailed)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      <InputGroup>
-        <InputGroupInput
-          id={id}
-          readOnly
-          value={value}
-          className="font-mono text-xs"
-          onFocus={(event) => event.currentTarget.select()}
-        />
-        <InputGroupAddon align="inline-end">
-          <InputGroupButton
-            aria-label={fill(text.copyNamed, { name: label })}
-            onClick={() => void copyValue()}
-          >
-            <CopyIcon aria-hidden="true" />
-            {text.copy}
-          </InputGroupButton>
-        </InputGroupAddon>
-      </InputGroup>
-    </div>
-  )
-}
 
 function CreateForm({
   scopes,

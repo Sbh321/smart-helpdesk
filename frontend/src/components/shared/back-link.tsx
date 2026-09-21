@@ -1,7 +1,13 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowLeftIcon } from 'lucide-react'
 
-type BackTarget = '/$workspace/contacts' | '/$workspace/organizations' | '/$workspace/tickets'
+type BackTarget =
+  | '/$workspace/contacts'
+  | '/$workspace/organizations'
+  | '/$workspace/tickets'
+  | '/$workspace/settings/agents'
+  | '/$workspace/settings/teams'
+  | '/$workspace/settings/categories'
 
 /** "← Back to …" above a detail page's heading, in the `PageHeader` eyebrow slot. */
 export function BackLink({ workspace, to, label }: { workspace: string; to: BackTarget; label: string }) {

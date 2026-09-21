@@ -61,7 +61,8 @@ All non-2xx responses are RFC 9457 problem details with `Content-Type: applicati
 | `idempotency_key_reused` | 422 | same `Idempotency-Key` (same client, within 24 h), different body | use a new key |
 | `attachment_invalid` | 422 | size/MIME mismatch at `complete` | re-upload |
 | `settings_invalid` | 422 | weights do not sum to 1, thresholds not decreasing, unknown setting key; carries `errors` per field like `validation_failed` and `meta.section` | fix settings |
-| `webhook_url_rejected` | 422 | not https, private range, unresolvable | change URL |
+| `webhook_url_rejected` | 422 | the SSRF guard refused the webhook URL: `meta.reason` is `invalid_url`, `scheme` (not https), `userinfo`, `port` (not 443/8443), `platform_host`, `unresolvable` or `private_address` (loopback, private, link-local/metadata, reserved, incl. IPv6); field error on `url` | change URL |
+| `delivery_not_retryable` | 409 | manual retry of a webhook delivery that is not `failed`/`dead` (`meta.reason: state`), whose webhook is disabled (`subscription_disabled`) or that used its 5 manual retries (`manual_retries_exhausted`) | enable the webhook or wait for the delivery |
 | `rate_limited` | 429 | throttle; `Retry-After` header and `meta.retry_after` | back off |
 | `internal_error` | 500 | unexpected exception; detail hidden | report `request_id` |
 | `storage_unavailable` | 502 | object storage error on intent/complete/download | retry later |

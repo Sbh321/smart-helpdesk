@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Contacts\Actions;
 
+use App\Modules\Contacts\Events\ContactSaved;
 use App\Modules\Contacts\Models\Contact;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -23,12 +24,19 @@ final class SaveContact
             $contact ??= new Contact;
 
             $contact->fill(Arr::except($data, ['tags']));
+            $created = ! $contact->exists;
+            $dirty = $created || $contact->isDirty();
             $contact->save();
 
             if (array_key_exists('tags', $data)) {
                 /** @var list<string> $tags */
                 $tags = $data['tags'];
                 $contact->syncTagNames($tags);
+                $dirty = true;
+            }
+
+            if ($dirty) {
+                event(new ContactSaved($contact->tenant_id, $contact->id, $created));
             }
 
             return $contact->load(['organization', 'tags']);

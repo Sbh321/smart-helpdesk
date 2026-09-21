@@ -66,7 +66,7 @@ Headers on every delivery:
 | `User-Agent` | `SmartHelpdesk-Webhooks/1.0` |
 | `Content-Type` | `application/json` |
 
-Signature input is `"{timestamp}.{raw_body}"`; the body is the exact bytes sent (no re-serialisation on the receiver side).
+Signature input is `"{timestamp}.{raw_body}"`; the body is the exact bytes sent (no re-serialisation on the receiver side). The HMAC key is the secret string exactly as the API showed it (the base64 text, not its decoded bytes).
 
 Receiver verification (Node):
 
@@ -131,7 +131,7 @@ sequenceDiagram
 | Manual retry | `POST /webhook-deliveries/{id}/retry` on `failed`/`dead` → new attempt sequence (attempt counter continues; max 5 manual retries) |
 | Test | `POST /webhooks/{id}/test` sends `ping` event `{ "type": "ping", "data": { "message": "…" } }` synchronously-queued, returns 202 with the delivery id |
 | Ordering | not guaranteed across events; receivers must use `occurred_at` and resource state, not arrival order |
-| Retention | deliveries pruned after 30 days (`webhooks:prune-deliveries` daily); subscriptions keep aggregate counters |
+| Retention | deliveries pruned after 30 days (`webhooks:prune` daily at 03:40); subscriptions keep aggregate counters |
 | Payload size | ≤ 256 KB; larger `data` is trimmed to ids with `data.truncated=true` |
 | Concurrency | `webhooks` queue, Horizon supervisor with 4 processes; `WithoutOverlapping` keyed by subscription id to keep per-endpoint order best-effort |
 
@@ -154,3 +154,85 @@ Subscriptions and deliveries carry `tenant_id` and are under RLS; the listener r
 ## Receiver checklist (published in the developer docs)
 
 Verify signature → check timestamp → deduplicate on event id → respond `2xx` fast (enqueue work) → fetch the resource via the REST API when full state is needed → tolerate unknown event types and fields.
+
+## As built (M3-05)
+
+Code: `backend/app/Modules/Integrations` (`Domain/Webhooks`, `Webhooks/`, `Actions/*Webhook*`, `Jobs/DeliverWebhook`,
+`Listeners/DispatchWebhookEvent`, `Console/*Webhook*`), SPA `frontend/src/features/integrations`
+(Settings → Webhooks), receiver `tools/webhook-echo`.
+
+**API.** `GET/POST /v1/webhooks`, `GET /v1/webhooks/events` (the catalogue without `ping`),
+`GET/PATCH/DELETE /v1/webhooks/{webhook}`, `POST /v1/webhooks/{webhook}/enable|disable|rotate-secret|test`,
+`GET /v1/webhooks/{webhook}/deliveries` (cursor, `per_page` ≤ 100, `filter[state]`),
+`GET /v1/webhook-deliveries/{delivery}` (with the payload), `POST /v1/webhook-deliveries/{delivery}/retry`.
+All need `integrations.manage` and are the only routes open to API clients with the `webhooks:manage`
+scope. `secret` appears only in the create and rotate responses. Test deliveries: 10 a minute per
+workspace. Create, edit, enable, disable, rotate and delete are audited (`webhook.*`); the audit entry
+never holds a secret. Errors: 422 `webhook_url_rejected` (`meta.reason`: `invalid_url`, `scheme`,
+`userinfo`, `port`, `platform_host`, `unresolvable`, `private_address`; field error on `url`),
+409 `delivery_not_retryable` (`meta.reason`: `state`, `subscription_disabled`, `manual_retries_exhausted`).
+
+**Storage.** `webhook_subscriptions` (secret and previous secret with the `encrypted` cast, `events text[]`
+with a non-empty check) and `webhook_deliveries` (payload as `json` so the envelope keeps its member
+order; `(tenant_id, subscription_id)` composite foreign key; partial index for the retry sweep). Both are
+in `TenantTables::PRIMARY` with an immutable `tenant_id`; neither has the change-capture trigger
+(configuration is audited, the delivery log is read directly by RPT-I01).
+
+**Event mapping** (`DispatchWebhookEvent`): `TicketCreated` → `ticket.created` (deferred to after
+commit), `TicketUpdated` → `ticket.updated` (`changes`), `TicketAssigned` → `ticket.assigned`
+(`assignment.agent_id`, `team_id`, `reason` from the latest assignment row), `TicketStatusChanged` →
+`ticket.status_changed` (`from`, `to`) plus `ticket.resolved` or `ticket.closed`, `PriorityChanged` →
+`ticket.priority_changed` (`from`, `to`, `reason`: `override` or `automatic`), `CommentAdded` (public
+only) → `ticket.comment_added` (`comment`, `ticket_id`), `SlaBreached` → `ticket.sla_breached`
+(`timer`: `id`, `kind`, `due_at`, `breached_at`), `ContactSaved` (new, raised by `SaveContact` when
+something changed) → `contact.created` / `contact.updated`. `data.ticket` is the `TicketResource`
+with contact, organisation, category and tags, resolved without a user (`allowed_transitions` empty).
+
+**Delivery as built.**
+
+- The listener runs synchronously in the request or job that raised the event (after commit): it builds
+  the payload once, inserts one `pending` delivery per listening subscription and queues one
+  `DeliverWebhook` per delivery on `webhooks`. Only the HTTP call is queued. A failure in the listener is
+  reported and never reaches the user.
+- `DeliverWebhook` claims the delivery (`pending` and due) by moving `next_attempt_at` a 60-second lease
+  ahead, so a duplicate job does nothing. It re-runs the SSRF guard, signs, and POSTs with a 10 s timeout
+  (5 s connect), redirects off, the connection pinned to the checked address (`CURLOPT_RESOLVE`), and
+  reads at most 1 KB of the response.
+- Retries are not job releases: a failed attempt stores `state=failed` and `next_attempt_at`, and
+  `webhooks:retry-due` (every minute) queues due attempts per workspace, so the schedule runs on `Clock`
+  time and is testable with `FrozenClock`. One first attempt plus retries at +1 m, +5 m, +30 m, +2 h,
+  +12 h (±20 % jitter): the sixth failed attempt makes the delivery `dead`. The sweep also re-queues a
+  `pending` delivery whose job was lost once it is five minutes overdue.
+- Auto-disable counts consecutive failed **attempts** (any success resets it); at 20 the subscription is
+  disabled with `disabled_reason=consecutive_failures` and a `webhook.disabled` audit entry with actor
+  `system`. No admin notification yet (`MVP-SHORTCUT`, V1-DP-06); the state shows in Settings → Webhooks.
+- Deliveries of a disabled subscription are marked `dead` (`error=subscription_disabled`) when their
+  attempt comes up; a test `ping` is sent even to a disabled subscription and is never retried
+  automatically.
+- Manual retry reopens a `failed` or `dead` delivery as a new sequence with the full schedule while the
+  subscription is enabled; `attempt` keeps counting, at most 5 manual retries.
+- Errors stored on a delivery: `http_status`, `redirect_not_followed`, `timeout`, `connection_failed`,
+  `request_failed`, `url_rejected: <reason>`, `subscription_disabled`.
+- Horizon: `supervisor-webhooks`, 2 processes locally, 4 in production, job timeout 15 s.
+
+**SSRF guard as built** (`UrlGuard`, `IpAddressPolicy`): scheme `https`, no user info, ports 443/8443
+(`helpdesk.webhooks.allowed_ports`), not a platform host (`PLATFORM_DOMAIN` and its subdomains, the
+configured hosts, `localhost`, `*.localhost`), every A/AAAA record (or the IP literal) public. Refused:
+0/8, 10/8, 100.64/10, 127/8, 169.254/16 (metadata), 172.16/12, 192.0.0/24, 192.0.2/24, 192.88.99/24,
+192.168/16, 198.18/15, 198.51.100/24, 203.0.113/24, 224/4, 240/4; `::`, `::1`, `100::/64`, `2001::/23`,
+`2001:db8::/32`, `fc00::/7`, `fe80::/10`, `fec0::/10`, `ff00::/8`; and IPv4 embedded in IPv6 (mapped,
+compatible, NAT64 `64:ff9b::/96`, 6to4 `2002::/16`) is checked as IPv4. Development only:
+`helpdesk.webhooks.dev_allowed_hosts` (`WEBHOOK_DEV_ALLOWED_HOSTS`, host names, not ranges) skips the
+scheme, port and address checks so `http://webhook-echo:9100/hook` can be used; it is ignored when
+`APP_ENV=production`.
+
+**Verification snippets.** The Node snippet above is `tools/webhook-echo/verify.mjs` verbatim; the echo
+service runs every delivery through it (`node --test verify.test.mjs` checks it against a test vector
+shared with `tests/Unit/Integrations/WebhookSignerTest.php`, a rotation header and a 301-second-old
+timestamp). The PHP snippet is copied into `WebhookSignerTest`. Live check on the dev stack
+(2026-09-21): a `ping` and the `ticket.status_changed`, `ticket.resolved` and `ticket.comment_added`
+deliveries of resolving ticket #44 were verified by webhook-echo (204); a tampered body and the same
+delivery replayed after five minutes were answered 401.
+
+**Not built (deviations from the plan above).** Static per-subscription `headers`; `WithoutOverlapping`
+per subscription (ordering is not guaranteed anyway); the notification on auto-disable (V1-DP-06).

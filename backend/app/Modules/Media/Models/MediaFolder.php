@@ -16,14 +16,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A library folder, at most five levels deep; `system_key` marks the protected Tickets, Email and
- * Branding folders (docs/04-domain/media.md).
+ * A library folder, at most five levels deep; `system_key` marks the protected Tickets, Email,
+ * Branding and Reports folders (docs/04-domain/media.md).
  *
  * @property string $id
  * @property string $tenant_id
  * @property string|null $parent_id
  * @property string $name
- * @property string|null $system_key tickets | email | branding
+ * @property string|null $system_key tickets | email | branding | reports
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
  * @property-read MediaFolder|null $parent

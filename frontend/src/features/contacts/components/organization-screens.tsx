@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { PlusIcon } from 'lucide-react'
 import { BackLink } from '@/components/shared/back-link'
+import { type DetailTab, DetailTabs } from '@/components/shared/detail-tabs'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { NotFoundState } from '@/components/shared/not-found-state'
@@ -75,9 +76,12 @@ export function NewOrganizationScreen({ workspace }: { workspace: string }) {
 export function OrganizationScreen({
   workspace,
   organizationId,
+  tabs = [],
 }: {
   workspace: string
   organizationId: string
+  /** Overview and History (M3-21), added by the route. */
+  tabs?: readonly DetailTab[]
 }) {
   const allowed = useCan('contacts.view')
   const canManage = useCan('contacts.manage')
@@ -126,21 +130,28 @@ export function OrganizationScreen({
   return (
     <>
       <PageHeader eyebrow={back} title={current.name} description={tierLabel(current.tier)} />
-      {canManage ? (
-        <OrganizationForm key={current.id} organization={current} onSaved={() => undefined} />
-      ) : (
-        <>
-          <p className="text-sm text-muted-foreground">{copy.organizations.detail.readOnly}</p>
-          <dl className="grid max-w-xl grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
-            <dt className="text-muted-foreground">{copy.organizations.form.domain}</dt>
-            <dd>{current.domain ?? copy.contacts.none}</dd>
-            <dt className="text-muted-foreground">{copy.organizations.columns.contacts}</dt>
-            <dd>{current.contacts_count}</dd>
-            <dt className="text-muted-foreground">{copy.organizations.form.tags}</dt>
-            <dd>{current.tags.map((tag) => tag.name).join(', ') || copy.contacts.none}</dd>
-          </dl>
-        </>
-      )}
+      <DetailTabs
+        label={copy.entity360.tabs}
+        detailsLabel={copy.entity360.details}
+        tabs={tabs}
+        details={
+          canManage ? (
+            <OrganizationForm key={current.id} organization={current} onSaved={() => undefined} />
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">{copy.organizations.detail.readOnly}</p>
+              <dl className="grid max-w-xl grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
+                <dt className="text-muted-foreground">{copy.organizations.form.domain}</dt>
+                <dd>{current.domain ?? copy.contacts.none}</dd>
+                <dt className="text-muted-foreground">{copy.organizations.columns.contacts}</dt>
+                <dd>{current.contacts_count}</dd>
+                <dt className="text-muted-foreground">{copy.organizations.form.tags}</dt>
+                <dd>{current.tags.map((tag) => tag.name).join(', ') || copy.contacts.none}</dd>
+              </dl>
+            </>
+          )
+        }
+      />
     </>
   )
 }

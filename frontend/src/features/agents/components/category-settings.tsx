@@ -35,6 +35,7 @@ import {
   Section,
   useDirectory,
 } from './directory-shared'
+import { RecordLink } from './record-link'
 
 function initialValues(category: Category | null): CategoryFormValues {
   return {
@@ -217,7 +218,9 @@ export function CategorySettings() {
           <TableBody>
             {categories.data.map((category) => (
               <TableRow key={category.id}>
-                <TableCell>{category.name}</TableCell>
+                <TableCell>
+                  <RecordLink kind="categories" id={category.id} name={category.name} />
+                </TableCell>
                 <TableCell>{category.default_team?.name ?? copy.settings.none}</TableCell>
                 <TableCell>
                   {category.required_skills.map((skill) => skill.name).join(', ') || copy.settings.none}

@@ -42,6 +42,24 @@ dataset('role matrix', [
     'agent cannot list api clients' => [PermissionCatalogue::AGENT, 'get', '/v1/api-clients', 403],
     'agent cannot create api clients' => [PermissionCatalogue::AGENT, 'post', '/v1/api-clients', 403],
     'agent cannot read the api scopes' => [PermissionCatalogue::AGENT, 'get', '/v1/api-clients/scopes', 403],
+    // Exports (M3-09): reports.export for owner, admin and manager; someone else's or an unknown export is 404.
+    'owner may read exports' => [PermissionCatalogue::OWNER, 'get', '/v1/exports/0199a000-0000-7000-8000-000000000000', 404],
+    'admin may read exports' => [PermissionCatalogue::ADMIN, 'get', '/v1/exports/0199a000-0000-7000-8000-000000000000', 404],
+    'manager may read exports' => [PermissionCatalogue::MANAGER, 'get', '/v1/exports/0199a000-0000-7000-8000-000000000000', 404],
+    'agent cannot read exports' => [PermissionCatalogue::AGENT, 'get', '/v1/exports/0199a000-0000-7000-8000-000000000000', 403],
+    'developer cannot read exports' => [PermissionCatalogue::DEVELOPER, 'get', '/v1/exports/0199a000-0000-7000-8000-000000000000', 403],
+    'manager validates a ticket export' => [PermissionCatalogue::MANAGER, 'post', '/v1/exports/tickets', 422],
+    'agent cannot export tickets' => [PermissionCatalogue::AGENT, 'post', '/v1/exports/tickets', 403],
+    'agent cannot export a report' => [PermissionCatalogue::AGENT, 'post', '/v1/reports/rpt-t01/exports', 403],
+    'developer cannot export a report' => [PermissionCatalogue::DEVELOPER, 'post', '/v1/reports/rpt-t01/exports', 403],
+    'owner lists webhooks' => [PermissionCatalogue::OWNER, 'get', '/v1/webhooks', 200],
+    'admin lists webhooks' => [PermissionCatalogue::ADMIN, 'get', '/v1/webhooks', 200],
+    'developer lists webhooks' => [PermissionCatalogue::DEVELOPER, 'get', '/v1/webhooks', 200],
+    'developer reads the webhook events' => [PermissionCatalogue::DEVELOPER, 'get', '/v1/webhooks/events', 200],
+    'manager cannot list webhooks' => [PermissionCatalogue::MANAGER, 'get', '/v1/webhooks', 403],
+    'agent cannot list webhooks' => [PermissionCatalogue::AGENT, 'get', '/v1/webhooks', 403],
+    'agent cannot create webhooks' => [PermissionCatalogue::AGENT, 'post', '/v1/webhooks', 403],
+    'agent cannot read the webhook events' => [PermissionCatalogue::AGENT, 'get', '/v1/webhooks/events', 403],
 ]);
 
 it('answers each role and route with the expected status', function (string $role, string $method, string $path, int $expected): void {

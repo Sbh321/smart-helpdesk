@@ -56,3 +56,19 @@ Each webhook payload: `{ id, type, tenant_id, occurred_at, data: { <resource> },
 ## Tenant-scoping of API clients
 
 A token issued to a client can only act inside the client's tenant; the tenant is taken from the client record, never from the request, so a leaked client cannot switch tenants. Client tokens have no user; audit entries record `actor_type = api_client`.
+
+## Webhooks as built (M3-05)
+
+Details, deviations and the live check: [07-api/webhooks.md](../07-api/webhooks.md) §As built.
+
+- `webhook_subscriptions` and `webhook_deliveries` as in the diagram above, plus `name`, `api_version`,
+  `previous_secret` (24-hour overlap after a rotation), `disabled_reason` (`manual`,
+  `consecutive_failures`), `last_delivery_at`, and on deliveries `sequence_attempt`, `manual_retries`,
+  `error`, `duration_ms`. Both tables carry an immutable `tenant_id`.
+- The catalogue above is emitted by `DispatchWebhookEvent`; `ping` is the test event and cannot be
+  subscribed to. Contacts raise the new `Contacts\Events\ContactSaved` for `contact.created` /
+  `contact.updated`.
+- API clients with the `webhooks:manage` scope reach exactly the webhook routes.
+- Settings → Webhooks in the SPA: list with events and status, add and edit (URL + events checklist),
+  secret shown once after create and rotate, enable/disable, send test, delete, and the delivery log per
+  webhook with state, attempts, response and retry.

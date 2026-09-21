@@ -106,7 +106,7 @@ final readonly class ProvisionTenant
     private function seedMediaFolders(Tenant $tenant): void
     {
         $tenant->run(function (): void {
-            foreach (['tickets' => 'Tickets', 'email' => 'Email', 'branding' => 'Branding'] as $key => $name) {
+            foreach (['tickets' => 'Tickets', 'email' => 'Email', 'branding' => 'Branding', 'reports' => 'Reports'] as $key => $name) {
                 MediaFolder::query()->firstOrCreate(
                     ['system_key' => $key],
                     ['name' => $name, 'parent_id' => null],

@@ -106,6 +106,13 @@ export const queryKeys = {
     list: (tenantId: string) => [...queryKeys.apiClients.all(tenantId), 'list'] as const,
     scopes: (tenantId: string) => [...queryKeys.apiClients.all(tenantId), 'scopes'] as const,
   },
+  webhooks: {
+    all: (tenantId: string) => [tenantId, 'webhooks'] as const,
+    list: (tenantId: string) => [...queryKeys.webhooks.all(tenantId), 'list'] as const,
+    events: (tenantId: string) => [...queryKeys.webhooks.all(tenantId), 'events'] as const,
+    deliveries: (tenantId: string, webhookId: string) =>
+      [...queryKeys.webhooks.all(tenantId), 'deliveries', webhookId] as const,
+  },
   reports: {
     all: (tenantId: string) => [tenantId, 'reports'] as const,
     catalogue: (tenantId: string) => [...queryKeys.reports.all(tenantId), 'catalogue'] as const,
@@ -115,6 +122,21 @@ export const queryKeys = {
       [...queryKeys.reports.all(tenantId), 'records', key, query] as const,
     dashboard: (tenantId: string, period: string) =>
       [...queryKeys.reports.all(tenantId), 'dashboard', period] as const,
+  },
+  /** Report and ticket-list exports (M3-09): one queued file, polled until it is ready. */
+  exports: {
+    all: (tenantId: string) => [tenantId, 'exports'] as const,
+    detail: (tenantId: string, id: string) => [...queryKeys.exports.all(tenantId), 'detail', id] as const,
+  },
+  /** Entity 360 (M3-21): overviews and the change history of any recorded record. */
+  entity360: {
+    all: (tenantId: string) => [tenantId, 'entity360'] as const,
+    overview: (tenantId: string, entity: string, id: string) =>
+      [...queryKeys.entity360.all(tenantId), 'overview', entity, id] as const,
+    changes: (tenantId: string, type: string, id: string) =>
+      [...queryKeys.entity360.all(tenantId), 'changes', type, id] as const,
+    asOf: (tenantId: string, type: string, id: string, at: string) =>
+      [...queryKeys.entity360.all(tenantId), 'as-of', type, id, at] as const,
   },
   settings: {
     all: (tenantId: string) => [tenantId, 'settings'] as const,

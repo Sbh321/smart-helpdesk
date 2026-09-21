@@ -228,6 +228,34 @@ tables in full. MSW: `src/test/msw/reports.ts` (catalogue of ten real definition
 backend, deterministic runs, records, dashboard) records the run bodies and records queries for tests.
 The series chart chunk is about 410 kB (Recharts) and is loaded only by the dashboard and report routes.
 
+M3-21 adds Entity 360 to `features/reports` (as the layout above foresaw). `useEntityTabs(entity, id, workspace)`
+returns the Overview and History sections a session may read (`OVERVIEW_PERMISSION`; `canViewHistory` mirrors
+the history API: `tickets.view`, the subject's view permission, then `history.view`, or `comments.internal`
+for tickets), and the route passes them into the owning feature's screen through a `tabs` prop, because
+features may not import one another's screens: contacts and organisations wrap their form in the shared
+`DetailTabs` (`components/shared/detail-tabs.tsx`: no tab list when there are no extra sections), the ticket
+screen appends them to its own tabs. Agents, Teams and Categories are edited in Settings, so they get
+read-only routes `/$workspace/{agents,teams,categories}/$id` (`EntityRecordScreen`: title from the overview,
+back to the settings list), linked from the settings lists (`DirectoryTable.renderName`, `RecordLink`) and
+from report drill-downs. The Overview (`entity-overview-panel.tsx`) is loaded with `React.lazy`, so Recharts
+stays out of the record pages until the tab is opened: `KpiTile`s per entity metric (units in
+`METRICS`), related records in the shared `DataTable` over rows in hand (`LocalTable`), trends as a
+`SeriesChart` in a `ChartCard`, and for tickets the lifecycle trace (one row per interval, bar length its
+share of the ticket's life, the open interval marked "Still running"; the interval table is the chart's
+alternative). The History tab (`entity-history-panel.tsx`) merges the change log (`GET /v1/history/{type}/{id}`,
+cursor pages) with, for tickets, the domain events of `/tickets/{id}/history`: two cursor streams shown
+newest first, cut at the oldest item a stream with more pages has loaded, so "Load older" never inserts
+above what was read. Each entry names the actor (you, an Agent's name from the directory, otherwise a
+short id; API client, system) and the old → new values in words (`entity-history.ts`:
+`attributeLabel`, `formatAttributeValue` — relation ids become names through the cached option queries in
+`useRecordNames`, enumerations their labels, instants the workspace zone, structured values "updated").
+The as-of view reads a `datetime-local` value as a wall time in the workspace zone (`zonedInputToIso` in
+`lib/datetime/format.ts`), calls `/as-of`, and shows "did not exist", or the differences from now and all
+recorded fields then; each change offers "See the record just before this change". A 403 shows a
+sentence instead of an error. Emails and audit entries are not in the timeline yet: their endpoints arrive
+with M3-19 and M3-03. MSW: `src/test/msw/history.ts` (overviews for all six entities, a contact that moved
+organisation twice, an organisation with 60 changes, the as-of view as the real backward replay).
+
 ## Runtime configuration
 
 The SPA reads `/config.json` (served by Caddy from an env-templated file) at boot: `apiBaseUrl` (`https://api.shp.subhambhandari.com.np`; `/api` in single-host mode), `appMode` (`tenant` on `app`, `platform` on `admin`), `platformDomain`, `storagePublicEndpoint`, `realtime` (enabled, host, key). Nothing environment-specific is baked at build time, so one image serves every deployment.

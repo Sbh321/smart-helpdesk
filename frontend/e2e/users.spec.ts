@@ -61,7 +61,7 @@ test('an invited user is pending until they accept, then works with the invited 
   await guest.getByLabel('Confirm password').fill('a-long-password-1')
   await guest.getByRole('button', { name: 'Create my account' }).click()
   await expect(guest).toHaveURL(new RegExp(`/${workspace}/?$`))
-  await expect(guest.getByRole('link', { name: 'Tickets' })).toBeVisible()
+  await expect(guest.getByRole('link', { name: 'Tickets', exact: true })).toBeVisible()
   await expect(guest.getByRole('link', { name: 'Settings' })).toHaveCount(0)
 
   await page.reload()

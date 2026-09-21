@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate, useRouter } from '@tanstack/react-router'
-import { ArrowLeftIcon, FileSpreadsheetIcon, PrinterIcon } from 'lucide-react'
-import { useId } from 'react'
+import { ArrowLeftIcon, PrinterIcon } from 'lucide-react'
 import { SelectFilter } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
@@ -12,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { copy, fill } from '@/copy/en'
 import { useCan, useSession } from '@/lib/auth'
+import { exportReport } from '../api/export-queries'
 import { type ReportDefinition, type ReportRow, reportQueries } from '../api/report-queries'
 import { chartKindFor, chartMeasuresFor } from '../chart-choice'
 import { describeChange, formatMeasure } from '../format'
@@ -22,6 +22,7 @@ import {
   toReportSearch,
   toRunBody,
 } from '../report-params'
+import { ExportControls } from './export-controls'
 import { HeatmapChart } from './heatmap-chart'
 import { ParameterBar } from './parameter-bar'
 import { RecordsDialog } from './records-dialog'
@@ -110,7 +111,7 @@ function ReportView({
 }) {
   const router = useRouter()
   const navigate = useNavigate()
-  const exportHintId = useId()
+  const canExport = useCan('reports.export')
   const timeZone = useSession().session?.tenant.timezone ?? 'UTC'
   const filterKeys = definition.filters.map((filter) => filter.key)
   const rawSearch = useLocation({ select: (location) => location.search }) as Record<string, unknown>
@@ -159,31 +160,12 @@ function ReportView({
               {text.print}
             </Button>
             {/* Exports are queued jobs delivered through the media library (roadmap M3-09). */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled
-              title={text.export.pending}
-              aria-describedby={exportHintId}
-            >
-              <FileSpreadsheetIcon aria-hidden="true" />
-              {text.export.csv}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled
-              title={text.export.pending}
-              aria-describedby={exportHintId}
-            >
-              <FileSpreadsheetIcon aria-hidden="true" />
-              {text.export.xlsx}
-            </Button>
-            <span id={exportHintId} className="text-xs text-muted-foreground">
-              {text.export.pending}
-            </span>
+            {canExport ? (
+              <ExportControls
+                className="flex flex-wrap items-center gap-2"
+                onRequest={(format) => exportReport(definition.key, format, toRunBody(params))}
+              />
+            ) : null}
           </div>
         }
       />

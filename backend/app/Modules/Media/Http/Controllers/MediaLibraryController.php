@@ -135,6 +135,9 @@ final class MediaLibraryController
         abort_unless($media->state === 'ready', 404);
 
         $user = $request->user();
+        // Someone else's generated file (a report export) does not exist for this reader, like
+        // someone else's export at `GET /v1/exports/{export}`.
+        abort_if($media->source === 'system' && $user instanceof User && $media->uploaded_by_user_id !== $user->id, 404);
         if (! $user instanceof User || ! $uses->canDownload($user, $media)) {
             throw new AuthorizationException('You cannot open a file that is only attached to records you cannot see.');
         }

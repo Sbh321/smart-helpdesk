@@ -679,9 +679,13 @@ As built (M2-13): a surrogate `id` primary key; `(tenant_id, ticket_id)` is uniq
 | id, tenant_id | uuid | |
 | report_key, parameters, format (`csv`, `xlsx`) | | `report_key` is a catalogue id or `tickets-list` |
 | state | varchar(10) | `queued, running, ready, failed` |
-| media_item_id | uuid | N, FK media_items (folder `Reports`) |
-| requested_by_user_id | uuid | |
-| row_count | integer | N |
+| media_item_id | uuid | N, FK media_items (folder `Reports`), `ON DELETE SET NULL (media_item_id)` |
+| requested_by_user_id | uuid | FK users, cascade |
+| row_count | integer | N; data rows, without header and `Total` |
+| error | varchar(40) | N; `too_large, quota_exceeded, forbidden, failed` |
+| started_at, finished_at | timestamptz | N |
+
+Index `(tenant_id, requested_by_user_id, created_at)`; not reportable (no change capture), like `notifications`. As built: M3-09, [reporting.md](../04-domain/reporting.md#as-built-m3-09).
 
 `sessions` gains `tenant_id` (central table, no RLS, see [ADR-0021](../adr/0021-host-layout-and-tenant-resolution.md)).
 

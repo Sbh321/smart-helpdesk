@@ -42,6 +42,7 @@ enum ErrorCode: string
     case InvalidScope = 'invalid_scope';
     case UnsupportedGrantType = 'unsupported_grant_type';
     case IdempotencyKeyReused = 'idempotency_key_reused';
+    case WebhookUrlRejected = 'webhook_url_rejected';
     case DeliveryNotRetryable = 'delivery_not_retryable';
 
     public function status(): int
@@ -58,7 +59,7 @@ enum ErrorCode: string
             self::SessionExpired => 419,
             self::ValidationFailed, self::InvalidTransition, self::NoEligibleAgent, self::QuotaExceeded,
             self::DuplicateTargetInvalid, self::LastOwner, self::ResolutionCommentRequired, self::SlaTargetMissing,
-            self::SettingsInvalid, self::IdempotencyKeyReused => 422,
+            self::SettingsInvalid, self::IdempotencyKeyReused, self::WebhookUrlRejected => 422,
             self::RateLimited => 429,
             self::InternalError => 500,
             self::StorageUnavailable => 502,
@@ -101,6 +102,7 @@ enum ErrorCode: string
             self::InvalidScope => 'The requested scope is not allowed',
             self::UnsupportedGrantType => 'Unsupported grant type',
             self::IdempotencyKeyReused => 'The idempotency key was used for a different request',
+            self::WebhookUrlRejected => 'The webhook URL is not allowed',
             self::DeliveryNotRetryable => 'The delivery cannot be retried',
         };
     }

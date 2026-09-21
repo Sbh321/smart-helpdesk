@@ -93,6 +93,23 @@ return [
     'shifts' => ['enforce' => false],
     'features' => ['realtime' => false, 'exports' => true],
 
+    // Outbound webhooks (docs/07-api/webhooks.md).
+    'webhooks' => [
+        'timeout_seconds' => 10,
+        'connect_timeout_seconds' => 5,
+        // Ports a production webhook URL may use; the scheme must be https.
+        'allowed_ports' => [443, 8443],
+        // Development only: host names (e.g. the Compose `webhook-echo` service) that skip the https,
+        // port and private-address checks. Ignored when APP_ENV=production. Never list IP ranges here.
+        'dev_allowed_hosts' => array_values(array_filter(array_map('trim', explode(',', (string) env('WEBHOOK_DEV_ALLOWED_HOSTS', ''))))),
+        'jitter' => 0.2,
+        'auto_disable_after' => 20,
+        'max_manual_retries' => 5,
+        'retention_days' => 30,
+        'max_payload_bytes' => 256 * 1024,
+        'response_excerpt_bytes' => 1024,
+    ],
+
     'media' => [
         // Storage disk; null follows FILESYSTEM_DISK (s3 in dev/production, local under test).
         'disk' => env('MEDIA_DISK'),

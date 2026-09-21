@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Notifications;
 
 use App\Modules\Automation\Events\NoEligibleAgent;
+use App\Modules\Notifications\Listeners\SendExportNotifications;
 use App\Modules\Notifications\Listeners\SendTicketNotifications;
+use App\Modules\Reporting\Events\ReportExportReady;
 use App\Modules\Sla\Events\SlaBreached;
 use App\Modules\Sla\Events\SlaWarning;
 use App\Modules\Tickets\Events\CommentAdded;
@@ -28,5 +30,6 @@ final class NotificationsServiceProvider extends ModuleServiceProvider
         Event::listen(SlaBreached::class, [SendTicketNotifications::class, 'slaBreached']);
         Event::listen(PriorityChanged::class, [SendTicketNotifications::class, 'priorityChanged']);
         Event::listen(NoEligibleAgent::class, [SendTicketNotifications::class, 'unassignable']);
+        Event::listen(ReportExportReady::class, [SendExportNotifications::class, 'ready']);
     }
 }

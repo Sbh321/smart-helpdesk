@@ -176,3 +176,14 @@ it('never exposes a tenant route without tenant resolution', function (): void {
 
     expect($unresolved)->toBe([]);
 });
+
+it('requires reports.export on every export route', function (): void {
+    $routes = collect(tenantApiRoutes())->keyBy(fn (Route $route): string => routeName($route));
+
+    foreach (['reports.exports.store', 'exports.tickets', 'exports.show'] as $name) {
+        expect($routes)->toHaveKey($name)
+            ->and(routePermissions($routes[$name]))->toContain('reports.export');
+    }
+    expect(routePermissions($routes['exports.tickets']))->toContain('tickets.view')
+        ->and(routePermissions($routes['reports.exports.store']))->toContain('reports.view');
+});

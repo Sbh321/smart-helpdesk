@@ -92,6 +92,7 @@ Everything here is deliberately **not** in the MVP ([mvp-scope.md](../docs/02-pr
 | V1-DP-03 | SDKs (TypeScript, PHP) generated from OpenAPI | | | Scramble document | S |
 | V1-DP-04 | API usage analytics and per-client quotas | | | rate-limit keys per client | S |
 | V1-DP-05 | Event outbox with exactly-once delivery guarantees | | at-least-once with idempotency keys in MVP | `webhook_deliveries` | M |
+| V1-DP-06 | Notify workspace admins when a webhook is auto-disabled | in-app and mail notice after 20 consecutive failures | the MVP records `webhook.disabled` (actor `system`) in the audit log and shows the state in Settings → Webhooks | `RecordDeliveryOutcome`, `SetWebhookActive`, Notifications module | S |
 
 ## Frontend and DX
 

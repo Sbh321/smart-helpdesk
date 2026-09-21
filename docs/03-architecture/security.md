@@ -153,6 +153,27 @@ Details in [07-api/authentication.md](../07-api/authentication.md) §3 As built.
 - `integrations.manage` (owner, admin, developer) manages clients in Settings → API clients; every
   create and revoke is audited (`api_client.created`, `api_client.revoked`).
 
+## Webhook SSRF guard as built (M3-05)
+
+`Integrations\Webhooks\UrlGuard` runs when a webhook URL is saved (422 `webhook_url_rejected`) and again
+right before every delivery (the delivery fails with `url_rejected: <reason>`), because DNS may change:
+
+- `https` only, no user info, port 443 or 8443, and not one of the platform's own hosts
+  (`PLATFORM_DOMAIN` and subdomains, `localhost`, `*.localhost`);
+- every A and AAAA record must be public unicast (`IpAddressPolicy`): loopback, RFC 1918, CGNAT,
+  link-local including the cloud metadata address `169.254.169.254`, multicast, documentation and reserved
+  ranges are refused, for IPv6 too (`::1`, ULA `fc00::/7`, link-local `fe80::/10`, …), and an IPv4 address
+  embedded in IPv6 (mapped, NAT64, 6to4) is checked as IPv4; an unresolvable host is refused;
+- the request connects to the address that was checked (`CURLOPT_RESOLVE`), so a DNS rebinding between
+  the check and the send cannot move it; redirects are not followed (a 3xx is a failed attempt); timeout
+  10 s; at most 1 KB of the response is read.
+
+`WEBHOOK_DEV_ALLOWED_HOSTS` (`helpdesk.webhooks.dev_allowed_hosts`) lists host names — never ranges — that
+skip the scheme, port and address checks in development (the Compose `webhook-echo` service). It is
+ignored when `APP_ENV=production`. Secrets are 32 random bytes (base64), stored with the `encrypted` cast,
+returned only by the create and rotate responses, and never written to logs or audit entries. Tests:
+`tests/Unit/Integrations/IpAddressPolicyTest.php`, `tests/Feature/Integrations/WebhookUrlGuardTest.php`.
+
 ## Security headers (Caddy)
 
 `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy` (SPA: `default-src 'self'; img-src 'self' data: <storage-endpoint>; connect-src 'self' <storage-endpoint> wss://<host>`), `Permissions-Policy` minimal.

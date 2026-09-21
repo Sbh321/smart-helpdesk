@@ -54,7 +54,7 @@ final class TicketController
     #[QueryParameter('include', 'Any of contact, organization, category, tags.', type: 'string')]
     public function index(IndexTicketsRequest $request): AnonymousResourceCollection
     {
-        return TicketResource::collection((new TicketListQuery($request))->paginate());
+        return TicketResource::collection((new TicketListQuery($request->criteria()))->paginate($request->perPage()));
     }
 
     /**

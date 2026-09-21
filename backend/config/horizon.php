@@ -100,6 +100,7 @@ return [
 
     'waits' => [
         'redis:default' => 60,
+        'redis:webhooks' => 120,
     ],
 
     /*
@@ -227,6 +228,21 @@ return [
             'timeout' => 80,
             'nice' => 10,
         ],
+        // Outbound webhooks (docs/07-api/webhooks.md): a slow receiver waits up to 10 s, so deliveries
+        // get their own processes and never hold up SLA, notification or report jobs.
+        'supervisor-webhooks' => [
+            'connection' => 'redis',
+            'queue' => ['webhooks'],
+            'balance' => 'simple',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 1,
+            // Above the job's own timeout (15 s), below the redis connection's retry_after (90 s).
+            'timeout' => 30,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -235,6 +251,9 @@ return [
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+            ],
+            'supervisor-webhooks' => [
+                'maxProcesses' => 4,
             ],
         ],
 

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { DataTable, dataTableColumnHelper } from '@/components/shared/data-table'
 import { Button } from '@/components/ui/button'
 import { copy } from '@/copy/en'
@@ -20,6 +21,7 @@ export function DirectoryTable<TSort extends string>({
   defaultSort,
   sortableName,
   onEdit,
+  renderName,
 }: {
   id: string
   label: string
@@ -29,12 +31,15 @@ export function DirectoryTable<TSort extends string>({
   defaultSort: SortSpec<TSort>
   sortableName: boolean
   onEdit?: (id: string) => void
+  /** The name cell, for example a link to the record's page (M3-21); plain text by default. */
+  renderName?: (row: DirectoryRow) => ReactNode
 }) {
   const columns = helper.columns([
     helper.accessor('name', {
       enableSorting: sortableName,
       enableHiding: false,
       meta: { label: copy.settings.name, className: 'font-medium' },
+      ...(renderName ? { cell: (info) => renderName(info.row.original) } : {}),
     }),
     helper.accessor('details', {
       meta: { label: copy.settings.descriptionLabel },

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Notifications\Channels;
 
 use App\Models\User;
+use App\Modules\Notifications\Contracts\StorableNotification;
 use App\Modules\Notifications\Models\Notification as StoredNotification;
-use App\Modules\Notifications\Notifications\TicketNotification;
 use App\Support\Time\Clock;
 use Illuminate\Support\Str;
 
@@ -19,7 +19,7 @@ final readonly class TenantDatabaseChannel
 {
     public function __construct(private Clock $clock) {}
 
-    public function send(User $notifiable, TicketNotification $notification): void
+    public function send(User $notifiable, StorableNotification $notification): void
     {
         $now = $this->clock->now();
 
