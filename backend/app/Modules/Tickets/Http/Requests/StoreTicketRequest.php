@@ -15,6 +15,11 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 final class StoreTicketRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        return ! $this->filled('attachment_ids') || (bool) $this->user()?->can('media.view');
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -29,6 +34,8 @@ final class StoreTicketRequest extends FormRequest
             'urgency' => ['required', 'integer', 'between:1,4'],
             'tags' => ['sometimes', 'array', 'max:20'],
             'tags.*' => ['string', 'max:40'],
+            'attachment_ids' => ['sometimes', 'array', 'max:50'],
+            'attachment_ids.*' => ['uuid', 'distinct'],
         ];
     }
 

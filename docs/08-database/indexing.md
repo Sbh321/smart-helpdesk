@@ -57,9 +57,9 @@ Expected plan at 100 k tickets/tenant: Index Scan on `tickets_tenant_status_prio
 | business_calendars / calendar_holidays | partial UNIQUE default; UNIQUE `(calendar_id, date)` | SLA arithmetic |
 | agent_shifts | `(tenant_id, agent_profile_id, weekday)`; `(tenant_id, date)` | eligibility check |
 | entity_changes | UNIQUE `(entity_type, entity_id, version)`; `(tenant_id, entity_type, entity_id, occurred_at DESC)`; `(tenant_id, occurred_at DESC)`; `(tenant_id, actor_id, occurred_at DESC)` | history timelines, as-of replay, activity reports |
-| report_ticket_intervals | UNIQUE `(ticket_id, seq)`; GiST `(tenant_id, tstzrange(starts_at, ends_at))` (btree_gist); `(tenant_id, assigned_agent_id, starts_at)`; partial `(tenant_id, status) WHERE ends_at IS NULL` | backlog at an instant, workload over time, current state |
+| report_ticket_intervals | UNIQUE `(tenant_id, ticket_id, seq)`; GiST `(tenant_id, tstzrange(starts_at, ends_at))` (btree_gist); `(tenant_id, assigned_agent_id, starts_at)`; partial `(tenant_id, status) WHERE ends_at IS NULL` | backlog at an instant, workload over time, current state |
 | report_ticket_facts | `(tenant_id, created_at)`; `(tenant_id, resolved_at)`; `(tenant_id, team_id, created_at)`; `(tenant_id, assigned_agent_id, resolved_at)`; `(tenant_id, organization_id, created_at)` | report filters |
-| report_daily_snapshots | PK `(tenant_id, day, dimension, dimension_key)` | trends |
+| report_daily_snapshots | UNIQUE `(tenant_id, day, dimension, dimension_key)` | trends |
 | inbound_emails | UNIQUE `(message_id)`; `(tenant_id, received_at DESC)`; `(state) WHERE state IN ('unrouted','failed')` | idempotency, inbound log |
 | ticket_events | `(tenant_id, ticket_id, created_at DESC, id)` | history cursor feed |
 | ticket_events | `(tenant_id, created_at) WHERE type IN ('sla_breached','sla_warning')` | analytics breach counts |
@@ -71,7 +71,7 @@ Expected plan at 100 k tickets/tenant: Index Scan on `tickets_tenant_status_prio
 
 | Index | Definition | Serves |
 |---|---|---|
-| `ticket_sla_timers_ticket_kind_cycle_key` | UNIQUE `(ticket_id, kind, cycle)` | invariant, lookup |
+| `ticket_sla_timers_tenant_ticket_kind_cycle_key` | UNIQUE `(tenant_id, ticket_id, kind, cycle)` | tenant-safe invariant, lookup |
 | `ticket_sla_timers_due_pidx` | `(due_at) WHERE state IN ('running','warning')` | breach sweep range scan (global across tenants) |
 | `ticket_sla_timers_warning_pidx` | `(warning_at) WHERE state = 'running'` | warning sweep |
 | `ticket_sla_timers_tenant_state_idx` | `(tenant_id, kind, state)` | `filter[sla_state]`, compliance analytics |
@@ -103,9 +103,12 @@ The sweep runs as the app role with `app.current_tenant` unset per tenant iterat
 | `users_tenant_email_key` | UNIQUE `(tenant_id, lower(email))` | login |
 | `users_tenant_active_idx` | `(tenant_id, is_active)` | user list |
 | `invitations_token_hash_key` | UNIQUE `(token_hash)` | accept |
-| `agent_profiles_user_key` | UNIQUE `(user_id)` | |
+| `agent_profiles_tenant_id_user_id_unique` | UNIQUE `(tenant_id, user_id)` | one profile per User in a tenant |
 | `agent_profiles_tenant_avail_idx` | `(tenant_id, availability, active_ticket_count)` | eligibility scan |
-| `agent_skills`, `team_members`, `category_skill` | PKs plus reverse `(skill_id)`, `(agent_profile_id)`, `(skill_id)` btree | joins from either side |
+| `agent_skills_tenant_skill_idx` | `(tenant_id, skill_id)` | skill-to-Agent joins |
+| `team_members_tenant_agent_idx` | `(tenant_id, agent_profile_id)` | Agent-to-Team joins |
+| `agent_shifts_tenant_agent_weekday_idx`, `agent_shifts_tenant_date_idx` | `(tenant_id, agent_profile_id, weekday)`; `(tenant_id, date)` | shift eligibility and exception lookup |
+| `category_skill` | PK `(tenant_id, category_id, skill_id)` | Category required skills |
 | `model_has_roles` | PK `(tenant_id, role_id, model_id, model_type)`; `(tenant_id, model_id)` | permission loading |
 | `roles_tenant_name_guard_key` | UNIQUE `(tenant_id, name, guard_name)` with `NULLS NOT DISTINCT` | global vs tenant roles |
 | `domains_domain_key` | UNIQUE `(domain)` | host resolution |

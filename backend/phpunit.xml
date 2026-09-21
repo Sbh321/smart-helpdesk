@@ -24,13 +24,24 @@
         <testsuite name="Isolation">
             <directory>tests/Isolation</directory>
         </testsuite>
+        <!-- Group `performance` is excluded below, so a plain run skips this suite; the command is in the test file. -->
+        <testsuite name="Performance">
+            <directory>tests/Performance</directory>
+        </testsuite>
     </testsuites>
+    <groups>
+        <exclude>
+            <group>performance</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>
         </include>
     </source>
     <php>
+        <!-- One process runs about 1 200 tests; PHP's default 256M runs out near the end of the suite. -->
+        <ini name="memory_limit" value="1G"/>
         <!-- <server> because Laravel reads $_SERVER first and Compose injects backend/.env into the container. -->
         <server name="APP_ENV" value="testing" force="true"/>
         <server name="APP_URL" value="https://api.shp.localhost" force="true"/>

@@ -40,6 +40,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  optimizeDeps: {
+    include: ['@base-ui/react/tabs'],
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,

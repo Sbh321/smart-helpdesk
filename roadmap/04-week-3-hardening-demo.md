@@ -1,5 +1,7 @@
 # Milestone 3 — Hardening, developer platform and demo
 
+**Milestone status:** `[~]` In progress — 6 of 21 tasks done (M3-17 inside M2-12, M3-01, M3-02, M3-04, M3-10, M3-20); M3-05 paused with a draft outside the repository.
+
 Goal: productise (dashboard, API clients, webhooks, docs), harden (RLS, security review, performance), deploy (prod Compose, Ansible, OpenTofu), evaluate (experiments), and make the demo bullet-proof. Exit criteria: [00-mvp-definition.md](00-mvp-definition.md).
 
 ## Track plan
@@ -17,7 +19,8 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 
 ## Epic H1 — Reporting, dashboard and audit
 
-### `[ ]` M3-02 Report catalogue and runner — L, critical
+### `[x]` M3-02 Report catalogue and runner — L, critical
+- **Done (2026-09-21):** `ReportDefinition` contract, `SqlReport` base, `ReportRunner` (periods, custom ranges up to two years, group, measures, filters, comparison suppressed below 5 records, 5-minute cache per workspace), `GET /v1/reports`, `/{report}`, `POST /{report}/run`, `GET /{report}/records` (drill-down), entity overview endpoints for tickets, contacts, organisations, agents, teams and categories. 28 catalogue reports: T01–T11, C01–C04, A01–A06, S01–S04, M01, G01, G02; C05, C06, A07 and T12 are the overview endpoints; E01, I01 and I02 arrive with M3-19, M3-05 and M3-04. Acceptance: every report runs with its defaults in under 1 s on the seeded test workspace, and each report's key totals equal an independent SQL or PHP computation; unknown dimension, measure, filter or period → 422; an agent without `contacts.view` neither lists nor runs contact reports. 130 reporting tests. Decisions and gaps: reporting.md §As built (M3-02).
 - **Do:** `ReportDefinition` contract; `ReportRunner` (allow-listed dimensions/measures/filters → parameterised SQL over read models and history; period comparison; tenant scope; row caps; 5-minute cache); all catalogue entries in [reporting.md](../docs/04-domain/reporting.md) (tickets, contacts/organisations, agents/teams, SLA, email, media, integrations, administration); drill-down record queries; entity overview endpoints; permission filtering (`reports.view`, `history.view`, entity view permissions); endpoints in [conventions.md](../docs/07-api/conventions.md) §Notifications, reports, history, exports.
 - **Acceptance:** every catalogue report runs on the demo seed within 1 s (p95) and its totals match independent SQL; unknown dimension → 422; an agent without `contacts.view` does not see contact reports.
 - **Depends:** M2-13, M2-05, M2-08
@@ -25,7 +28,8 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 - **Tests:** one feature test per report (shape and a known total); permission and isolation tests; ≈ 60 tests.
 - **Docs:** reporting.md catalogue marked implemented; API docs.
 
-### `[ ]` M3-01 Dashboard — M
+### `[x]` M3-01 Dashboard — M
+- **Done (2026-09-21):** `GET /v1/dashboard?period=` composed from catalogue reports through `ReportRunner` (8 KPI tiles with the previous period, 6 series, each naming its report; only what the caller may run). SPA: dashboard with KPI tiles, six Recharts charts themed from tokens (dark mode) with table alternatives, period in the URL, links into the full reports. Acceptance: every tile and series equals the corresponding catalogue run (feature tests); charts themed in dark mode; axe clean. Live on the dev stack. Screenshots for the report are left for M3-15.
 - **Do:** `GET /v1/dashboard` composed from catalogue reports (KPIs and six series); UI: KPI tiles, six charts via shadcn `chart` (Recharts) with accessible table fallbacks, period selector in URL, links into the full reports.
 - **Acceptance:** numbers equal the corresponding catalogue reports; charts themed in dark mode; axe clean.
 - **Depends:** M3-02
@@ -33,7 +37,8 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 - **Tests:** component test for a chart's table fallback; feature test for the endpoint.
 - **Docs:** functional-requirements FR-ANL confirmed; dashboard screenshots for the report.
 
-### `[ ]` M3-20 Reports UI — XL, critical
+### `[x]` M3-20 Reports UI — XL, critical
+- **Done (2026-09-21):** Reports section: catalogue grouped by group, report page with parameter bar (period presets, custom range, comparison, group-by, filters) in the URL, KPI tiles, chart per definition (bar, line/area, heatmap, histogram, table), shared DataTable, drill-down dialog, print stylesheet; export buttons wait for M3-09; saved reports (Should) skipped. Acceptance: reports render against MSW fixtures and live on the dev stack; drill-down lands on the records; axe clean on three reports (bar, area, heatmap). Found live: cached report results came back as incomplete objects (the cache refuses application classes); results are now cached as arrays, with a regression test on the redis store. Known gaps: the SPA hard-codes the "describes now" reports (rpt-t05, rpt-s04); stacked_area draws overlapping areas.
 - **Do:** Reports section: catalogue grouped by entity; report page with parameter bar (period, comparison, group-by, filters) stored in the URL; KPI tiles with change against the previous period; chart per definition (bar, line, stacked area, heatmap, histogram, table); data table with the same numbers; drill-down to record lists; export buttons; print stylesheet; saved reports (Should); loading, empty and error states; accessible chart tables.
 - **Acceptance:** every catalogue report renders on the demo seed; drill-down from a number lands on the matching records; export produces a file; axe clean on three representative reports.
 - **Depends:** M3-02, M1-14
@@ -59,7 +64,8 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 
 ## Epic H2 — Developer platform
 
-### `[ ]` M3-04 API clients with OAuth2 client credentials — L, time-boxed 1 day
+### `[x]` M3-04 API clients with OAuth2 client credentials — L, time-boxed 1 day
+- **Done (2026-09-21):** Passport 13.8 for the token endpoint, JWTs and hashed secrets; our own `ApiClientGuard` (tenant from the stored token, revoked clients rejected on the next request), `Gate::before` from `Integrations\Domain\ScopeMap`, per-route opt-in for clients. `POST /oauth/token` (client_credentials only; unknown or ungranted scope → 400 `invalid_scope`), `GET/POST /v1/api-clients`, `POST /v1/api-clients/{client}/revoke` (secret shown once, audited), throttles 10 token requests and 120 calls a minute per client, `Idempotency-Key` on `POST /v1/tickets` and `/v1/contacts`, change-capture and audit actor `api_client`, Settings → API clients in the SPA. The Sanctum fallback was not needed (ADR-0007 Outcome). Acceptance, live on the dev stack with curl: token → `POST /v1/tickets` → 201 with `created_via=api` and actor `api_client`; token of workspace A on B → 401; revoked client → 401 at once; replayed Idempotency-Key → same response, one ticket. Tests: 47 backend, 4 browser plus an axe scan. Gap: ticket edits, transitions, comments and media stay SPA-only (MVP-SHORTCUT in Tickets routes).
 - **Do:** Passport install without `passport:install` clients; `oauth_clients.tenant_id` + scopes; client-credentials grant; scope ↔ permission mapping middleware; multi-guard (`auth:sanctum,api`) on `/v1` with `EnsureTenantMembership` handling clients; `POST/GET/DELETE /v1/api-clients` (secret shown once, audit); per-client throttle; `Idempotency-Key` for `POST /tickets` (Should); UI: Settings → Developer → API clients; docs page snippet with curl.
 - **Acceptance:** `POST /oauth/token` → bearer → `POST /v1/tickets` creates a ticket with `created_via=api` and `actor_type=api_client`; token from tenant A rejected on tenant B host; revoked client rejected.
 - **Depends:** M1-09, M1-13
@@ -69,6 +75,7 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 - **Fallback (when the one-day time box ends):** Sanctum tokens on an `ApiClient` model with the same abilities and endpoints; ADR-0007 updated with the outcome.
 
 ### `[ ]` M3-05 Webhooks — L, critical
+- **Paused (2026-09-21):** a first backend draft (migration, models, signer, SSRF guard, retry schedule, job, listeners, API, tests) was interrupted by a network failure before it passed the gates. It was set aside so the tree could be committed green: the files are kept outside the repository in `../smart-helpdesk-m3-05-webhooks-draft.tgz` (new files at their paths, plus `shared-files/` with the versions of the shared files it had edited). Resume from that draft; nothing of it is in the repository.
 - **Do:** migrations (webhook_subscriptions with encrypted secret, webhook_deliveries); subscription CRUD API + test-delivery endpoint; listeners mapping domain events to the catalogue in [integrations.md](../docs/04-domain/integrations.md); `DeliverWebhook` job on `webhooks` queue with signing, 10 s timeout, SSRF guard, retry schedule (1m, 5m, 30m, 2h, 12h), dead state, auto-disable after 20 consecutive failures; delivery log API with manual retry; `webhooks:prune` daily; `tools/webhook-echo` container (Node, verifies signature, prints); UI: Settings → Developer → Webhooks (form, events checklist, secret reveal once, delivery log table with retry, enable/disable).
 - **Acceptance:** resolving a ticket produces a signed delivery verified by webhook-echo; a failing URL follows the retry schedule (tested with `FrozenClock` + `Queue::fake`); private IP URL rejected; replay outside 5 min rejected by the sample verifier.
 - **Depends:** M3-04, M1-17
@@ -141,7 +148,8 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 
 ## Epic H4 — Evaluation and performance
 
-### `[ ]` M3-10 Algorithm experiments — L
+### `[x]` M3-10 Algorithm experiments — L
+- **Done (2026-09-21):** datasets v1 (workload 8 agents × 500 tickets, 300 labelled duplicate pairs + 5 000-ticket haystack, 12 priority scenarios, 10 SLA timelines), `experiment:generate-*`, `experiment:run {e1,e2,e3,e4,e6,all} --strategy=baseline --seed=42` writing CSV, summary and `run.json`, random and round-robin comparison policies, `experiments/plots.py` (matplotlib 3.11.2, researched), `just reproduce` (~35 s). Results (seed 42): E1 baseline 0 capacity overflows (random 74, round robin 36), time-averaged Jain 0.97; E2 best threshold 0.30 → test F1 0.84, Recall@5 0.92; E3 12/12 scenarios; E4 10/10 timelines; E6 1 000/1 000 reconstructions, 300/300 tickets and 90/90 days agree, capture ≈ +0.2 ms per ticket update. Tables T1–T11 and plots 1–10 mapped in result-analysis-plan.md; T9 and plot 9 are filled by M3-11. Reproducibility test: two runs with seed 42 are byte-identical. Carried over: pasting the tables into `report/` (M3-15); E6 runs on 300 tickets, not 10 000 (stated in its run.json). Recommendation, not applied: lower the duplicate threshold default to 0.30 once real data confirms it.
 - **Do:** dataset generators and scenario files per [evaluation-methodology.md](../docs/05-algorithms/evaluation-methodology.md); `experiment:run {e1..e6} --strategy=baseline --seed=42` writing CSV/JSON and `run.json`; comparison policies for E1 (random, round robin); `experiments/plots.py`; `experiments/README.md`; reproducibility test; result tables pasted into the report sources.
 - **Acceptance:** `just reproduce` regenerates all tables T1–T11 and plots 1–10; results committed under `experiments/results/v1/`.
 - **Depends:** M2-04, M2-05, M2-10, M2-03
@@ -190,8 +198,9 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 - **Tests:** channel authorisation tests (cross-tenant denied).
 - **Docs:** realtime.md.
 
-### `[ ]` M3-17 Custom roles UI — S (Should, if not done in M2-12)
+### `[x]` M3-17 Custom roles UI — S (Should, if not done in M2-12)
 - See M2-12.
+- **Done (2026-09-21) in M2-12:** Settings → Roles with the custom role editor.
 - **Depends:** M1-09
 - **Track:** A
 

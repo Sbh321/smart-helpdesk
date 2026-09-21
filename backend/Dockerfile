@@ -19,7 +19,11 @@ WORKDIR /var/www/html
 FROM base AS development
 ARG USER_ID=1000
 ARG GROUP_ID=1000
-RUN docker-php-serversideup-set-id www-data ${USER_ID}:${GROUP_ID} \
+# pcov is the coverage driver chosen in docs/10-quality/testing.md. It stays off, so the dev server
+# pays nothing; `just coverage` turns it on for one test run.
+RUN install-php-extensions pcov \
+ && printf 'pcov.enabled=0\npcov.directory=/var/www/html/app\n' > /usr/local/etc/php/conf.d/zz-pcov.ini \
+ && docker-php-serversideup-set-id www-data ${USER_ID}:${GROUP_ID} \
  && docker-php-serversideup-set-file-permissions --owner ${USER_ID}:${GROUP_ID} --service nginx
 ENV PHP_OPCACHE_ENABLE=0
 USER www-data

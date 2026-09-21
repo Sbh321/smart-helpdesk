@@ -27,6 +27,7 @@ final readonly class AgentCandidate
         public bool $available = true,
         public bool $onShift = true,
         public ?DateTimeInterface $lastAssignedAt = null,
+        public ?string $name = null,
     ) {
         if ($openTickets < 0 || $capacity < 0) {
             throw new InvalidStrategySettings('Open tickets and capacity must not be negative.');

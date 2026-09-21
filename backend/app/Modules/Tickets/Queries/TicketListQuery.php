@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Tickets\Queries;
 
+use App\Modules\Agents\Models\AgentProfile;
 use App\Modules\Tickets\Domain\TicketStatus;
 use App\Modules\Tickets\Http\Requests\IndexTicketsRequest;
 use App\Modules\Tickets\Models\Ticket;
@@ -21,6 +22,12 @@ final readonly class TicketListQuery
     /** Effective level: a manual override wins over the computed level. */
     private const EFFECTIVE_PRIORITY = 'coalesce(priority_override_level, priority_level)';
 
+    /**
+     * The resolution timer of the ticket's latest cycle. Read by table name: Tickets does not import the
+     * Sla module, which depends on Tickets (docs/03-architecture/backend.md).
+     */
+    private const RESOLUTION_TIMER = "SELECT %s FROM ticket_sla_timers t WHERE t.tenant_id = tickets.tenant_id AND t.ticket_id = tickets.id AND t.kind = 'resolution' ORDER BY t.cycle DESC LIMIT 1";
+
     public function __construct(private IndexTicketsRequest $request) {}
 
     /**
@@ -28,15 +35,25 @@ final readonly class TicketListQuery
      */
     public function paginate(): LengthAwarePaginator
     {
-        $query = Ticket::query()->with($this->request->includes());
+        // The latest resolution timer's state and due time travel with each row (list-only fields).
+        $query = Ticket::query()->with($this->request->includes())
+            ->select('tickets.*')
+            ->selectRaw('('.sprintf(self::RESOLUTION_TIMER, 't.state').') AS sla_state')
+            ->selectRaw('('.sprintf(self::RESOLUTION_TIMER, "CASE WHEN t.state IN ('running', 'warning', 'breached', 'paused') THEN t.due_at END").') AS sla_due_at');
 
         $this->applyFilters($query);
         $ranked = $this->applySearch($query);
 
         if (! $ranked || $this->request->hasExplicitSort()) {
             foreach ($this->request->sortColumns() as [$column, $direction]) {
-                $expression = $column === 'priority_level' ? self::EFFECTIVE_PRIORITY : $column;
-                $query->orderByRaw("{$expression} {$direction}");
+                $expression = match ($column) {
+                    'priority_level' => self::EFFECTIVE_PRIORITY,
+                    // Tickets without a running resolution timer go last either way.
+                    'sla_due_at' => '('.sprintf(self::RESOLUTION_TIMER, "CASE WHEN t.state IN ('running', 'warning', 'breached', 'paused') THEN t.due_at END").')',
+                    default => $column,
+                };
+                $nulls = $column === 'sla_due_at' ? ' NULLS LAST' : '';
+                $query->orderByRaw("{$expression} {$direction}{$nulls}");
             }
         }
 
@@ -61,7 +78,7 @@ final readonly class TicketListQuery
             $query->whereIn(DB::raw(self::EFFECTIVE_PRIORITY), $priority);
         }
 
-        $this->applyNullableIds($query, 'assigned_agent_id', $this->request->filterValues('assignee_id'), 'unassigned');
+        $this->applyNullableIds($query, 'assigned_agent_id', $this->assignees(), 'unassigned');
         $this->applyNullableIds($query, 'team_id', $this->request->filterValues('team_id'), 'none');
 
         foreach (['category_id', 'organization_id', 'contact_id', 'impact', 'urgency', 'number'] as $column) {
@@ -85,10 +102,41 @@ final readonly class TicketListQuery
             $query->where('created_at', '>=', $from)->where('created_at', '<', $to);
         }
 
+        $slaStates = $this->request->filterValues('sla_state');
+        if ($slaStates !== []) {
+            $placeholders = implode(', ', array_fill(0, count($slaStates), '?'));
+            $query->whereRaw('('.sprintf(self::RESOLUTION_TIMER, 't.state').") IN ({$placeholders})", $slaStates);
+        }
+
+        if ($this->request->filterValues('has_duplicate_suggestion') === ['true']) {
+            $query->whereExists(fn ($exists) => $exists->selectRaw('1')->from('ticket_duplicate_suggestions as s')
+                ->whereColumn('s.tenant_id', 'tickets.tenant_id')->whereColumn('s.ticket_id', 'tickets.id')
+                ->where('s.decision', 'pending'));
+        }
+
         $since = $this->request->filterValues('updated_since')[0] ?? null;
         if ($since !== null) {
             $query->where('updated_at', '>=', CarbonImmutable::parse($since)->utc());
         }
+    }
+
+    /**
+     * `me` is the signed-in user's Agent profile; a user without one matches no ticket for it.
+     *
+     * @return list<string>
+     */
+    private function assignees(): array
+    {
+        $values = $this->request->filterValues('assignee_id');
+        if (! in_array('me', $values, true)) {
+            return $values;
+        }
+
+        $mine = AgentProfile::query()->where('user_id', $this->request->user()?->getAuthIdentifier())->value('id');
+        $values = array_values(array_diff($values, ['me']));
+
+        // The nil UUID matches nothing, so "me" never widens the filter when there is no profile.
+        return [...$values, is_string($mine) ? $mine : '00000000-0000-0000-0000-000000000000'];
     }
 
     /**

@@ -87,6 +87,34 @@ test('select-all fills the bulk bar with the page ids and clearing empties it', 
   await expect.element(bar).not.toBeInTheDocument()
 })
 
+test('a controlled selection keeps ids of other pages and reports all of them', async () => {
+  const onChange = vi.fn()
+  const { screen, table } = await renderTable({
+    selection: { ids: ['elsewhere', 'p2'], onChange },
+    bulkActions: ({ ids }) => <output>{ids.join(' ')}</output>,
+  })
+  const bar = screen.getByRole('region', { name: copy.dataTable.bulkActions })
+  await expect.element(bar.getByText(fill(copy.dataTable.selectedCount, { count: 2 }))).toBeVisible()
+  await expect.element(bar.getByText('elsewhere p2')).toBeVisible()
+  await expect
+    .element(table.getByRole('checkbox', { name: copy.dataTable.selectAll }))
+    .toHaveAttribute('aria-checked', 'mixed')
+
+  await table.getByRole('checkbox', { name: copy.dataTable.selectAll }).click()
+  expect(onChange).toHaveBeenLastCalledWith(['elsewhere', 'p2', 'p1', 'p3', 'p4', 'p5'])
+  await bar.getByRole('button', { name: copy.dataTable.clearSelection }).click()
+  expect(onChange).toHaveBeenLastCalledWith([])
+})
+
+test('default column visibility hides a column until the viewer turns it on', async () => {
+  const { screen, table } = await renderTable({ defaultColumnVisibility: { team: false } })
+  expect(table.getByRole('columnheader', { name: 'Team' }).query()).toBeNull()
+  await screen.getByRole('button', { name: copy.dataTable.columns }).click()
+  await screen.getByRole('menuitemcheckbox', { name: 'Team' }).click()
+  await expect.element(table.getByRole('columnheader', { name: 'Team' })).toBeVisible()
+  expect(JSON.parse(localStorage.getItem(columnVisibilityKey('people-test')) ?? '{}')).toEqual({ team: true })
+})
+
 test('sortable headers carry aria-sort and ask for the next sort; plain headers do not', async () => {
   const onStateChange = vi.fn()
   const { table } = await renderTable({ onStateChange, state: { page: 3, per_page: 25, sort: '-name' } })

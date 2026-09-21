@@ -6,6 +6,7 @@ namespace App\Modules\Audit\Actions;
 
 use App\Modules\Audit\Enums\ActorType;
 use App\Modules\Audit\Models\AuditLog;
+use App\Support\Auth\ApiClientPrincipal;
 use App\Support\Time\Clock;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -62,12 +63,14 @@ final readonly class RecordAuditLog
      */
     private function currentActor(): array
     {
-        // Platform guard and API clients are recognised once M1-07 and M3 add them.
+        // Platform admins pass their actor explicitly; API clients are the `api` guard's principal.
         $user = $this->auth->guard()->user();
 
-        return $user === null
-            ? [ActorType::System, null]
-            : [ActorType::User, (string) $user->getAuthIdentifier()];
+        return match (true) {
+            $user === null => [ActorType::System, null],
+            $user instanceof ApiClientPrincipal => [ActorType::ApiClient, $user->clientId()],
+            default => [ActorType::User, (string) $user->getAuthIdentifier()],
+        };
     }
 
     private function currentTenantId(): ?string

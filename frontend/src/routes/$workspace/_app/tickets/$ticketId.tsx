@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { copy } from '@/copy/en'
 import { TicketScreen } from '@/features/tickets'
 
-/** Ticket detail placeholder: fields and history (roadmap M1-17); the full page is milestone 2. */
+/** Ticket detail, lifecycle actions and history (roadmap M2-06). */
 export const Route = createFileRoute('/$workspace/_app/tickets/$ticketId')({
   component: TicketPage,
   staticData: { crumb: copy.tickets.detailTitle },

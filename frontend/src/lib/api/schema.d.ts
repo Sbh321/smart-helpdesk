@@ -4,6 +4,202 @@
  */
 
 export interface paths {
+    "/api-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the workspace's API clients, active ones first, newest first */
+        get: operations["api-clients.index"];
+        put?: never;
+        /** Create an API client. The response carries `client_secret`, which is shown only this once */
+        post: operations["api-clients.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api-clients/scopes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The scopes a client can be given, with a description each */
+        get: operations["api-clients.scopes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api-clients/{apiClient}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke an API client. Its tokens stop working immediately; the client cannot be restored */
+        post: operations["api-clients.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agents.index"];
+        put?: never;
+        post: operations["agents.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agents/available-users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agents.available-users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agents/{agent}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agents.show"];
+        put?: never;
+        post?: never;
+        delete: operations["agents.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["agents.update"];
+        trace?: never;
+    };
+    "/agents/{agent}/workload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agents.workload"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["skills.index"];
+        put?: never;
+        post: operations["skills.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/skills/{skill}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["skills.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["skills.update"];
+        trace?: never;
+    };
+    "/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["teams.index"];
+        put?: never;
+        post: operations["teams.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams/{team}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["teams.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["teams.update"];
+        trace?: never;
+    };
+    "/teams/{team}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["teams.members.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/logout": {
         parameters: {
             query?: never;
@@ -124,6 +320,110 @@ export interface paths {
         put?: never;
         /** Set a new password with a reset token */
         post: operations["auth.password.reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/priority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tickets.priority"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/automation/priority/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["settings.priority.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/assignment-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tickets.assignment-candidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Manual assignment, reassignment or team routing; the manager may pick an agent the
+         *     strategy would exclude (`assignment.explanation.manual_override`)
+         */
+        post: operations["tickets.assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/auto-assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Runs the assigner for an unassigned ticket. When nobody is eligible the attempt is stored
+         *     and the answer is 422 `no_eligible_agent` with `meta.exclusions`
+         */
+        post: operations["tickets.auto-assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/unassign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tickets.unassign"];
         delete?: never;
         options?: never;
         head?: never;
@@ -259,6 +559,447 @@ export interface paths {
         patch: operations["organizations.update"];
         trace?: never;
     };
+    "/history/{type}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Newest change first, 50 a page */
+        get: operations["history.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/history/{type}/{id}/as-of": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The record's recorded attributes at an instant, and which of them differ from now. `exists` is
+         *     false for an instant before the record was created (or after it was deleted)
+         */
+        get: operations["history.as-of"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["media.intent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["media.folders.index"];
+        put?: never;
+        post: operations["media.folders.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/folders/{folder}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["media.folders.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["media.folders.update"];
+        trace?: never;
+    };
+    "/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["media.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["media.usage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{media}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["media.complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{media}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["media.show"];
+        put?: never;
+        post?: never;
+        delete: operations["media.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["media.update"];
+        trace?: never;
+    };
+    "/media/{media}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["media.download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{media}/variants/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["media.variant"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{media}/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["media.trash"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{media}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["media.restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unread first, then newest first */
+        get: operations["notifications.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications.read-all"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{notification}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications.read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["dashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The reports the caller may run */
+        get: operations["reports.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reports.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rows per value of the chosen dimension, totals, and the previous period's totals */
+        post: operations["reports.run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report}/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The records behind one number: `key` is the dimension value of the row (omit it for the totals) */
+        get: operations["reports.records"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tickets.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contacts/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["contacts.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["organizations.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agents/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agents.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["teams.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["categories.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/permissions": {
         parameters: {
             query?: never;
@@ -304,12 +1045,165 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete a custom role */
+        /**
+         * Delete a custom role. 409 `in_use` (`meta.users`) while users hold it: deleting it would silently
+         *     take their permissions away
+         */
         delete: operations["roles.destroy"];
         options?: never;
         head?: never;
         /** Change a custom role's name or permissions */
         patch: operations["roles.update"];
+        trace?: never;
+    };
+    "/calendars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["calendar.index"];
+        put?: never;
+        post: operations["calendar.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/calendars/{calendar}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["calendar.show"];
+        put?: never;
+        post?: never;
+        delete: operations["calendar.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["calendar.update"];
+        trace?: never;
+    };
+    "/calendars/{calendar}/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["calendarHoliday.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/calendars/{calendar}/holidays/{holiday}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["calendarHoliday.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sla-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["slaPolicy.index"];
+        put?: never;
+        post: operations["slaPolicy.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sla-policies/{policy}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["slaPolicy.show"];
+        put?: never;
+        post?: never;
+        delete: operations["slaPolicy.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["slaPolicy.update"];
+        trace?: never;
+    };
+    "/tickets/{ticket}/sla": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ticketSla.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every section with its effective values */
+        get: operations["settings.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/{section}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["settings.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Partial update: submitted keys are merged into the section, the result is validated as a whole.
+         *     422 `validation_failed` for malformed values, 422 `settings_invalid` for values that do not fit
+         *     together (weights that do not sum to 1); both carry `errors` per field
+         */
+        patch: operations["settings.update"];
         trace?: never;
     };
     "/tags": {
@@ -347,6 +1241,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tickets/bulk/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assigns up to 100 tickets, each in its own transaction with the rules of the single endpoints:
+         *     one Agent or Team for all, or `auto: true` to run the assigner per ticket (a ticket nobody is
+         *     eligible for is a row with `no_eligible_agent`)
+         */
+        post: operations["tickets.bulk.assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/preview-duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tickets.duplicates.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tickets.duplicates.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/mark-duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tickets.duplicates.mark"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/duplicates/{candidate}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tickets.duplicates.dismiss"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/bulk/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Moves up to 100 tickets to one status. Each ticket is its own transaction with the same rules
+         *     as `POST /tickets/{id}/transition`; the answer lists the outcome per ticket, so a partial failure
+         *     is a 200 with some rows `ok: false`
+         */
+        post: operations["tickets.bulk.transition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tickets": {
         parameters: {
             query?: never;
@@ -363,7 +1363,8 @@ export interface paths {
         put?: never;
         /**
          * Create a ticket
-         * @description The ticket gets the next number of the workspace and starts `open`.
+         * @description The ticket gets the next number of the workspace and starts `open`. API clients may send an
+         *     `Idempotency-Key` header: a repeat within 24 hours returns the first response.
          */
         post: operations["tickets.store"];
         delete?: never;
@@ -383,6 +1384,24 @@ export interface paths {
         get: operations["tickets.show"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit the ticket fields that do not have their own guarded action */
+        patch: operations["tickets.update"];
+        trace?: never;
+    };
+    "/tickets/{ticket}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a ticket across a lifecycle edge. Assignment and duplicate edges have dedicated actions */
+        post: operations["tickets.transition"];
         delete?: never;
         options?: never;
         head?: never;
@@ -406,6 +1425,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tickets/{ticket}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tickets.comments.index"];
+        put?: never;
+        post: operations["tickets.comments.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tickets.attachments.index"];
+        put?: never;
+        post: operations["tickets.attachments.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tickets/{ticket}/attachments/{media}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["tickets.attachments.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/categories": {
         parameters: {
             query?: never;
@@ -413,10 +1480,129 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the workspace's active categories, in display order. Management arrives in M2-02 */
+        /** List the workspace's active categories, in display order */
         get: operations["categories.index"];
         put?: never;
+        post: operations["categories.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         post?: never;
+        delete: operations["categories.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["categories.update"];
+        trace?: never;
+    };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["users.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Creates the user and mails a 48-hour invitation; the roles apply once it is accepted */
+        post: operations["users.invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["users.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Name and roles. 403 `forbidden` (`meta.roles`) for a role beyond the actor's reach; 422 `last_owner`
+         *     when the last active owner would lose the role
+         */
+        patch: operations["users.update"];
+        trace?: never;
+    };
+    "/users/{user}/invitation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A new invitation link; the previous one stops working. 409 `conflict` once accepted */
+        post: operations["users.invitation.resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 409 `conflict` (`self`) for the own account; 422 `last_owner` for the last active owner */
+        post: operations["users.disable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["users.enable"];
         delete?: never;
         options?: never;
         head?: never;
@@ -443,6 +1629,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agents/{agent}/shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agents.shifts.index"];
+        put: operations["agents.shifts.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -454,10 +1656,259 @@ export interface components {
             name?: string;
             password_confirmation: string;
         };
+        /** AddCommentRequest */
+        AddCommentRequest: {
+            body: string;
+            /** @enum {string} */
+            visibility: "public" | "internal";
+            media_ids?: string[];
+            /** @enum {string} */
+            author_type?: "user" | "contact";
+        };
+        /**
+         * AgentAvailability
+         * @enum {string}
+         */
+        AgentAvailability: "available" | "away" | "offline";
+        /** AgentCandidateResource */
+        AgentCandidateResource: {
+            agent_id: string;
+            agent_name: string | null;
+            open_tickets: number;
+            capacity: number;
+            load: number;
+            last_assigned_at: string | null;
+        };
+        /** AgentResource */
+        AgentResource: {
+            id: string;
+            user: {
+                id: string;
+                name: string;
+                email: string;
+                is_active: boolean;
+            };
+            capacity: number;
+            availability: components["schemas"]["AgentAvailability"];
+            active_ticket_count: number;
+            last_assigned_at: string | null;
+            skills: {
+                id: string;
+                name: string;
+                slug: string;
+                level: number;
+            }[];
+            teams: {
+                id: string;
+                name: string;
+            }[];
+        };
+        /** AgentSessionResource */
+        AgentSessionResource: {
+            id: string;
+            capacity: number;
+            availability: components["schemas"]["AgentAvailability"];
+            active_ticket_count: number;
+        };
+        /** AgentShiftResource */
+        AgentShiftResource: {
+            id: string;
+            weekday: number | null;
+            date: string | null;
+            starts_at: string;
+            ends_at: string;
+            is_off: boolean;
+        };
+        /** AgentSummaryResource */
+        AgentSummaryResource: {
+            id: string;
+            user_id: string;
+            name: string;
+            email: string;
+            availability: components["schemas"]["AgentAvailability"];
+            capacity: number;
+        };
+        /** AgentWorkloadResource */
+        AgentWorkloadResource: {
+            active_ticket_count: number;
+            capacity: number;
+            load: number;
+            by_priority: {
+                P1: number;
+                P2: number;
+                P3: number;
+                P4: number;
+            };
+        };
+        /** ApiClientResource */
+        ApiClientResource: {
+            id: string;
+            name: string;
+            scopes: string[];
+            revoked: boolean;
+            revoked_at: string | null;
+            last_used_at: string | null;
+            created_at: string;
+        };
+        /** ApiScopeResource */
+        ApiScopeResource: {
+            scope: string;
+            description: string;
+            permissions: string[];
+        };
+        /** AsOfResource */
+        AsOfResource: {
+            entity_type: string;
+            entity_id: string;
+            at: string;
+            exists: boolean;
+            attributes: string | null;
+            differences: string;
+            versions_after: number;
+        };
+        /**
+         * AssignTicketRequest
+         * @description `{ team_id?, agent_id? }`, at least one. Identifiers of another workspace fail validation
+         *     (422) because both models are tenant-scoped.
+         */
+        AssignTicketRequest: {
+            /** Format: uuid */
+            agent_id?: string | null;
+            /** Format: uuid */
+            team_id?: string | null;
+        };
+        /** AssignedTicketResource */
+        AssignedTicketResource: {
+            id: string;
+            number: number;
+            title: string;
+            description: string;
+            status: components["schemas"]["TicketStatus"];
+            impact: number;
+            urgency: number;
+            priority_score: number;
+            priority_level: components["schemas"]["Priority"];
+            priority_computed_level: components["schemas"]["Priority"];
+            priority_overridden: boolean;
+            priority_explanation: {
+                [key: string]: unknown;
+            };
+            priority_override_reason: string | null;
+            allowed_transitions: components["schemas"]["TicketStatus"][];
+            contact_id: string;
+            organization_id: string | null;
+            category_id: string;
+            team_id: string | null;
+            assigned_agent_id: string | null;
+            duplicate_of_id: string | null;
+            created_via: string;
+            /** @enum {string|null} */
+            sla_state?: "running" | "warning" | "breached" | "paused" | "met" | "cancelled" | null;
+            sla_due_at?: string | null;
+            contact?: {
+                id: string;
+                name: string;
+                email: string;
+            };
+            organization?: {
+                id: string;
+                name: string;
+                tier: components["schemas"]["OrganizationTier"];
+            } | null;
+            category?: {
+                id: string;
+                name: string;
+            };
+            tags?: components["schemas"]["TagResource"][];
+            resolved_at: string | null;
+            closed_at: string | null;
+            created_at: string;
+            updated_at: string;
+            assignment: components["schemas"]["TicketAssignmentResource"];
+        };
+        /** AssignmentPreviewResource */
+        AssignmentPreviewResource: {
+            strategy: string;
+            strategy_version: string;
+            ticket_id: string;
+            agent_id: string | null;
+            outcome: string;
+            ranking: components["schemas"]["AgentCandidateResource"][];
+            excluded: {
+                agent_id: string;
+                reason: string;
+                missing_skills?: string[];
+            }[];
+        };
+        /** AvailableUserResource */
+        AvailableUserResource: {
+            id: string;
+            name: string;
+            email: string;
+        };
+        /**
+         * BulkAssignRequest
+         * @description `{ticket_ids, agent_id?, team_id?}` for a manual assignment of every ticket, or `{ticket_ids, auto: true}`
+         *     to run the assigner on each one.
+         */
+        BulkAssignRequest: {
+            ticket_ids: string[];
+            auto?: boolean;
+            /** Format: uuid */
+            agent_id?: string | null;
+            /** Format: uuid */
+            team_id?: string | null;
+        };
+        /** BulkRowResource */
+        BulkRowResource: {
+            ticket_id: string;
+            ok: boolean;
+            code: string | null;
+            detail: string | null;
+            details: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * BulkTransitionRequest
+         * @description `{ticket_ids, status, comment?}`: the same transition for up to 100 tickets.
+         */
+        BulkTransitionRequest: {
+            ticket_ids: string[];
+            status: components["schemas"]["TicketStatus"];
+            comment?: string | null;
+        };
+        /** BusinessCalendarResource */
+        BusinessCalendarResource: {
+            id: string;
+            name: string;
+            timezone: string;
+            weekly_hours: {
+                [key: string]: [
+                    string,
+                    string
+                ][];
+            };
+            is_default: boolean;
+            holidays: components["schemas"]["CalendarHolidayResource"][];
+        };
+        /** CalendarHolidayResource */
+        CalendarHolidayResource: {
+            id: string;
+            /** Format: date */
+            date: string;
+            name: string;
+            recurs_yearly: boolean;
+        };
         /** CategoryResource */
         CategoryResource: {
             id: string;
             name: string;
+            default_team: {
+                id: string;
+                name: string;
+            } | null;
+            required_skills: components["schemas"]["SkillResource"][];
             is_active: boolean;
             sort_order: number;
         };
@@ -499,11 +1950,117 @@ export interface components {
             archived_at: string | null;
             created_at: string;
         };
+        /** DashboardResource */
+        DashboardResource: {
+            period: string;
+            from: string;
+            to: string;
+            timezone: string;
+            kpis: {
+                key: string;
+                label: string;
+                unit: string;
+                value: number | null;
+                previous: number | null;
+                report: string;
+                measure: string;
+            }[];
+            series: {
+                key: string;
+                title: string;
+                chart: string;
+                report: string;
+                report_title: string;
+                parameters: {
+                    period: string;
+                    group: string;
+                    measures: string[];
+                };
+                measures: {
+                    key: string;
+                    label: string;
+                    unit: string;
+                }[];
+                rows: {
+                    key: string;
+                    label: string;
+                    values: {
+                        [key: string]: number | null;
+                    };
+                }[];
+                truncated: boolean;
+            }[];
+        };
+        /** DuplicatePreviewMatchResource */
+        DuplicatePreviewMatchResource: {
+            ticket_id: string;
+            number: number;
+            title: string;
+            score: number;
+            shared_words: string[];
+        };
+        /** DuplicatePreviewResource */
+        DuplicatePreviewResource: {
+            strategy: string;
+            strategy_version: string;
+            candidates_compared: number;
+            matches: components["schemas"]["DuplicatePreviewMatchResource"][];
+        };
+        /** DuplicateSuggestionResource */
+        DuplicateSuggestionResource: {
+            id: string;
+            ticket_id: string;
+            candidate_ticket_id: string;
+            candidate: {
+                number: number;
+                title: string;
+                status: components["schemas"]["TicketStatus"];
+            };
+            score: number;
+            shared_words: unknown[];
+            strategy: unknown;
+            strategy_version: unknown;
+            decision: string;
+            decided_at: string | null;
+            created_at: string;
+        };
+        /** EntityChangeResource */
+        EntityChangeResource: {
+            id: string;
+            version: number;
+            /** @enum {string} */
+            operation: "insert" | "update" | "delete";
+            changes: {
+                [key: string]: {
+                    old: unknown;
+                    new: unknown;
+                };
+            };
+            actor_type: string | null;
+            actor_id: string | null;
+            occurred_at: string;
+        };
+        /** EntityOverviewResource */
+        EntityOverviewResource: {
+            entity: string;
+            id: string;
+            title: string;
+            metrics: string;
+            related: string;
+            trends: string;
+        };
         /** ForgotPasswordRequest */
         ForgotPasswordRequest: {
             workspace: string;
             /** Format: email */
             email: string;
+        };
+        /** InviteUserRequest */
+        InviteUserRequest: {
+            name: string;
+            /** Format: email */
+            email: string;
+            roles: string[];
         };
         /** LoginRequest */
         LoginRequest: {
@@ -513,12 +2070,103 @@ export interface components {
             password: string;
             remember?: boolean;
         };
+        /** MarkDuplicateRequest */
+        MarkDuplicateRequest: {
+            /** Format: uuid */
+            candidate_ticket_id: string;
+        };
         /** MeResource */
         MeResource: {
             user: components["schemas"]["UserResource"];
             tenant: components["schemas"]["TenantResource"];
             permissions: string[];
+            agent_profile: components["schemas"]["AgentSessionResource"] | null;
+            /** @description Laravel's own relation on the user: Identity does not import the Notifications module. */
             unread_notifications: number;
+        };
+        /** MediaFolderResource */
+        MediaFolderResource: {
+            id: string;
+            parent_id: string | null;
+            name: string;
+            system_key: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /** MediaItemResource */
+        MediaItemResource: {
+            id: string;
+            folder_id: string | null;
+            name: string;
+            mime_type: string;
+            size_bytes: number;
+            width: number | null;
+            height: number | null;
+            checksum_sha256: string | null;
+            variants: {
+                thumb: {
+                    width: number;
+                    height: number;
+                } | null;
+                preview: {
+                    width: number;
+                    height: number;
+                } | null;
+            };
+            /** @description Why no variants will appear: `pixel_limit` or `failed`; null while pending or present. */
+            variants_skipped: unknown;
+            source: string;
+            state: string;
+            uploaded_by_user_id: string | null;
+            used_in_count: number;
+            used_in_tickets: components["schemas"]["MediaTicketUseResource"][];
+            tags: components["schemas"]["MediaTagResource"][];
+            /** Format: date-time */
+            trashed_at: string | null;
+            /** Format: date-time */
+            completed_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /** MediaTagResource */
+        MediaTagResource: {
+            name: string;
+            slug: string;
+        };
+        /** MediaTicketUseResource */
+        MediaTicketUseResource: {
+            number: number;
+        };
+        /** MediaUsageResource */
+        MediaUsageResource: {
+            used_bytes: number;
+            quota_bytes: number;
+            pending_bytes: number;
+        };
+        /** NewApiClientResource */
+        NewApiClientResource: {
+            id: string;
+            name: string;
+            scopes: string[];
+            revoked: boolean;
+            revoked_at: string | null;
+            last_used_at: string | null;
+            created_at: string;
+            client_id: string;
+            client_secret: string;
+        };
+        /** NotificationResource */
+        NotificationResource: {
+            id: string;
+            kind: string;
+            ticket_id: string;
+            ticket_number: number;
+            ticket_title: string;
+            summary: string;
+            read_at: string | null;
+            created_at: string;
         };
         /** OrganizationRequest */
         OrganizationRequest: {
@@ -551,10 +2199,43 @@ export interface components {
          * @enum {string}
          */
         OrganizationTier: "standard" | "premium" | "enterprise";
+        /** OverridePriorityRequest */
+        OverridePriorityRequest: {
+            /** @enum {string|null} */
+            level: "P1" | "P2" | "P3" | "P4" | null;
+            reason?: string | null;
+        };
         /** PingResource */
         PingResource: {
             /** @constant */
             status: "ok";
+        };
+        /** PreviewDuplicatesRequest */
+        PreviewDuplicatesRequest: {
+            title: string;
+            description: string;
+        };
+        /** PreviewPriorityRequest */
+        PreviewPriorityRequest: {
+            weights: {
+                impact: number;
+                urgency: number;
+                tier: number;
+                age: number;
+            };
+            thresholds: {
+                P1: number;
+                P2: number;
+                P3: number;
+            };
+            age_full_hours: number;
+            samples: {
+                impact: number;
+                urgency: number;
+                /** @enum {string} */
+                tier: "standard" | "premium" | "enterprise";
+                hours_waited: number;
+            }[];
         };
         /**
          * Priority
@@ -562,6 +2243,23 @@ export interface components {
          * @enum {string}
          */
         Priority: "P1" | "P2" | "P3" | "P4";
+        /**
+         * PriorityLevel
+         * @description Ticket priority level; P1 is the most urgent.
+         * @enum {string}
+         */
+        PriorityLevel: "P1" | "P2" | "P3" | "P4";
+        /** PriorityPreviewResource */
+        PriorityPreviewResource: {
+            strategy: string;
+            strategy_version: string;
+            score: number;
+            level: components["schemas"]["PriorityLevel"];
+            parts: unknown[];
+            settings: {
+                [key: string]: unknown;
+            };
+        };
         /**
          * ProblemDetails
          * @description RFC 9457 problem details.
@@ -593,6 +2291,77 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** ReplaceAgentShiftsRequest */
+        ReplaceAgentShiftsRequest: {
+            shifts: {
+                weekday?: number | null;
+                /** Format: date */
+                date?: string | null;
+                starts_at: string;
+                ends_at: string;
+                is_off: boolean;
+            }[];
+        };
+        /** ReplaceTeamMembersRequest */
+        ReplaceTeamMembersRequest: {
+            agent_ids: string[];
+        };
+        /** ReportDefinitionResource */
+        ReportDefinitionResource: {
+            key: string;
+            title: string;
+            description: string;
+            group: string;
+            chart: string;
+            default_dimension: string;
+            drill_down_to: string | null;
+            periods: string[];
+            dimensions: {
+                key: string;
+                label: string;
+                is_time: boolean;
+            }[];
+            measures: {
+                key: string;
+                label: string;
+                unit: string;
+            }[];
+            filters: {
+                key: string;
+                label: string;
+                type: string;
+                labels: string | null;
+            }[];
+        };
+        /** ReportRecordResource */
+        ReportRecordResource: {
+            id: string;
+            entity: string;
+            label: string;
+            subtitle: string | null;
+            status: string | null;
+        };
+        /** ReportRunResource */
+        ReportRunResource: {
+            report: string;
+            parameters: {
+                [key: string]: unknown;
+            };
+            rows: {
+                key: string;
+                label: string;
+                values: {
+                    [key: string]: number | null;
+                };
+            }[];
+            totals: {
+                [key: string]: number | null;
+            };
+            previous: {
+                [key: string]: number | null;
+            } | null;
+            truncated: boolean;
+        };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
             workspace: string;
@@ -605,7 +2374,7 @@ export interface components {
         /** RoleRequest */
         RoleRequest: {
             name: string;
-            permissions: ("tickets.view" | "tickets.create" | "tickets.update" | "tickets.assign" | "tickets.resolve" | "tickets.close" | "tickets.reopen" | "tickets.delete" | "comments.internal" | "contacts.view" | "contacts.manage" | "agents.view" | "agents.manage" | "teams.manage" | "sla.manage" | "calendars.manage" | "shifts.manage" | "media.view" | "media.upload" | "media.manage" | "mail.manage" | "settings.manage" | "users.manage" | "roles.manage" | "integrations.manage" | "reports.view" | "audit.view")[];
+            permissions: ("tickets.view" | "tickets.create" | "tickets.update" | "tickets.assign" | "tickets.resolve" | "tickets.close" | "tickets.reopen" | "tickets.delete" | "comments.internal" | "contacts.view" | "contacts.manage" | "agents.view" | "agents.manage" | "teams.manage" | "sla.manage" | "calendars.manage" | "shifts.manage" | "media.view" | "media.upload" | "media.manage" | "mail.manage" | "settings.manage" | "users.manage" | "roles.manage" | "integrations.manage" | "reports.view" | "history.view" | "audit.view")[];
         };
         /** RoleResource */
         RoleResource: {
@@ -613,7 +2382,154 @@ export interface components {
             name: string;
             is_global: boolean;
             is_system: boolean;
-            permissions: unknown[];
+            permissions: string[];
+        };
+        /** SaveAgentRequest */
+        SaveAgentRequest: {
+            /**
+             * Format: uuid
+             * @description Create-only: UpdateAgentRequest prohibits it on PATCH.
+             */
+            user_id: string;
+            capacity: number;
+            availability: components["schemas"]["AgentAvailability"];
+            skills?: {
+                /** Format: uuid */
+                skill_id: string;
+                level: number;
+            }[];
+            team_ids?: string[];
+        };
+        /** SaveCalendarRequest */
+        SaveCalendarRequest: {
+            name: string;
+            timezone: string;
+            weekly_hours: {
+                mon?: {
+                    0: string;
+                    1: string;
+                }[];
+                tue?: {
+                    0: string;
+                    1: string;
+                }[];
+                wed?: {
+                    0: string;
+                    1: string;
+                }[];
+                thu?: {
+                    0: string;
+                    1: string;
+                }[];
+                fri?: {
+                    0: string;
+                    1: string;
+                }[];
+                sat?: {
+                    0: string;
+                    1: string;
+                }[];
+                sun?: {
+                    0: string;
+                    1: string;
+                }[];
+            };
+            is_default?: boolean;
+        };
+        /** SaveCategoryRequest */
+        SaveCategoryRequest: {
+            name: string;
+            /** Format: uuid */
+            default_team_id?: string | null;
+            skill_ids?: string[];
+            is_active?: boolean;
+            sort_order?: number;
+        };
+        /** SaveHolidayRequest */
+        SaveHolidayRequest: {
+            /** Format: date */
+            date: string;
+            name: string;
+            recurs_yearly?: boolean;
+        };
+        /** SaveMediaFolderRequest */
+        SaveMediaFolderRequest: {
+            name: string;
+            /** Format: uuid */
+            parent_id?: string | null;
+        };
+        /** SavePolicyRequest */
+        SavePolicyRequest: {
+            name: string;
+            is_default?: boolean;
+            /** @enum {string|null} */
+            applies_to_tier?: "standard" | "premium" | "enterprise" | null;
+            warning_fraction: number;
+            calendar_id?: string | null;
+            targets: {
+                /** @enum {string} */
+                priority_level: "P1" | "P2" | "P3" | "P4";
+                first_response_minutes: number;
+                resolution_minutes: number;
+            }[];
+        };
+        /** SaveSkillRequest */
+        SaveSkillRequest: {
+            name: string;
+            slug: string;
+            description?: string | null;
+        };
+        /** SaveTeamRequest */
+        SaveTeamRequest: {
+            name: string;
+            description?: string | null;
+        };
+        /** SettingsSectionResource */
+        SettingsSectionResource: {
+            section: string;
+            version: number;
+            values: {
+                [key: string]: unknown;
+            };
+            defaults: {
+                [key: string]: unknown;
+            };
+        };
+        /** SkillResource */
+        SkillResource: {
+            id: string;
+            name: string;
+            slug: string;
+            description: string | null;
+        };
+        /** SlaPolicyResource */
+        SlaPolicyResource: {
+            id: string;
+            name: string;
+            is_default: boolean;
+            applies_to_tier: components["schemas"]["OrganizationTier"] | null;
+            warning_fraction: number;
+            calendar_id: string | null;
+            version: number;
+            targets: components["schemas"]["SlaTargetResource"][];
+        };
+        /** SlaTargetResource */
+        SlaTargetResource: {
+            priority_level: components["schemas"]["Priority"];
+            first_response_minutes: number;
+            resolution_minutes: number;
+        };
+        /**
+         * StoreApiClientRequest
+         * @description `POST /v1/api-clients`.
+         */
+        StoreApiClientRequest: {
+            name: string;
+            scopes: ("tickets:read" | "tickets:write" | "contacts:read" | "contacts:write" | "catalog:read" | "webhooks:manage")[];
+        };
+        /** StoreTicketAttachmentsRequest */
+        StoreTicketAttachmentsRequest: {
+            media_ids: string[];
         };
         /**
          * StoreTicketRequest
@@ -630,6 +2546,7 @@ export interface components {
             impact: number;
             urgency: number;
             tags?: string[];
+            attachment_ids?: string[];
         };
         /** TagRequest */
         TagRequest: {
@@ -643,6 +2560,13 @@ export interface components {
             slug: string;
             color: string | null;
         };
+        /** TeamResource */
+        TeamResource: {
+            id: string;
+            name: string;
+            description: string | null;
+            members: components["schemas"]["AgentSummaryResource"][];
+        };
         /** TenantResource */
         TenantResource: {
             id: string;
@@ -650,6 +2574,44 @@ export interface components {
             name: string;
             status: string;
             timezone: string;
+            /** @description What every user needs from the workspace settings; the rest is behind settings.manage. */
+            settings_version: number;
+            branding: {
+                primary: string | null;
+                logo_url: string | null;
+                logo_dark_url: string | null;
+            };
+            features: {
+                realtime: boolean;
+                exports: boolean;
+            };
+        };
+        /** TicketAssignmentResource */
+        TicketAssignmentResource: {
+            id: string;
+            reason: string;
+            team_id: string | null;
+            agent_id: string | null;
+            previous_agent_id: string | null;
+            assigned_by_user_id: string | null;
+            explanation: {
+                [key: string]: unknown;
+            };
+            created_at: string;
+        };
+        /** TicketCommentResource */
+        TicketCommentResource: {
+            id: string;
+            ticket_id: string;
+            visibility: string;
+            author_type: string;
+            author_id: string | null;
+            body: string;
+            attachments: components["schemas"]["MediaItemResource"][];
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         /** TicketEventResource */
         TicketEventResource: {
@@ -679,6 +2641,11 @@ export interface components {
             priority_level: components["schemas"]["Priority"];
             priority_computed_level: components["schemas"]["Priority"];
             priority_overridden: boolean;
+            priority_explanation: {
+                [key: string]: unknown;
+            };
+            priority_override_reason: string | null;
+            allowed_transitions: components["schemas"]["TicketStatus"][];
             contact_id: string;
             organization_id: string | null;
             category_id: string;
@@ -686,6 +2653,9 @@ export interface components {
             assigned_agent_id: string | null;
             duplicate_of_id: string | null;
             created_via: string;
+            /** @enum {string|null} */
+            sla_state?: "running" | "warning" | "breached" | "paused" | "met" | "cancelled" | null;
+            sla_due_at?: string | null;
             contact?: {
                 id: string;
                 name: string;
@@ -706,18 +2676,129 @@ export interface components {
             created_at: string;
             updated_at: string;
         };
+        /** TicketSlaTimerResource */
+        TicketSlaTimerResource: {
+            id: string;
+            kind: components["schemas"]["TimerKind"];
+            cycle: number;
+            state: components["schemas"]["TimerState"];
+            target_minutes: number;
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            warning_at: string;
+            /** Format: date-time */
+            due_at: string;
+            /** Format: date-time */
+            paused_at: string | null;
+            paused_total_seconds: number;
+            /** Format: date-time */
+            warned_at: string | null;
+            /** Format: date-time */
+            breached_at: string | null;
+            /** Format: date-time */
+            met_at: string | null;
+            /** Format: date-time */
+            cancelled_at: string | null;
+            policy_id: string;
+            policy_version: number;
+            warning_fraction: number;
+            calendar_id: string | null;
+            strategy: string;
+            strategy_version: string;
+        };
         /**
          * TicketStatus
          * @description Ticket lifecycle (docs/04-domain/tickets.md §State machine). The transition table lives here and nowhere else; every status change goes through `transitionTo()`.
          * @enum {string}
          */
         TicketStatus: "open" | "assigned" | "in_progress" | "pending" | "resolved" | "closed";
+        /**
+         * TimerKind
+         * @enum {string}
+         */
+        TimerKind: "first_response" | "resolution";
+        /**
+         * TimerState
+         * @description SLA timer states and the allowed transitions (docs/05-algorithms/sla-evaluation.md §States). Beyond the diagram: a paused timer can be met (the ticket is resolved straight from pending), and every unfinished timer can be cancelled (ticket closed as a duplicate, docs/04-domain/sla.md).
+         * @enum {string}
+         */
+        TimerState: "running" | "paused" | "warning" | "breached" | "met" | "cancelled";
+        /** TransitionTicketRequest */
+        TransitionTicketRequest: {
+            status: components["schemas"]["TicketStatus"];
+            comment?: string | null;
+        };
+        /**
+         * UpdateAgentRequest
+         * @description Separate PATCH schema so generated clients can send availability alone. `user_id` is
+         *     create-only: a profile never moves to another User.
+         */
+        UpdateAgentRequest: {
+            user_id?: string;
+            capacity?: number;
+            availability?: components["schemas"]["AgentAvailability"];
+            skills?: {
+                /** Format: uuid */
+                skill_id: string;
+                level: number;
+            }[];
+            team_ids?: string[];
+        };
+        /** UpdateMediaFolderRequest */
+        UpdateMediaFolderRequest: {
+            name?: string;
+            /** Format: uuid */
+            parent_id?: string | null;
+        };
+        /** UpdateMediaRequest */
+        UpdateMediaRequest: {
+            name?: string;
+            /** Format: uuid */
+            folder_id?: string | null;
+            tags?: string[];
+        };
         /** UpdatePreferencesRequest */
         UpdatePreferencesRequest: {
             /** @enum {string} */
             theme?: "light" | "dark" | "system";
             /** @enum {string} */
             density?: "comfortable" | "compact";
+        };
+        /** UpdateTicketRequest */
+        UpdateTicketRequest: {
+            title?: string;
+            description?: string;
+            /** Format: uuid */
+            category_id?: string;
+            impact?: number;
+            urgency?: number;
+            tags?: string[];
+        };
+        /** UpdateUserRequest */
+        UpdateUserRequest: {
+            name?: string;
+            roles?: string[];
+        };
+        /** UploadIntentRequest */
+        UploadIntentRequest: {
+            filename: string;
+            size: number;
+            /** @description Advisory: browsers send '' for types they do not know; the stored type comes from the extension. */
+            mime: string | null;
+            /**
+             * @description Where the file starts: the Tickets folder, or Branding for a workspace logo (settings.manage).
+             * @enum {string}
+             */
+            purpose?: "attachment" | "branding";
+        };
+        /** UploadIntentResource */
+        UploadIntentResource: {
+            media_id: string;
+            url: string;
+            headers: {
+                [key: string]: string;
+            };
         };
         /** UserResource */
         UserResource: {
@@ -729,6 +2810,19 @@ export interface components {
                 [key: string]: unknown;
             };
             last_login_at: string | null;
+        };
+        /** WorkspaceUserResource */
+        WorkspaceUserResource: {
+            id: string;
+            name: string;
+            email: string;
+            /** @enum {string} */
+            status: "disabled" | "invited" | "active";
+            roles: string[];
+            invitation_expires_at: string | null;
+            invitation_expired: boolean;
+            last_login_at: string | null;
+            created_at: string | null;
         };
     };
     responses: {
@@ -780,6 +2874,810 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "api-clients.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ApiClientResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiClientResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "api-clients.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreApiClientRequest"];
+            };
+        };
+        responses: {
+            /** @description `NewApiClientResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NewApiClientResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "api-clients.scopes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ApiScopeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiScopeResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "api-clients.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The api client ID */
+                apiClient: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ApiClientResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiClientResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.index": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+                sort?: string;
+                "filter[]"?: string[];
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `AgentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAgentRequest"];
+            };
+        };
+        responses: {
+            /** @description `AgentResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.available-users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AvailableUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AvailableUserResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AgentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateAgentRequest"];
+            };
+        };
+        responses: {
+            /** @description `AgentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.workload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AgentWorkloadResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentWorkloadResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "skills.index": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+                sort?: string;
+                "filter[]"?: string[];
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `SkillResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SkillResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "skills.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveSkillRequest"];
+            };
+        };
+        responses: {
+            /** @description `SkillResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SkillResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "skills.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The skill ID */
+                skill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "skills.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The skill ID */
+                skill: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveSkillRequest"];
+            };
+        };
+        responses: {
+            /** @description `SkillResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SkillResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "teams.index": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+                sort?: string;
+                "filter[]"?: string[];
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `TeamResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TeamResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "teams.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveTeamRequest"];
+            };
+        };
+        responses: {
+            /** @description `TeamResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TeamResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "teams.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The team ID */
+                team: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "teams.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The team ID */
+                team: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveTeamRequest"];
+            };
+        };
+        responses: {
+            /** @description `TeamResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TeamResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "teams.members.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The team ID */
+                team: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceTeamMembersRequest"];
+            };
+        };
+        responses: {
+            /** @description `TeamResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TeamResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "auth.logout": {
         parameters: {
             query?: never;
@@ -1015,6 +3913,233 @@ export interface operations {
                 };
             };
             422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.priority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OverridePriorityRequest"];
+            };
+        };
+        responses: {
+            /** @description `TicketResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketResource"] & Record<string, unknown>;
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "settings.priority.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewPriorityRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `PriorityPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PriorityPreviewResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.assignment-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AssignmentPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssignmentPreviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AssignTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssignedTicketResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssignedTicketResource"] & Record<string, unknown>;
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.auto-assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AssignedTicketResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssignedTicketResource"] & Record<string, unknown>;
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.unassign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `TicketResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketResource"] & Record<string, unknown>;
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -1499,6 +4624,1217 @@ export interface operations {
             };
         };
     };
+    "history.index": {
+        parameters: {
+            query?: {
+                /** @description The `next_cursor` of the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                type: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `EntityChangeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EntityChangeResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "history.as-of": {
+        parameters: {
+            query: {
+                /** @description ISO 8601 instant. */
+                at: string;
+            };
+            header?: never;
+            path: {
+                type: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AsOfResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AsOfResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description `UploadIntentResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UploadIntentResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.folders.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `MediaFolderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaFolderResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.folders.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMediaFolderRequest"];
+            };
+        };
+        responses: {
+            /** @description `MediaFolderResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaFolderResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.folders.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The folder ID */
+                folder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.folders.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The folder ID */
+                folder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateMediaFolderRequest"];
+            };
+        };
+        responses: {
+            /** @description `MediaFolderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaFolderResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.index": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+                sort?: string;
+                "filter[]"?: string[];
+                search?: string | null;
+                /** @description Folder ids, or `none`, comma separated. */
+                "filter[folder]"?: string;
+                /** @description image, document, text or archive, comma separated. */
+                "filter[type]"?: string;
+                /** @description Tag slugs, comma separated. */
+                "filter[tag]"?: string;
+                /** @description User ids, comma separated. */
+                "filter[uploader]"?: string;
+                /** @description `false` (default) or `true`. */
+                "filter[trashed]"?: string;
+                /** @description `YYYY-MM-DD,YYYY-MM-DD` in the workspace time zone, inclusive. */
+                "filter[created_between]"?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `MediaUsageResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaUsageResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, unknown>;
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.variant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, unknown>;
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.index": {
+        parameters: {
+            query?: {
+                /** @description One-based page number. */
+                page?: number;
+                /** @description Page size, 1 to 100 (default 25). */
+                per_page?: number;
+                /** @description `true` lists unread notifications only. */
+                "filter[unread]"?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `NotificationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NotificationResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `NotificationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NotificationResource"];
+                    };
+                };
+            };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    dashboard: {
+        parameters: {
+            query?: {
+                /** @description Preset period; defaults to last_30d. */
+                period?: "today" | "yesterday" | "last_7d" | "last_30d" | "last_90d" | "this_month" | "last_month" | "this_year";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `DashboardResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DashboardResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "reports.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ReportDefinitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReportDefinitionResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "reports.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ReportDefinitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReportDefinitionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "reports.run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description today, yesterday, last_7d, last_30d (default), last_90d, this_month, last_month or this_year. */
+                    period?: string;
+                    /** @description First day (YYYY-MM-DD, workspace time zone); with `to` it replaces `period`. */
+                    from?: string;
+                    /** @description Last day, inclusive (YYYY-MM-DD). */
+                    to?: string;
+                    /** @description A dimension key of the report; its default dimension when omitted. */
+                    group?: string;
+                    /** @description Comma list of measure keys; all when omitted. */
+                    measures?: string;
+                    /** @description Filter key => comma list of values (`none` for empty). */
+                    filter?: {
+                        [key: string]: string;
+                    };
+                    /** @description Also return the totals of the previous period of the same length. */
+                    compare?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description `ReportRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReportRunResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "reports.records": {
+        parameters: {
+            query?: {
+                /** @description As for the run. */
+                period?: string;
+                /** @description As for the run. */
+                from?: string;
+                /** @description As for the run. */
+                to?: string;
+                /** @description As for the run: the dimension `key` belongs to. */
+                group?: string;
+                /** @description The row key to drill into; omitted for the totals. */
+                key?: string;
+                /** @description One-based page number. */
+                page?: number;
+                /** @description As for the run. */
+                filter?: {
+                    [key: string]: string;
+                };
+            };
+            header?: never;
+            path: {
+                report: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ReportRecordResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReportRecordResource"][];
+                        meta: {
+                            entity: string | null;
+                            current_page: number;
+                            /** @constant */
+                            per_page: 50;
+                            total: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `EntityOverviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EntityOverviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "contacts.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `EntityOverviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EntityOverviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "organizations.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `EntityOverviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EntityOverviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `EntityOverviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EntityOverviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "teams.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `EntityOverviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EntityOverviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "categories.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `EntityOverviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EntityOverviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "permissions.index": {
         parameters: {
             query?: never;
@@ -1569,6 +5905,9 @@ export interface operations {
                                 "manage"
                             ];
                             reports: [
+                                "view"
+                            ];
+                            history: [
                                 "view"
                             ];
                             audit: [
@@ -1734,6 +6073,575 @@ export interface operations {
             };
         };
     };
+    "calendar.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BusinessCalendarResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BusinessCalendarResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "calendar.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCalendarRequest"];
+            };
+        };
+        responses: {
+            /** @description `BusinessCalendarResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BusinessCalendarResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "calendar.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The calendar ID */
+                calendar: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `BusinessCalendarResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BusinessCalendarResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "calendar.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The calendar ID */
+                calendar: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "calendar.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The calendar ID */
+                calendar: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCalendarRequest"];
+            };
+        };
+        responses: {
+            /** @description `BusinessCalendarResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BusinessCalendarResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "calendarHoliday.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The calendar ID */
+                calendar: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveHolidayRequest"];
+            };
+        };
+        responses: {
+            /** @description `BusinessCalendarResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BusinessCalendarResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "calendarHoliday.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The calendar ID */
+                calendar: string;
+                /** @description The holiday ID */
+                holiday: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "slaPolicy.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `SlaPolicyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SlaPolicyResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "slaPolicy.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description `SlaPolicyResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SlaPolicyResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "slaPolicy.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The policy ID */
+                policy: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `SlaPolicyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SlaPolicyResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "slaPolicy.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The policy ID */
+                policy: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "slaPolicy.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The policy ID */
+                policy: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description `SlaPolicyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SlaPolicyResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ticketSla.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `TicketSlaTimerResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketSlaTimerResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "settings.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `SettingsSectionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SettingsSectionResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "settings.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `SettingsSectionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SettingsSectionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "settings.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `SettingsSectionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SettingsSectionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "tags.index": {
         parameters: {
             query?: {
@@ -1840,6 +6748,241 @@ export interface operations {
             };
         };
     };
+    "tickets.bulk.assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAssignRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `BulkRowResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BulkRowResource"][];
+                        meta: {
+                            total: number;
+                            succeeded: number;
+                            failed: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.duplicates.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewDuplicatesRequest"];
+            };
+        };
+        responses: {
+            /** @description `DuplicatePreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DuplicatePreviewResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.duplicates.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DuplicateSuggestionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DuplicateSuggestionResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.duplicates.mark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkDuplicateRequest"];
+            };
+        };
+        responses: {
+            /** @description `TicketResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketResource"] & Record<string, unknown>;
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.duplicates.dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+                candidate: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `DuplicateSuggestionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DuplicateSuggestionResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.bulk.transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `BulkRowResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BulkRowResource"][];
+                        meta: {
+                            total: number;
+                            succeeded: number;
+                            failed: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "tickets.index": {
         parameters: {
             query?: {
@@ -1853,7 +6996,7 @@ export interface operations {
                 "filter[status]"?: string;
                 /** @description Effective levels: P1–P4. */
                 "filter[priority]"?: string;
-                /** @description Agent ids, or `unassigned`. */
+                /** @description Agent ids, `unassigned`, or `me` (the signed-in user's Agent profile). */
                 "filter[assignee_id]"?: string;
                 /** @description Team ids, or `none`. */
                 "filter[team_id]"?: string;
@@ -1869,6 +7012,16 @@ export interface operations {
                 "filter[created_between]"?: string;
                 /** @description ISO-8601 instant, for pollers. */
                 "filter[updated_since]"?: string;
+                /** @description State of the latest resolution timer: running, warning, breached, paused, met. */
+                "filter[sla_state]"?: string;
+                /** @description `true`: tickets with a pending duplicate suggestion. */
+                "filter[has_duplicate_suggestion]"?: string;
+                /** @description Impact levels 1–4. */
+                "filter[impact]"?: string;
+                /** @description Urgency levels 1–4. */
+                "filter[urgency]"?: string;
+                /** @description Ticket number. */
+                "filter[number]"?: number;
             };
             header?: never;
             path?: never;
@@ -1928,7 +7081,10 @@ export interface operations {
     "tickets.store": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description API clients: a unique key per ticket; a repeat within 24 hours returns the first response. */
+                "Idempotency-Key"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1998,6 +7154,88 @@ export interface operations {
             };
         };
     };
+    "tickets.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description `TicketResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketResource"] & Record<string, unknown>;
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description `TicketResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketResource"] & Record<string, unknown>;
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "tickets.history": {
         parameters: {
             query?: {
@@ -2055,6 +7293,222 @@ export interface operations {
             };
         };
     };
+    "tickets.comments.index": {
+        parameters: {
+            query?: {
+                /** @description One-based page number. */
+                page?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `TicketCommentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketCommentResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.comments.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description `TicketCommentResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketCommentResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.attachments.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.attachments.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreTicketAttachmentsRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `MediaItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MediaItemResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.attachments.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "categories.index": {
         parameters: {
             query?: never;
@@ -2087,6 +7541,415 @@ export interface operations {
             };
         };
     };
+    "categories.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description `CategoryResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CategoryResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "categories.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The category ID */
+                category: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description An error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "categories.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The category ID */
+                category: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description `CategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CategoryResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.index": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+                sort?: string;
+                "filter[]"?: string[];
+                search?: string | null;
+                /** @description `active`, `invited` or `disabled`, comma separated. */
+                "filter[status]"?: string;
+                /** @description Role names, comma separated. */
+                "filter[role]"?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `WorkspaceUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WorkspaceUserResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteUserRequest"];
+            };
+        };
+        responses: {
+            /** @description `WorkspaceUserResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WorkspaceUserResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user ID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WorkspaceUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WorkspaceUserResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user ID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRequest"];
+            };
+        };
+        responses: {
+            /** @description `WorkspaceUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WorkspaceUserResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.invitation.resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user ID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WorkspaceUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WorkspaceUserResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user ID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WorkspaceUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WorkspaceUserResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user ID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WorkspaceUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WorkspaceUserResource"];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "system.ping": {
         parameters: {
             query?: never;
@@ -2107,6 +7970,83 @@ export interface operations {
                     };
                 };
             };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.shifts.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AgentShiftResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentShiftResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "agents.shifts.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The agent ID */
+                agent: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceAgentShiftsRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `AgentShiftResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AgentShiftResource"][];
+                    };
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {

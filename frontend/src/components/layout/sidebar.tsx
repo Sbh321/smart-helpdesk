@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
-import { LifeBuoyIcon } from 'lucide-react'
 import { copy } from '@/copy/en'
 import { useSession } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { visibleNavItems } from './nav-items'
+import { TenantLogo } from './tenant-logo'
 
 /**
  * Primary navigation (docs/06-design-system/accessibility.md §Added by us): a single `nav` landmark
@@ -16,10 +16,10 @@ export function Sidebar({ workspace }: { workspace: string }) {
   return (
     <nav
       aria-label={copy.nav.primary}
-      className="flex w-56 shrink-0 flex-col gap-4 border-r border-border bg-surface p-3"
+      className="flex w-56 shrink-0 flex-col gap-4 border-r border-border bg-surface p-3 print:hidden"
     >
       <div className="flex items-center gap-2 px-1 py-1">
-        <LifeBuoyIcon aria-hidden="true" className="size-5 text-primary" />
+        <TenantLogo branding={session?.tenant.branding} />
         <span className="truncate text-sm font-semibold">{session?.tenant.name ?? copy.app.name}</span>
       </div>
 

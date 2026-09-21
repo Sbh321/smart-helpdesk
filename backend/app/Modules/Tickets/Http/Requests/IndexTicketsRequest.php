@@ -8,14 +8,13 @@ use App\Support\Http\Requests\ListRequest;
 use Illuminate\Validation\Validator;
 
 /**
- * `GET /v1/tickets` (docs/07-api/pagination-filtering.md §Ticket list filters). `sla_state` and
- * `has_duplicate_suggestion` arrive with SLA timers and duplicate suggestions in M2.
+ * `GET /v1/tickets` (docs/07-api/pagination-filtering.md §Ticket list filters).
  */
 final class IndexTicketsRequest extends ListRequest
 {
     public const INCLUDES = ['contact', 'organization', 'category', 'tags'];
 
-    private const UUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/';
+    private const UUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 
     /**
      * @return array<string, mixed>
@@ -56,7 +55,7 @@ final class IndexTicketsRequest extends ListRequest
 
     protected function sortable(): array
     {
-        return ['priority_score', 'priority_level', 'created_at', 'updated_at', 'number', 'status'];
+        return ['priority_score', 'priority_level', 'created_at', 'updated_at', 'number', 'status', 'sla_due_at'];
     }
 
     protected function defaultSort(): string
@@ -71,8 +70,8 @@ final class IndexTicketsRequest extends ListRequest
         return [
             'status' => ['in:open,assigned,in_progress,pending,resolved,closed,active'],
             'priority' => ['in:P1,P2,P3,P4'],
-            'assignee_id' => ['regex:/^(unassigned|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/'],
-            'team_id' => ['regex:/^(none|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/'],
+            'assignee_id' => ['regex:/^(unassigned|me|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i'],
+            'team_id' => ['regex:/^(none|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i'],
             'category_id' => $uuid,
             'organization_id' => $uuid,
             'contact_id' => $uuid,
@@ -82,6 +81,9 @@ final class IndexTicketsRequest extends ListRequest
             'impact' => ['integer', 'between:1,4'],
             'urgency' => ['integer', 'between:1,4'],
             'number' => ['integer', 'min:1'],
+            // The resolution timer of the latest cycle.
+            'sla_state' => ['in:running,warning,breached,paused,met'],
+            'has_duplicate_suggestion' => ['in:true'],
         ];
     }
 }

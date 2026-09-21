@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Modules\Agents\Models\AgentProfile;
+use App\Modules\Identity\Models\Invitation;
 use App\Modules\Tenancy\Concerns\BelongsToTenant;
+use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -26,6 +30,11 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $email
  * @property bool $is_active
  * @property array<string, mixed> $preferences
+ * @property string|null $password
+ * @property CarbonImmutable|null $last_login_at
+ * @property CarbonImmutable|null $disabled_at
+ * @property CarbonImmutable|null $created_at
+ * @property-read Invitation|null $latestInvitation
  */
 #[Fillable(['tenant_id', 'name', 'email', 'password', 'is_active', 'preferences'])]
 #[Hidden(['password', 'remember_token'])]
@@ -47,6 +56,22 @@ class User extends Authenticatable
      */
     protected string $guard_name = 'web';
 
+    /**
+     * The invitation that counts for a user who has not accepted yet: the newest one.
+     *
+     * @return HasOne<Invitation, $this>
+     */
+    public function latestInvitation(): HasOne
+    {
+        return $this->hasOne(Invitation::class)->orderByDesc('created_at')->orderByDesc('id');
+    }
+
+    /** @return HasOne<AgentProfile, $this> */
+    public function agentProfile(): HasOne
+    {
+        return $this->hasOne(AgentProfile::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -57,5 +82,11 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'preferences' => 'array',
         ];
+    }
+
+    /** Private realtime channel of this user (docs/03-architecture/realtime.md). */
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return "tenants.{$this->tenant_id}.users.{$this->id}";
     }
 }

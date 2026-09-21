@@ -1,0 +1,28 @@
+{
+    "experiment": "e4",
+    "title": "SLA scenario verification",
+    "command": "php artisan experiment:run e4 --strategy=baseline --seed=42",
+    "seed": 42,
+    "dataset": "v1",
+    "strategy_selected": "baseline",
+    "strategy": {
+        "name": "simple_sla_timer",
+        "version": "1.0.0",
+        "class": "App\\Modules\\Sla\\Strategies\\Baseline\\SimpleSlaTimer"
+    },
+    "settings": {
+        "warning_fraction": 0.75,
+        "clock": "frozen; set to each step time"
+    },
+    "outputs": [
+        "t8-sla-scenarios.csv",
+        "summary.json"
+    ],
+    "environment": {
+        "git_commit": "0e8d3f8-dirty",
+        "php": "8.5.10",
+        "postgresql": "18.6 (Debian 18.6-1.pgdg13+2)",
+        "generated_at": "2026-09-21T06:14:25+00:00",
+        "duration_s": 0.0
+    }
+}

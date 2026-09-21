@@ -1,0 +1,5 @@
+variant,threshold_choice,threshold,train_f1,test_pairs,test_tp,test_fp,test_fn,test_tn,test_precision,test_recall,test_f1
+title_description,default,0.35,0.8661,90,21,1,9,59,0.9545,0.7,0.8077
+title_description,best_on_train,0.3,0.8702,90,23,2,7,58,0.92,0.7667,0.8364
+title_only,default,0.35,0.7869,90,16,2,14,58,0.8889,0.5333,0.6667
+title_only,best_on_train,0.15,0.8811,90,30,3,0,57,0.9091,1,0.9524

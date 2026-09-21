@@ -1,0 +1,301 @@
+pair,label,source,same_category,split,score_title_description,score_title_only
+P001,duplicate,"generated: words dropped and swapped",true,test,1,1
+P002,duplicate,"generated: words dropped and swapped",true,train,0.875,0.75
+P003,duplicate,"generated: words dropped and swapped",true,test,0.8571,0.6667
+P004,duplicate,"generated: words dropped and swapped",true,train,0.9231,1
+P005,duplicate,"generated: words dropped and swapped",true,train,0.875,1
+P006,duplicate,"generated: words dropped and swapped",true,train,1,1
+P007,duplicate,"generated: words dropped and swapped",true,train,0.9375,1
+P008,duplicate,"generated: words dropped and swapped",true,test,0.8182,0.5
+P009,duplicate,"generated: words dropped and swapped",true,train,1,1
+P010,duplicate,"generated: words dropped and swapped",true,train,0.7692,0.8
+P011,duplicate,"generated: words dropped and swapped",true,train,0.9375,1
+P012,duplicate,"generated: words dropped and swapped",true,train,0.9231,1
+P013,duplicate,"generated: words dropped and swapped",true,train,1,0.6667
+P014,duplicate,"generated: words dropped and swapped",true,test,1,1
+P015,duplicate,"generated: words dropped and swapped",true,test,0.8667,1
+P016,duplicate,"generated: words dropped and swapped",true,train,1,1
+P017,duplicate,"generated: words dropped and swapped",true,train,0.9231,1
+P018,duplicate,"generated: words dropped and swapped",true,test,0.7692,0.6667
+P019,duplicate,"generated: words dropped and swapped",true,train,0.9231,1
+P020,duplicate,"generated: words dropped and swapped",true,train,0.8333,1
+P021,duplicate,"generated: words dropped and swapped",true,train,0.9231,0.5
+P022,duplicate,"generated: words dropped and swapped",true,train,0.9286,1
+P023,duplicate,"generated: words dropped and swapped",true,train,0.9333,1
+P024,duplicate,"generated: words dropped and swapped",true,train,0.8889,0.6667
+P025,duplicate,"generated: words dropped and swapped",true,train,0.8333,1
+P026,duplicate,"generated: words dropped and swapped",true,train,1,0.6667
+P027,duplicate,"generated: words dropped and swapped",true,train,0.875,0.75
+P028,duplicate,"generated: words dropped and swapped",true,train,0.8421,0.75
+P029,duplicate,"generated: words dropped and swapped",true,train,1,1
+P030,duplicate,"generated: words dropped and swapped",true,train,0.9167,1
+P031,duplicate,"generated: words dropped and swapped",true,train,1,1
+P032,duplicate,"generated: words dropped and swapped",true,train,0.8333,0.6667
+P033,duplicate,"generated: words dropped and swapped",true,train,0.8182,1
+P034,duplicate,"generated: words dropped and swapped",true,train,0.7857,0.6667
+P035,duplicate,"generated: words dropped and swapped",true,train,0.9375,1
+P036,duplicate,"generated: words dropped and swapped",true,train,0.8462,0.6667
+P037,duplicate,"generated: words dropped and swapped",true,train,0.75,0.5
+P038,duplicate,"generated: words dropped and swapped",true,test,1,1
+P039,duplicate,"generated: words dropped and swapped",true,train,0.9048,0.75
+P040,duplicate,"generated: words dropped and swapped",true,train,0.8571,0.6667
+P041,duplicate,"generated: words dropped and swapped",true,train,0.8333,1
+P042,duplicate,"generated: words dropped and swapped",true,train,0.8333,1
+P043,duplicate,"generated: words dropped and swapped",true,test,0.8889,1
+P044,duplicate,"generated: words dropped and swapped",true,train,0.9375,1
+P045,duplicate,"generated: words dropped and swapped",true,train,0.8333,0.75
+P046,duplicate,"generated: words dropped and swapped",true,train,0.9333,0.6667
+P047,duplicate,"generated: words dropped and swapped",true,train,1,1
+P048,duplicate,"generated: words dropped and swapped",true,train,0.7273,0.75
+P049,duplicate,"generated: words dropped and swapped",true,train,1,1
+P050,duplicate,"generated: words dropped and swapped",true,test,0.8462,1
+P051,duplicate,"generated: words dropped and swapped",true,train,0.8889,1
+P052,duplicate,"generated: words dropped and swapped",true,train,0.875,1
+P053,duplicate,"generated: words dropped and swapped",true,train,1,1
+P054,duplicate,"generated: words dropped and swapped",true,test,0.9231,1
+P055,duplicate,"generated: words dropped and swapped",true,test,0.9231,1
+P056,duplicate,"generated: words dropped and swapped",true,test,0.8571,0.5
+P057,duplicate,"generated: words dropped and swapped",true,train,1,1
+P058,duplicate,"generated: words dropped and swapped",true,train,0.9333,0.75
+P059,duplicate,"generated: words dropped and swapped",true,test,1,1
+P060,duplicate,"generated: words dropped and swapped",true,test,1,1
+P061,duplicate,hand-written,true,test,0.5,0.3333
+P062,duplicate,hand-written,true,train,0.2,0
+P063,duplicate,hand-written,true,train,0.3571,0.25
+P064,duplicate,hand-written,true,train,0.3077,0.5
+P065,duplicate,hand-written,true,train,0.375,0.1667
+P066,duplicate,hand-written,true,test,0.3333,0.3333
+P067,duplicate,hand-written,true,train,0.0714,0
+P068,duplicate,hand-written,true,train,0.1429,0
+P069,duplicate,hand-written,true,train,0.2353,0.3333
+P070,duplicate,hand-written,true,test,0.25,0.3333
+P071,duplicate,hand-written,true,test,0.4545,0.4
+P072,duplicate,hand-written,true,test,0.1667,0.3333
+P073,duplicate,hand-written,true,test,0.2353,0.5
+P074,duplicate,hand-written,true,test,0.2308,0.1667
+P075,duplicate,hand-written,true,train,0.4286,0.1667
+P076,duplicate,hand-written,true,train,0.1176,0.1667
+P077,duplicate,hand-written,true,train,0.2,0
+P078,duplicate,hand-written,true,train,0.2667,0.2
+P079,duplicate,hand-written,true,train,0.1875,0.1667
+P080,duplicate,hand-written,true,train,0.25,0.3333
+P081,duplicate,hand-written,true,test,0.5556,0.2
+P082,duplicate,hand-written,true,train,0.2857,0.1667
+P083,duplicate,hand-written,true,train,0.4167,0.1667
+P084,duplicate,hand-written,true,test,0.3636,0.3333
+P085,duplicate,hand-written,true,train,0.2308,0
+P086,duplicate,hand-written,true,test,0.5455,0.2
+P087,duplicate,hand-written,true,train,0.3846,0.2
+P088,duplicate,hand-written,true,train,0.1176,0
+P089,duplicate,hand-written,true,train,0.3846,0.25
+P090,duplicate,hand-written,true,test,0.1,0.25
+P091,duplicate,hand-written,true,test,0.3636,0.1667
+P092,duplicate,hand-written,true,train,0.1429,0.1429
+P093,duplicate,hand-written,true,test,0.0909,0.2
+P094,duplicate,hand-written,true,train,0.4,0.4
+P095,duplicate,hand-written,true,train,0.375,0.2
+P096,duplicate,hand-written,true,test,0.4545,0.2
+P097,duplicate,hand-written,true,train,0.3077,0.1667
+P098,duplicate,hand-written,true,train,0.75,0.3333
+P099,duplicate,hand-written,true,test,0.3333,0.3333
+P100,duplicate,hand-written,true,test,0.2308,0.1667
+P101,non_duplicate,"generated: same category, different object",true,test,0.0333,0
+P102,non_duplicate,"generated: same category, different object",true,test,0.3333,0.5
+P103,non_duplicate,"generated: same category, different object",true,train,0,0
+P104,non_duplicate,"generated: same category, different object",true,train,0,0
+P105,non_duplicate,"generated: same category, different object",true,train,0.1667,0.3333
+P106,non_duplicate,"generated: same category, different object",true,train,0.2727,0.5
+P107,non_duplicate,"generated: same category, different object",true,train,0.25,0
+P108,non_duplicate,"generated: same category, different object",true,test,0.1667,0
+P109,non_duplicate,"generated: same category, different object",true,train,0.1935,0
+P110,non_duplicate,"generated: same category, different object",true,train,0.1875,0
+P111,non_duplicate,"generated: same category, different object",true,test,0,0
+P112,non_duplicate,"generated: same category, different object",true,train,0.1818,0
+P113,non_duplicate,"generated: same category, different object",true,train,0.0417,0.2
+P114,non_duplicate,"generated: same category, different object",true,train,0.4,0.25
+P115,non_duplicate,"generated: same category, different object",true,train,0.0968,0.4286
+P116,non_duplicate,"generated: same category, different object",true,train,0.0968,0
+P117,non_duplicate,"generated: same category, different object",true,train,0.1667,0
+P118,non_duplicate,"generated: same category, different object",true,train,0,0
+P119,non_duplicate,"generated: same category, different object",true,train,0,0
+P120,non_duplicate,"generated: same category, different object",true,train,0.1818,0
+P121,non_duplicate,"generated: same category, different object",true,train,0.069,0
+P122,non_duplicate,"generated: same category, different object",true,test,0.35,0.5
+P123,non_duplicate,"generated: same category, different object",true,train,0.08,0
+P124,non_duplicate,"generated: same category, different object",true,train,0.2727,0
+P125,non_duplicate,"generated: same category, different object",true,train,0,0
+P126,non_duplicate,"generated: same category, different object",true,train,0.3182,0.5
+P127,non_duplicate,"generated: same category, different object",true,train,0.2609,0
+P128,non_duplicate,"generated: same category, different object",true,test,0.2174,0
+P129,non_duplicate,"generated: same category, different object",true,train,0.069,0
+P130,non_duplicate,"generated: same category, different object",true,train,0,0
+P131,non_duplicate,"generated: same category, different object",true,train,0,0
+P132,non_duplicate,"generated: same category, different object",true,train,0.2857,0.3333
+P133,non_duplicate,"generated: same category, different object",true,train,0.3043,0
+P134,non_duplicate,"generated: same category, different object",true,train,0.1667,0
+P135,non_duplicate,"generated: same category, different object",true,test,0.037,0
+P136,non_duplicate,"generated: same category, different object",true,test,0.1579,0
+P137,non_duplicate,"generated: same category, different object",true,train,0.16,0
+P138,non_duplicate,"generated: same category, different object",true,train,0.0333,0
+P139,non_duplicate,"generated: same category, different object",true,train,0.0645,0
+P140,non_duplicate,"generated: same category, different object",true,train,0.0769,0.4
+P141,non_duplicate,"generated: same category, different object",true,train,0.0741,0
+P142,non_duplicate,"generated: same category, different object",true,train,0.1818,0
+P143,non_duplicate,"generated: same category, different object",true,test,0.0909,0
+P144,non_duplicate,"generated: same category, different object",true,test,0.0667,0
+P145,non_duplicate,"generated: same category, different object",true,train,0.087,0.2
+P146,non_duplicate,"generated: same category, different object",true,train,0.2222,0
+P147,non_duplicate,"generated: same category, different object",true,train,0.0741,0
+P148,non_duplicate,"generated: same category, different object",true,train,0.3704,0
+P149,non_duplicate,"generated: same category, different object",true,train,0.2609,0
+P150,non_duplicate,"generated: same category, different object",true,train,0.2381,0
+P151,non_duplicate,"generated: different categories",false,train,0.037,0
+P152,non_duplicate,"generated: different categories",false,train,0,0
+P153,non_duplicate,"generated: different categories",false,train,0,0
+P154,non_duplicate,"generated: different categories",false,train,0,0
+P155,non_duplicate,"generated: different categories",false,test,0.0968,0
+P156,non_duplicate,"generated: different categories",false,train,0.0667,0
+P157,non_duplicate,"generated: different categories",false,train,0.0882,0
+P158,non_duplicate,"generated: different categories",false,train,0.04,0
+P159,non_duplicate,"generated: different categories",false,train,0.0357,0.125
+P160,non_duplicate,"generated: different categories",false,train,0,0
+P161,non_duplicate,"generated: different categories",false,test,0,0
+P162,non_duplicate,"generated: different categories",false,train,0.2174,0
+P163,non_duplicate,"generated: different categories",false,train,0.1818,0
+P164,non_duplicate,"generated: different categories",false,train,0,0
+P165,non_duplicate,"generated: different categories",false,train,0,0
+P166,non_duplicate,"generated: different categories",false,train,0.1,0
+P167,non_duplicate,"generated: different categories",false,train,0.1071,0
+P168,non_duplicate,"generated: different categories",false,train,0.0476,0
+P169,non_duplicate,"generated: different categories",false,test,0.1071,0
+P170,non_duplicate,"generated: different categories",false,train,0.1071,0
+P171,non_duplicate,"generated: different categories",false,train,0,0
+P172,non_duplicate,"generated: different categories",false,train,0.0769,0
+P173,non_duplicate,"generated: different categories",false,train,0.0741,0
+P174,non_duplicate,"generated: different categories",false,train,0,0
+P175,non_duplicate,"generated: different categories",false,test,0.0345,0
+P176,non_duplicate,"generated: different categories",false,test,0,0
+P177,non_duplicate,"generated: different categories",false,train,0.1,0
+P178,non_duplicate,"generated: different categories",false,test,0,0
+P179,non_duplicate,"generated: different categories",false,test,0.0357,0
+P180,non_duplicate,"generated: different categories",false,train,0,0
+P181,non_duplicate,"generated: different categories",false,train,0.0714,0
+P182,non_duplicate,"generated: different categories",false,test,0,0
+P183,non_duplicate,"generated: different categories",false,train,0.0714,0
+P184,non_duplicate,"generated: different categories",false,train,0.0357,0
+P185,non_duplicate,"generated: different categories",false,test,0.0435,0
+P186,non_duplicate,"generated: different categories",false,train,0,0
+P187,non_duplicate,"generated: different categories",false,train,0.2188,0
+P188,non_duplicate,"generated: different categories",false,train,0.0667,0
+P189,non_duplicate,"generated: different categories",false,train,0.0938,0
+P190,non_duplicate,"generated: different categories",false,test,0,0
+P191,non_duplicate,"generated: different categories",false,train,0,0
+P192,non_duplicate,"generated: different categories",false,test,0.1071,0
+P193,non_duplicate,"generated: different categories",false,train,0,0
+P194,non_duplicate,"generated: different categories",false,test,0,0
+P195,non_duplicate,"generated: different categories",false,test,0,0
+P196,non_duplicate,"generated: different categories",false,train,0,0
+P197,non_duplicate,"generated: different categories",false,train,0.125,0
+P198,non_duplicate,"generated: different categories",false,train,0.0303,0
+P199,non_duplicate,"generated: different categories",false,train,0.2,0
+P200,non_duplicate,"generated: different categories",false,test,0.0357,0
+P201,non_duplicate,"generated: different categories",false,test,0.0333,0
+P202,non_duplicate,"generated: different categories",false,test,0.0455,0
+P203,non_duplicate,"generated: different categories",false,train,0.0714,0
+P204,non_duplicate,"generated: different categories",false,test,0,0
+P205,non_duplicate,"generated: different categories",false,train,0.1667,0
+P206,non_duplicate,"generated: different categories",false,test,0,0
+P207,non_duplicate,"generated: different categories",false,train,0.0345,0
+P208,non_duplicate,"generated: different categories",false,train,0,0
+P209,non_duplicate,"generated: different categories",false,test,0.2308,0
+P210,non_duplicate,"generated: different categories",false,train,0.0667,0
+P211,non_duplicate,"generated: different categories",false,test,0.0769,0
+P212,non_duplicate,"generated: different categories",false,train,0,0
+P213,non_duplicate,"generated: different categories",false,test,0,0
+P214,non_duplicate,"generated: different categories",false,train,0,0
+P215,non_duplicate,"generated: different categories",false,train,0.0435,0
+P216,non_duplicate,"generated: different categories",false,train,0.0714,0
+P217,non_duplicate,"generated: different categories",false,train,0.1,0
+P218,non_duplicate,"generated: different categories",false,train,0,0
+P219,non_duplicate,"generated: different categories",false,train,0.0323,0
+P220,non_duplicate,"generated: different categories",false,test,0.1935,0
+P221,non_duplicate,"generated: different categories",false,train,0.1071,0
+P222,non_duplicate,"generated: different categories",false,test,0.04,0
+P223,non_duplicate,"generated: different categories",false,test,0.0645,0
+P224,non_duplicate,"generated: different categories",false,test,0.1111,0
+P225,non_duplicate,"generated: different categories",false,test,0,0
+P226,non_duplicate,"generated: different categories",false,train,0,0
+P227,non_duplicate,"generated: different categories",false,train,0.12,0
+P228,non_duplicate,"generated: different categories",false,test,0.0476,0
+P229,non_duplicate,"generated: different categories",false,test,0.1481,0.2
+P230,non_duplicate,"generated: different categories",false,train,0,0
+P231,non_duplicate,"generated: different categories",false,train,0.0417,0
+P232,non_duplicate,"generated: different categories",false,train,0.0625,0
+P233,non_duplicate,"generated: different categories",false,train,0.0645,0
+P234,non_duplicate,"generated: different categories",false,train,0.0769,0
+P235,non_duplicate,"generated: different categories",false,test,0,0
+P236,non_duplicate,"generated: different categories",false,test,0.0714,0
+P237,non_duplicate,"generated: different categories",false,test,0,0
+P238,non_duplicate,"generated: different categories",false,train,0,0
+P239,non_duplicate,"generated: different categories",false,train,0.0435,0
+P240,non_duplicate,"generated: different categories",false,train,0,0
+P241,non_duplicate,"generated: different categories",false,test,0,0
+P242,non_duplicate,"generated: different categories",false,train,0.0385,0
+P243,non_duplicate,"generated: different categories",false,train,0.069,0
+P244,non_duplicate,"generated: different categories",false,train,0.0435,0
+P245,non_duplicate,"generated: different categories",false,train,0.1,0
+P246,non_duplicate,"generated: different categories",false,train,0.0667,0
+P247,non_duplicate,"generated: different categories",false,test,0.2414,0
+P248,non_duplicate,"generated: different categories",false,train,0.1333,0
+P249,non_duplicate,"generated: different categories",false,train,0.0417,0.2
+P250,non_duplicate,"generated: different categories",false,train,0.1818,0
+P251,non_duplicate,"generated: different categories",false,train,0,0
+P252,non_duplicate,"generated: different categories",false,train,0.12,0
+P253,non_duplicate,"generated: different categories",false,train,0.0714,0
+P254,non_duplicate,"generated: different categories",false,test,0.15,0
+P255,non_duplicate,"generated: different categories",false,train,0,0
+P256,non_duplicate,"generated: different categories",false,test,0.0769,0
+P257,non_duplicate,"generated: different categories",false,test,0.0667,0
+P258,non_duplicate,"generated: different categories",false,test,0.05,0
+P259,non_duplicate,"generated: different categories",false,train,0.0323,0
+P260,non_duplicate,"generated: different categories",false,train,0.0345,0.1429
+P261,non_duplicate,"generated: different categories",false,test,0,0
+P262,non_duplicate,"generated: different categories",false,test,0.0333,0
+P263,non_duplicate,"generated: different categories",false,train,0,0
+P264,non_duplicate,"generated: different categories",false,test,0,0
+P265,non_duplicate,"generated: different categories",false,test,0,0
+P266,non_duplicate,"generated: different categories",false,test,0.0938,0
+P267,non_duplicate,"generated: different categories",false,train,0,0
+P268,non_duplicate,"generated: different categories",false,train,0.0333,0
+P269,non_duplicate,"generated: different categories",false,train,0.1379,0
+P270,non_duplicate,"generated: different categories",false,test,0.129,0
+P271,non_duplicate,"generated: different categories",false,train,0,0
+P272,non_duplicate,"generated: different categories",false,train,0.0968,0
+P273,non_duplicate,"generated: different categories",false,test,0.0909,0
+P274,non_duplicate,"generated: different categories",false,train,0,0
+P275,non_duplicate,"generated: different categories",false,train,0.0833,0
+P276,non_duplicate,"generated: different categories",false,train,0.04,0
+P277,non_duplicate,"generated: different categories",false,train,0.0645,0
+P278,non_duplicate,"generated: different categories",false,train,0.0625,0
+P279,non_duplicate,"generated: different categories",false,test,0.0769,0
+P280,non_duplicate,"generated: different categories",false,train,0.1034,0
+P281,non_duplicate,"generated: different categories",false,train,0,0
+P282,non_duplicate,"generated: different categories",false,train,0,0
+P283,non_duplicate,"generated: different categories",false,train,0.0385,0
+P284,non_duplicate,"generated: different categories",false,train,0.0909,0
+P285,non_duplicate,"generated: different categories",false,test,0.1034,0
+P286,non_duplicate,"generated: different categories",false,train,0,0
+P287,non_duplicate,"generated: different categories",false,train,0.1739,0
+P288,non_duplicate,"generated: different categories",false,train,0.1563,0
+P289,non_duplicate,"generated: different categories",false,test,0.125,0
+P290,non_duplicate,"generated: different categories",false,train,0.0345,0
+P291,non_duplicate,"generated: different categories",false,test,0.08,0
+P292,non_duplicate,"generated: different categories",false,train,0.125,0
+P293,non_duplicate,"generated: different categories",false,train,0.08,0
+P294,non_duplicate,"generated: different categories",false,train,0.037,0
+P295,non_duplicate,"generated: different categories",false,train,0,0
+P296,non_duplicate,"generated: different categories",false,test,0.0303,0
+P297,non_duplicate,"generated: different categories",false,test,0.0323,0
+P298,non_duplicate,"generated: different categories",false,train,0.0345,0
+P299,non_duplicate,"generated: different categories",false,train,0.1154,0
+P300,non_duplicate,"generated: different categories",false,train,0,0

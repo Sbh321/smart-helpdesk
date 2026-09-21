@@ -23,6 +23,7 @@ final class RoleResource extends JsonResource
             'name' => $this->name,
             'is_global' => $this->isGlobal(),
             'is_system' => (bool) $this->is_system,
+            /** @var list<string> */
             'permissions' => $this->permissions->pluck('name')->values()->all(),
         ];
     }

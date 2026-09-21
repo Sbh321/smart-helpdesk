@@ -15,6 +15,21 @@ Principle P7: configuration has layers; `.env` is not the settings database.
 
 Validated with a PHP schema (Laravel validation rules per key) and versioned (`settings_version`); every algorithm result stores the strategy name and version and the settings version that produced it, for reproducibility and for comparing strategies later. Defaults live in code (`config/helpdesk.php`) and are merged under tenant overrides, so adding a setting never requires a data migration.
 
+### As built (M2-01)
+
+- **Owner.** The `Tenancy` module owns storage and the API: `Settings\Settings` (`get('tickets.reopen_window_days')`, `section()`, `all()`, `version()`, `update()`), `SettingsRegistry`, the `TenantSetting` model (`data` JSONB, `version`). Outside a workspace every read answers the code defaults and version 0.
+- **Sections are registered by the module that owns the behaviour**, in its service provider, so Tenancy imports none of them: `general`, `branding`, `features` (Tenancy); `automation.priority`, `automation.assignment`, `automation.duplicates` (Automation); `tickets` (Tickets); `sla` (Sla); `shifts` (Agents). A section is a `SettingsSection`: key, defaults, Laravel rules and a cross-field `check()`. `ArraySection::fromConfig()` takes the defaults from `config('helpdesk.<key>')`, limited to the keys that have a rule.
+- **`general` lives on `tenants`** (`name`, `timezone`) because tenancy reads them before any settings exist; the write still bumps the version and is audited (`StoresOutsideSettings`).
+- **API.** `GET /v1/settings`, `GET /v1/settings/{section}`, `PATCH /v1/settings/{section}` with `settings.manage`. PATCH is partial: submitted keys are merged into the section and the whole section is validated. Malformed values answer 422 `validation_failed`; values that do not fit together (weights do not sum to 1, thresholds not decreasing, an unknown key) answer 422 `settings_invalid`. Both carry `errors` per field. The response has `values` (effective) and `defaults`.
+- **Version.** Every write adds one to `tenant_settings.version`. Priority results store it as `priority_settings_version`, assignments as `settings_version`. `GET /v1/me` carries `tenant.settings_version`, `tenant.branding` (`primary`, `logo_url`, `logo_dark_url`) and `tenant.features`.
+- **Audit.** `settings.updated` with the section, its old and new values and the new version.
+- **Cache.** One key per workspace (the tenancy cache bootstrapper tags it), forgotten on write.
+- **Strategies follow the workspace.** The container binds `PriorityStrategy` and `DuplicateStrategy` to `WorkspacePriorityStrategy` / `WorkspaceDuplicateStrategy`, which build the configured strategy with the current workspace's settings on each call and rebuild only when the workspace or the settings version changes. This matters for commands that walk several workspaces with one resolved action (`tickets:reevaluate-priority`).
+- **Branding.** `primary` is `#rrggbb` (MVP-SHORTCUT: no `oklch()` yet) and must allow 4.5:1 text; logos are ready image media items of the workspace. `POST /v1/media/intent` takes `purpose: branding` (needs `settings.manage`) and starts the file in the Branding folder.
+- **`tickets.auto_close_days`** is applied by `tickets:auto-close` (daily 03:10, [scheduler.md](../11-operations/scheduler.md)): `AutoCloseTicket` closes resolved tickets as the `system` actor, per workspace with its own period; a ticket that changed since it was selected is left alone.
+- **`sla.first_response_applies_to_agent_created = false`**: a ticket created in the UI gets no first-response timer (it is not started, rather than started and cancelled).
+- **Not built here:** `platform_settings`, `Feature::enabled()` helper (features are read with `Settings::get('features.realtime')`), `/v1/settings/email` (M3-18).
+
 ```php
 // config/helpdesk.php (defaults)
 
@@ -34,7 +49,7 @@ Validated with a PHP schema (Laravel validation rules per key) and versioned (`s
   'duplicates' => ['baseline' => ['threshold' => 0.35, 'candidate_limit' => 50, 'window_days' => 30, 'max_suggestions' => 5]],
 ],
 'tickets'  => ['auto_close_days' => 7, 'reopen_window_days' => 14],
-'sla'      => ['warning_fraction' => 0.75],
+'sla'      => ['warning_fraction' => 0.75, 'first_response_applies_to_agent_created' => true],
 'shifts'   => ['enforce' => false],
 'features' => ['realtime' => false, 'exports' => true],
 ```

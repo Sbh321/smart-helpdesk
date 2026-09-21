@@ -26,6 +26,6 @@ final class TenantCounter extends Model
 
     protected function casts(): array
     {
-        return ['next_ticket_number' => 'integer'];
+        return ['next_ticket_number' => 'integer', 'storage_used_bytes' => 'integer'];
     }
 }

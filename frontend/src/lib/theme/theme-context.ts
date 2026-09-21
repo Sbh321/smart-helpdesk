@@ -9,6 +9,13 @@ export interface ThemeContextValue {
   setTheme: (next: ThemeChoice) => void
   density: Density
   setDensity: (next: Density) => void
+  /** The saved primary colour of the workspace (`me.tenant.branding.primary`); null removes the branding. */
+  setTenantPrimary: (primary: string | null) => void
+  /**
+   * An unsaved colour shown instead of the saved one (Settings → Branding live preview): a hex colour,
+   * `null` for "no brand colour", or `undefined` to end the preview.
+   */
+  previewTenantPrimary: (primary: string | null | undefined) => void
 }
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null)

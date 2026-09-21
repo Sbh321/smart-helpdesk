@@ -1,0 +1,58 @@
+{
+    "policies": [
+        {
+            "policy": "random",
+            "tickets": 500,
+            "assigned": 500,
+            "unassigned": 0,
+            "capacity_overflows": 74,
+            "final_std_open": 3.586,
+            "final_max_open": 14,
+            "final_min_open": 3,
+            "final_jain_open": 0.7861,
+            "final_jain_utilisation": 0.8068,
+            "avg_std_open": 3.0275,
+            "avg_max_open": 10.632,
+            "avg_min_open": 1.414,
+            "avg_jain_open": 0.7577,
+            "avg_jain_utilisation": 0.7446,
+            "peak_utilisation": 1.75
+        },
+        {
+            "policy": "round_robin",
+            "tickets": 500,
+            "assigned": 500,
+            "unassigned": 0,
+            "capacity_overflows": 36,
+            "final_std_open": 2.7128,
+            "final_max_open": 13,
+            "final_min_open": 4,
+            "final_jain_open": 0.8653,
+            "final_jain_utilisation": 0.8104,
+            "avg_std_open": 2.5656,
+            "avg_max_open": 9.606,
+            "avg_min_open": 1.638,
+            "avg_jain_open": 0.809,
+            "avg_jain_utilisation": 0.7995,
+            "peak_utilisation": 1.4545
+        },
+        {
+            "policy": "least_loaded_agent",
+            "tickets": 500,
+            "assigned": 500,
+            "unassigned": 0,
+            "capacity_overflows": 0,
+            "final_std_open": 1.2686,
+            "final_max_open": 9,
+            "final_min_open": 5,
+            "final_jain_open": 0.9671,
+            "final_jain_utilisation": 0.9772,
+            "avg_std_open": 0.9967,
+            "avg_max_open": 6.804,
+            "avg_min_open": 3.962,
+            "avg_jain_open": 0.9547,
+            "avg_jain_utilisation": 0.9691,
+            "peak_utilisation": 0.8333
+        }
+    ]
+}

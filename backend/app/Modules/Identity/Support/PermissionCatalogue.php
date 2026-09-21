@@ -31,6 +31,8 @@ final class PermissionCatalogue
         'roles' => ['manage'],
         'integrations' => ['manage'],
         'reports' => ['view'],
+        // Entity change logs and as-of views (ADR-0022 §8, security.md §History).
+        'history' => ['view'],
         'audit' => ['view'],
     ];
 
@@ -62,7 +64,7 @@ final class PermissionCatalogue
         $manager = [
             ...$agent,
             'tickets.assign', 'tickets.delete', 'agents.manage', 'teams.manage', 'sla.manage',
-            'calendars.manage', 'shifts.manage', 'media.manage',
+            'calendars.manage', 'shifts.manage', 'media.manage', 'history.view',
         ];
 
         $admin = [

@@ -44,7 +44,9 @@ return new class extends Migration
             $table->timestampsTz();
         });
 
-        $reserved = collect(config('helpdesk.reserved_slugs'))
+        /** @var list<string> $slugs */
+        $slugs = (array) config('helpdesk.reserved_slugs');
+        $reserved = collect($slugs)
             ->map(fn (string $slug): string => DB::getPdo()->quote($slug))
             ->implode(', ');
 

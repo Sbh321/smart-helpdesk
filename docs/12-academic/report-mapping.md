@@ -54,7 +54,7 @@ Also for Chapter 3: ER diagram and database design ([data.md](../03-architecture
 | 4.1.2 Implementation Details of Modules | module-by-module description of classes/methods: `implementation-notes.md` (written during M3-15) drawing on [backend.md](../03-architecture/backend.md), algorithm classes, [tenancy.md](../03-architecture/tenancy.md), [webhooks.md](../07-api/webhooks.md), media and mail modules |
 | 4.2.1 Unit test cases | tables generated from Pest/Vitest test names: ID, module, input, expected, actual, status ([testing.md](../10-quality/testing.md) template) |
 | 4.2.2 System test cases | E2E scenarios ([05-testing-plan.md](../../roadmap/05-testing-plan.md)) as test-case tables with screenshots |
-| 4.3 Result Analysis | experiments E1–E5 ([result-analysis-plan.md](result-analysis-plan.md)): tables T1–T11, plots 1–10, interpretation, threats to validity |
+| 4.3 Result Analysis | experiments E1–E6 ([result-analysis-plan.md](result-analysis-plan.md)): tables T1–T11, plots 1–10, interpretation, threats to validity |
 
 ## Chapter 5 — Conclusion and Future Recommendations
 
@@ -84,3 +84,18 @@ Material that already exists for the report chapters, so it does not have to be 
 | Algorithm chapter | worked examples reproduced as unit tests in `backend/tests/Unit/{Automation,Sla,Reporting}` |
 
 Screenshots should be taken after M2-06 (ticket detail) and M3-01 (dashboard), when the screens the report describes exist; the list above is what can be captured today.
+
+## Ticket experience screenshot checklist (M2-06 in progress)
+
+These are capture targets, not claims that screenshots have been produced or that the integrated
+golden path is complete. Keep captured figures in the report workflow, separate from platform docs.
+
+| Figure | Screen/state | Availability |
+|---|---|---|
+| Ticket creation | `/acme/tickets/new`: contact picker, inline contact dialog, organisation, category, impact/urgency help and tags | implemented |
+| Ticket detail | header badges, metadata sidebar, Timeline and load older events | implemented |
+| Lifecycle guard | resolve confirmation with required resolution comment; failed transition feedback | implemented and browser-tested |
+| Edit ticket | title, description, category, impact/urgency and tags | implemented |
+| Priority explanation | stored strategy/version and factor contribution table | renderer implemented; real scoring waits for M2-04 |
+| Assignment and SLA | candidate ranking, agent assignment, live SLA state/countdown | pending M2-02/M2-03/M2-05 |
+| Complete lifecycle | create → assign → in progress → pending → resolved → closed | pending integrated API acceptance |

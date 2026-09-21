@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Modules\Audit\Audit;
 use App\Modules\Identity\Models\Invitation;
 use App\Modules\Identity\Notifications\UserInvitation;
+use App\Modules\Media\Models\MediaFolder;
+use App\Modules\Sla\Actions\EnsureDefaultSlaPolicy;
 use App\Modules\Tenancy\Enums\TenantStatus;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Models\TenantCounter;
@@ -20,8 +22,7 @@ use Illuminate\Support\Str;
  * Creates a workspace with everything it needs to be usable (docs/03-architecture/tenancy.md
  * §Provisioning). Idempotent per slug: running it again fills in only what is missing.
  *
- * MVP-SHORTCUT: the default SLA policy is added by the task that creates its tables; V1: none
- * (M2-03 SLA defaults). Roles are global defaults (M1-09); categories are seeded here.
+ * Roles are global defaults (M1-09); categories and the default SLA policy are seeded here.
  */
 final readonly class ProvisionTenant
 {
@@ -69,6 +70,8 @@ final readonly class ProvisionTenant
             );
 
             $this->seedDefaultCategories($tenant);
+            $this->seedDefaultSlaPolicy($tenant);
+            $this->seedMediaFolders($tenant);
 
             [$owner, $token] = $ownerEmail === null
                 ? [null, null]
@@ -91,6 +94,23 @@ final readonly class ProvisionTenant
         $tenant->run(function (): void {
             foreach (array_values((array) config('helpdesk.tickets.default_categories')) as $order => $name) {
                 Category::query()->firstOrCreate(['name' => (string) $name], ['sort_order' => $order, 'is_active' => true]);
+            }
+        });
+    }
+
+    private function seedDefaultSlaPolicy(Tenant $tenant): void
+    {
+        $tenant->run(fn () => app(EnsureDefaultSlaPolicy::class)());
+    }
+
+    private function seedMediaFolders(Tenant $tenant): void
+    {
+        $tenant->run(function (): void {
+            foreach (['tickets' => 'Tickets', 'email' => 'Email', 'branding' => 'Branding'] as $key => $name) {
+                MediaFolder::query()->firstOrCreate(
+                    ['system_key' => $key],
+                    ['name' => $name, 'parent_id' => null],
+                );
             }
         });
     }

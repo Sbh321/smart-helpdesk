@@ -201,7 +201,7 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection' => 'redis',
-            'queue' => ['default'],
+            'queue' => ['sla', 'notifications', 'default', 'reports'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
@@ -211,6 +211,21 @@ return [
             'tries' => 1,
             'timeout' => 60,
             'nice' => 0,
+        ],
+        // Image variants decode up to 40 MP (~160 MB), so they get their own queue and memory limit
+        // and can never starve SLA or notification jobs.
+        'supervisor-media' => [
+            'connection' => 'redis',
+            'queue' => ['media'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 2048,
+            'tries' => 3,
+            // Below the redis connection's retry_after (90 s), so a running job is never handed out twice.
+            'timeout' => 80,
+            'nice' => 10,
         ],
     ],
 

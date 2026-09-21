@@ -25,6 +25,13 @@ Needs: first-party SPA login, third-party API access for integrations, service a
 
 Two guards on disjoint routes (`auth:sanctum` for `/v1` from the SPA; `auth:api` for bearer clients on the same routes via a multi-guard middleware) with one permission vocabulary. Passport adds five tables, key management and a settings UI.
 
+## Outcome (M3-04, 2026-09-21)
+
+Passport was kept; the fallback was not needed. Passport's `TokenGuard` cannot authenticate a
+client-credentials token as a principal, so the `api` guard is our own `ApiClientGuard` over
+Passport's resource server, with scope → permission mapping in `Gate::before`. Details:
+[07-api/authentication.md](../07-api/authentication.md) §3 As built.
+
 ## Migration / future considerations
 
 Authorization-code flow and personal access tokens later reuse the same scopes; passkeys/2FA via Fortify or Passport device grant when needed.

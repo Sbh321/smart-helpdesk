@@ -128,7 +128,7 @@ Never cut: tenant isolation tests, RLS, the four algorithms with explanations an
 |---|---|---|
 | R02 | retired | tenancy core, provisioning and the isolation suite landed on day 2; no hand-rolled fallback needed |
 | R05 | reduced | isolation suite v1 green (model reflection, data isolation, schema, queue context); row-level security still pending in M3-07 |
-| R09 | on track | 601 backend tests, 121 frontend unit and 75 browser tests; coverage not measured locally (no pcov in the dev image, measured by CI) |
+| R09 | on track | 601 backend tests, 121 frontend unit and 75 browser tests; coverage measured locally with `just coverage` since the M2 exit review (algorithm namespaces at 100 %) |
 | R13 | retired | presigned PUT from the SPA origin with bucket CORS works on RustFS 1.0 |
 | R14 | retired | TanStack Table v9.2.4 works; two v9 quirks are documented in components.md (compiler opt-out, stable state objects) |
 | R15 | watch | `openapi-typescript` needs TypeScript 5.9 through `pnpm dlx`; nothing else affected |

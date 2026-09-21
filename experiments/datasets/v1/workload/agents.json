@@ -1,0 +1,71 @@
+[
+    {
+        "id": "agent-01",
+        "capacity": 12,
+        "skills": [
+            "account",
+            "technical"
+        ]
+    },
+    {
+        "id": "agent-02",
+        "capacity": 11,
+        "skills": [
+            "hardware",
+            "network"
+        ]
+    },
+    {
+        "id": "agent-03",
+        "capacity": 12,
+        "skills": [
+            "billing",
+            "network",
+            "technical"
+        ]
+    },
+    {
+        "id": "agent-04",
+        "capacity": 12,
+        "skills": [
+            "account",
+            "billing",
+            "network"
+        ]
+    },
+    {
+        "id": "agent-05",
+        "capacity": 8,
+        "skills": [
+            "account",
+            "hardware",
+            "network"
+        ]
+    },
+    {
+        "id": "agent-06",
+        "capacity": 9,
+        "skills": [
+            "billing",
+            "network",
+            "technical"
+        ]
+    },
+    {
+        "id": "agent-07",
+        "capacity": 11,
+        "skills": [
+            "hardware",
+            "network"
+        ]
+    },
+    {
+        "id": "agent-08",
+        "capacity": 11,
+        "skills": [
+            "account",
+            "billing",
+            "technical"
+        ]
+    }
+]

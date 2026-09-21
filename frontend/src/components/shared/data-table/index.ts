@@ -1,6 +1,7 @@
 export { type ColumnVisibility, columnVisibilityKey } from './column-visibility-storage'
 export {
   DataTable,
+  type DataTableControlledSelection,
   type DataTableProps,
   type DataTableSelection,
   type DataTableState,

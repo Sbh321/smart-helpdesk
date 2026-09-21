@@ -266,11 +266,11 @@ Passport 13 defaults; `oauth_clients` gains `tenant_id uuid NOT NULL FK`, `scope
 
 ### team_members
 
-`tenant_id uuid NOT NULL, team_id uuid FK CASCADE, agent_profile_id uuid FK CASCADE, joined_at timestamptz, PK (team_id, agent_profile_id)`.
+`id uuid` (UUID v7 PK), `tenant_id uuid NOT NULL`, `team_id uuid` and `agent_profile_id uuid` (both composite FKs with `tenant_id`, CASCADE), `joined_at timestamptz`; UNIQUE `(tenant_id, team_id, agent_profile_id)`.
 
 ### agent_skills
 
-`tenant_id uuid NOT NULL, agent_profile_id uuid FK CASCADE, skill_id uuid FK CASCADE, PK (agent_profile_id, skill_id)`.
+`id uuid` (UUID v7 PK), `tenant_id uuid NOT NULL`, `agent_profile_id uuid` and `skill_id uuid` (both composite FKs with `tenant_id`, CASCADE), `level smallint` (CHK 1–5); UNIQUE `(tenant_id, agent_profile_id, skill_id)`.
 
 ## Tickets
 
@@ -401,7 +401,7 @@ Ticket and comment attachments are media items linked through `mediables` (role 
 | warned_at, breached_at, met_at, cancelled_at | timestamptz | N | |
 | calendar_id | uuid | N | copied from the policy at start; null = 24×7 |
 | strategy | varchar(64) | | SLA strategy name and version |
-| U | `(ticket_id, kind, cycle)` | | |
+| U | `(tenant_id, ticket_id, kind, cycle)` | | Tenant-leading business uniqueness |
 
 ### sla_events
 
@@ -499,7 +499,7 @@ Exports of reports and of the filtered ticket list share `report_exports` ([§Re
 | id, tenant_id | uuid | | |
 | folder_id | uuid | N, FK media_folders SET NULL | |
 | name | varchar(255) | | display name, trigram index |
-| storage_key | varchar(512) | U | `tenants/{tenant}/media/{id}/original.{ext}`, server-generated |
+| storage_key | varchar(512) | U `(tenant_id, storage_key)` | Tenant-relative `media/{id}/original.{ext}`, server-generated; filesystem adds `tenants/{tenant}/` |
 | mime_type | varchar(127) | | verified by sniffing |
 | size_bytes | bigint | CHK > 0 and ≤ 26214400 | |
 | width, height | integer | N | images only |
@@ -515,12 +515,13 @@ Exports of reports and of the filtered ticket list share `report_exports` ([§Re
 
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
+| id | uuid | PK | UUID v7 for change-capture history |
 | tenant_id | uuid | | |
 | media_item_id | uuid | FK media_items RESTRICT | purge requires unlink |
 | mediable_type | varchar(40) | CHK `ticket,ticket_comment,tenant_branding,inbound_email` | |
 | mediable_id | uuid | | |
 | role | varchar(12) | CHK `attachment,logo,inline` | |
-| created_at | timestamptz | | PK `(media_item_id, mediable_type, mediable_id, role)` |
+| created_at | timestamptz | | U `(tenant_id, media_item_id, mediable_type, mediable_id, role)` |
 
 Quota: `tenants.storage_quota_bytes` (bigint, default from platform settings) and `tenant_counters.storage_used_bytes` updated on complete/purge under the counter row lock.
 
@@ -554,7 +555,7 @@ Quota: `tenants.storage_quota_bytes` (bigint, default from platform settings) an
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | id, tenant_id | uuid | | |
-| agent_profile_id | uuid | FK agent_profiles CASCADE | |
+| agent_profile_id | uuid | composite FK `(tenant_id, agent_profile_id)` to agent_profiles CASCADE | |
 | weekday | smallint | N, CHK 0–6 | weekly template row |
 | date | date | N | date exception row (exactly one of weekday/date set; CHK) |
 | starts_at, ends_at | time | CHK ends_at > starts_at | in the tenant default calendar zone |
@@ -632,6 +633,8 @@ through `App\Modules\Reporting\Models\EntityChange` (tenant-scoped, append-only)
 
 ### report_ticket_facts
 
+As built (M2-13): a surrogate `id` primary key; `(tenant_id, ticket_id)` is unique.
+
 | Column | Type | Notes |
 |---|---|---|
 | ticket_id (PK), tenant_id | uuid | one row per ticket |
@@ -655,7 +658,7 @@ through `App\Modules\Reporting\Models\EntityChange` (tenant-scoped, append-only)
 | dimension | varchar(16) | | `none, team, agent, priority, category, status` |
 | dimension_key | uuid or varchar(64) as text | | `-` for `none` |
 | metrics | jsonb | | `{backlog, weighted_load, created, resolved, reopened, breached, ...}` |
-| | | PK `(tenant_id, day, dimension, dimension_key)` | upserted |
+| | | UNIQUE `(tenant_id, day, dimension, dimension_key)`, surrogate `id` PK (M2-13) | the day's rows are replaced |
 
 ### saved_reports
 

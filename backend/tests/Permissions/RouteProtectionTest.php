@@ -26,6 +26,10 @@ const PERMISSION_ALLOW_LIST = [
     'auth.password.reset',
     'me.show',
     'me.preferences.update',
+    // A user's own inbox: every query is limited to the signed-in user.
+    'notifications.index',
+    'notifications.read',
+    'notifications.read-all',
 ];
 
 /** Routes that run before anyone is signed in. */

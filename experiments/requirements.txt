@@ -1,0 +1,3 @@
+# Plot rendering for the algorithm experiments (experiments/plots.py).
+# Research row: docs/01-research/versions.md (matplotlib). numpy comes with matplotlib.
+matplotlib==3.11.2

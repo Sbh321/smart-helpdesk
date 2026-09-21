@@ -18,6 +18,29 @@ use Tests\Support\TenantModelInventory;
  * SchemaTest.php); everything here is the Eloquent global scope.
  */
 
+/**
+ * Rows a scoped delete removed. Append-only tables (sla_events, ticket_events, entity_changes)
+ * refuse DELETE for the runtime role altogether, which is a stronger guarantee than "zero rows",
+ * so a permission error counts as nothing deleted.
+ *
+ * @param  class-string<Model>  $model
+ */
+function deletedRows(string $model, mixed $key): int
+{
+    try {
+        return DB::transaction(fn (): int => (int) $model::query()->whereKey($key)->delete());
+    } catch (QueryException $e) {
+        if (str_contains($e->getMessage(), 'permission denied')) {
+            return 0;
+        }
+
+        throw $e;
+    } catch (LogicException) {
+        // The model itself refuses deletes (append-only models throw before any SQL runs).
+        return 0;
+    }
+}
+
 dataset('primary models', fn (): array => TenantModelInventory::seedablePrimary());
 
 beforeEach(function (): void {
@@ -53,7 +76,7 @@ it('cannot read, update or delete another tenant row by its primary key', functi
 
     expect($model::query()->find($theirs->getKey()))->toBeNull()
         ->and($model::query()->whereKey($theirs->getKey())->exists())->toBeFalse()
-        ->and($model::query()->whereKey($theirs->getKey())->delete())->toBe(0);
+        ->and(deletedRows($model, $theirs->getKey()))->toBe(0);
 
     tenancy()->end();
 

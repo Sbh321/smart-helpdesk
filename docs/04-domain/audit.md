@@ -14,7 +14,7 @@ Two different things are commonly called "audit". We keep them apart because the
 
 ## Audited actions (MVP)
 
-`user.invited`, `user.role_changed`, `user.disabled`, `role.created`, `role.permissions_changed`, `api_client.created`, `api_client.revoked`, `webhook.created`, `webhook.updated`, `webhook.disabled`, `sla_policy.updated`, `settings.updated` (priority/assignment/duplicate weights), `tenant.created`, `tenant.suspended`, `tenant.reactivated`, `ticket.priority_overridden`, `attachment.downloaded` (Could-have; volume concern).
+`user.invited`, `user.invitation_resent`, `user.role_changed`, `user.disabled`, `user.enabled`, `settings.updated`, `role.created`, `role.deleted`, `role.permissions_changed`, `api_client.created`, `api_client.revoked`, `webhook.created`, `webhook.updated`, `webhook.disabled`, `sla_policy.updated`, `settings.updated` (priority/assignment/duplicate weights), `tenant.created`, `tenant.suspended`, `tenant.reactivated`, `ticket.priority_overridden`, `attachment.downloaded` (Could-have; volume concern).
 
 ## Implementation choice
 

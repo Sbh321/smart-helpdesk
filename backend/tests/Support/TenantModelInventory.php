@@ -5,6 +5,12 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Models\User;
+use App\Modules\Agents\Models\AgentProfile;
+use App\Modules\Agents\Models\AgentShift;
+use App\Modules\Agents\Models\AgentSkill;
+use App\Modules\Agents\Models\Skill;
+use App\Modules\Agents\Models\Team;
+use App\Modules\Agents\Models\TeamMember;
 use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Contacts\Models\Contact;
 use App\Modules\Contacts\Models\Organization;
@@ -13,16 +19,33 @@ use App\Modules\Identity\Models\Invitation;
 use App\Modules\Identity\Models\Permission;
 use App\Modules\Identity\Models\PersonalAccessToken;
 use App\Modules\Identity\Models\Role;
+use App\Modules\Integrations\Models\AccessToken;
+use App\Modules\Integrations\Models\ApiClient;
+use App\Modules\Integrations\Models\IdempotencyKey;
+use App\Modules\Media\Models\Mediable;
+use App\Modules\Media\Models\MediaFolder;
+use App\Modules\Media\Models\MediaItem;
+use App\Modules\Notifications\Models\Notification;
 use App\Modules\Platform\Models\PlatformUser;
 use App\Modules\Reporting\Models\EntityChange;
+use App\Modules\Reporting\Models\ReportDailySnapshot;
+use App\Modules\Reporting\Models\ReportTicketFact;
+use App\Modules\Reporting\Models\ReportTicketInterval;
+use App\Modules\Sla\Models\BusinessCalendar;
+use App\Modules\Sla\Models\CalendarHoliday;
+use App\Modules\Sla\Models\SlaEvent;
+use App\Modules\Sla\Models\SlaPolicy;
+use App\Modules\Sla\Models\SlaTarget;
+use App\Modules\Sla\Models\TicketSlaTimer;
 use App\Modules\Tenancy\Models\Domain;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Models\TenantCounter;
+use App\Modules\Tenancy\Models\TenantSetting;
 use App\Modules\Tickets\Models\Category;
-use App\Modules\Tickets\Models\Skill;
 use App\Modules\Tickets\Models\Ticket;
 use App\Modules\Tickets\Models\TicketAssignment;
 use App\Modules\Tickets\Models\TicketComment;
+use App\Modules\Tickets\Models\TicketDuplicateSuggestion;
 use App\Modules\Tickets\Models\TicketEvent;
 use Illuminate\Database\Eloquent\Model;
 use ReflectionClass;
@@ -47,17 +70,38 @@ final class TenantModelInventory
      * @var list<class-string<Model>>
      */
     public const PRIMARY = [
+        AgentProfile::class,
+        AgentShift::class,
+        AgentSkill::class,
+        BusinessCalendar::class,
+        CalendarHoliday::class,
         Category::class,
         Contact::class,
         EntityChange::class,
+        IdempotencyKey::class,
         Invitation::class,
+        MediaFolder::class,
+        MediaItem::class,
+        Mediable::class,
+        Notification::class,
         Organization::class,
+        ReportDailySnapshot::class,
+        ReportTicketFact::class,
+        ReportTicketInterval::class,
+        SlaEvent::class,
+        SlaPolicy::class,
+        SlaTarget::class,
         Skill::class,
         Tag::class,
+        Team::class,
+        TeamMember::class,
+        TenantSetting::class,
         Ticket::class,
         TicketAssignment::class,
         TicketComment::class,
+        TicketDuplicateSuggestion::class,
         TicketEvent::class,
+        TicketSlaTimer::class,
         User::class,
     ];
 
@@ -80,13 +124,16 @@ final class TenantModelInventory
     ];
 
     /**
-     * Credential models read before tenancy is initialised: they carry `tenant_id`, are never
-     * globally scoped, and are excluded from row-level security (docs/08-database/tenancy.md).
+     * Credential models read before tenancy is initialised: they carry `tenant_id` and are excluded
+     * from row-level security (docs/08-database/tenancy.md). `ApiClient` uses `BelongsToTenant` for
+     * the management endpoints; the scope is inactive at the token endpoint, where no tenant is known.
      *
      * @var list<class-string<Model>>
      */
     public const CREDENTIALS = [
         PersonalAccessToken::class,
+        ApiClient::class,
+        AccessToken::class,
     ];
 
     /**

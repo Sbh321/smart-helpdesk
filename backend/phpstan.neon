@@ -2,8 +2,8 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    # Level 5 in milestone 1, raised to 6 from milestone 2 (docs/10-quality/code-quality.md).
-    level: 5
+    # Level 5 in milestone 1, raised to 6 at the milestone 2 exit review (docs/10-quality/code-quality.md).
+    level: 6
     paths:
         - app
         - config
@@ -14,4 +14,15 @@ parameters:
         # TenantAwareJob is used by the first queued jobs (M1-16 onward); remove this entry then.
         -
             identifier: trait.unused
+            reportUnmatched: false
+        # API resources leave toArray() without an array docblock on purpose: Scramble infers the response
+        # schema from the returned literal, and a loose `array<string, mixed>` hides it (every field then
+        # documents as unknown). The literal is the type; resources are covered by the API tests.
+        -
+            identifier: missingType.iterableValue
+            path: app/*/Http/Resources/*
+            reportUnmatched: false
+        -
+            identifier: missingType.iterableValue
+            path: app/Support/Http/Bulk/BulkRowResource.php
             reportUnmatched: false

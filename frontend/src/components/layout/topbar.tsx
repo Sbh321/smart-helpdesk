@@ -1,4 +1,5 @@
 import { LogOutIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,6 @@ import { copy } from '@/copy/en'
 import { useSession } from '@/lib/auth'
 import { Breadcrumbs } from './breadcrumbs'
 import { CommandPalette } from './command-palette'
-import { NotificationBell } from './notification-bell'
 
 function initials(name: string): string {
   return (
@@ -28,16 +28,29 @@ function initials(name: string): string {
   )
 }
 
-/** The `header` landmark: breadcrumbs on the left, palette, bell, theme and account menu on the right. */
-export function Topbar({ workspace }: { workspace: string }) {
+/**
+ * The `header` landmark: breadcrumbs on the left, palette, bell, theme and account menu on the right.
+ * `actions` and `notifications` are slots the route fills with feature-owned controls (the Agent
+ * availability control, the notification bell): the shell may not import features.
+ */
+export function Topbar({
+  workspace,
+  actions,
+  notifications,
+}: {
+  workspace: string
+  actions?: ReactNode
+  notifications?: ReactNode
+}) {
   const { session, signOut } = useSession()
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-2">
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-2 print:hidden">
       <Breadcrumbs workspace={workspace} />
       <div className="flex items-center gap-2">
+        {actions}
         <CommandPalette workspace={workspace} />
-        <NotificationBell />
+        {notifications}
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger

@@ -1,3 +1,4 @@
+import { tenantBrandCss } from './brand'
 import {
   DARK_SCHEME_QUERY,
   DENSITY_ATTRIBUTE,
@@ -52,4 +53,30 @@ export function applyThemeAttributes(
       root.setAttribute(name, value)
     }
   }
+}
+
+export const TENANT_BRAND_STYLE_ID = 'tenant-brand'
+export const TENANT_ATTRIBUTE = 'data-tenant'
+
+/**
+ * Writes or removes `<style id="tenant-brand">` and `data-tenant` on <html> (tokens.md §Tenant branding).
+ * Without a primary colour nothing of the branding stays in the document.
+ */
+export function applyTenantBrand(primary: string | null, doc: Document = document): void {
+  const css = tenantBrandCss(primary)
+  const existing = doc.getElementById(TENANT_BRAND_STYLE_ID)
+  if (css === null) {
+    existing?.remove()
+    doc.documentElement.removeAttribute(TENANT_ATTRIBUTE)
+    return
+  }
+  const style = existing ?? doc.createElement('style')
+  if (!existing) {
+    style.id = TENANT_BRAND_STYLE_ID
+    doc.head.append(style)
+  }
+  if (style.textContent !== css) {
+    style.textContent = css
+  }
+  doc.documentElement.setAttribute(TENANT_ATTRIBUTE, '')
 }

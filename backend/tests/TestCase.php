@@ -6,7 +6,9 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Laravel\Passport\Passport;
 use RuntimeException;
+use Tests\Support\PassportTestKeys;
 
 /**
  * Base for feature tests: every test runs in a rolled-back transaction on helpdesk_test.
@@ -14,6 +16,26 @@ use RuntimeException;
 abstract class TestCase extends BaseTestCase
 {
     use RefreshDatabase;
+
+    /**
+     * `TEST_DATABASE=helpdesk_a_test vendor/bin/pest` runs the suite on another test database, so
+     * several workers can test at once. The `_test` guard below still applies.
+     */
+    public function createApplication()
+    {
+        $app = parent::createApplication();
+        $database = getenv('TEST_DATABASE');
+
+        if (is_string($database) && $database !== '') {
+            $app['config']->set('database.connections.pgsql.database', $database);
+            $app['config']->set('database.connections.pgsql_owner.database', $database);
+        }
+
+        // Passport signs and verifies client-credentials tokens with these (M3-04).
+        Passport::loadKeysFrom(PassportTestKeys::directory());
+
+        return $app;
+    }
 
     /**
      * Refuses to wipe anything but a test database, whatever the environment says.

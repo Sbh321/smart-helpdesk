@@ -22,7 +22,7 @@ Total ≈ 520 automated tests. Counts are targets; the actual numbers are report
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Backend runner | Pest 5 (PHPUnit 13) | `--parallel` locally; `--coverage` in CI with pcov |
+| Backend runner | Pest 5 (PHPUnit 13) | `--coverage` with pcov: in CI, and locally with `just coverage` (pcov is in the development image, disabled until that recipe turns it on; M2 exit review) |
 | Backend database | PostgreSQL 18 service container, never SQLite | `RefreshDatabase` with transaction rollback; extensions (`pg_trgm`) created in `TestCase::setUpBeforeClass` |
 | Static analysis | Larastan level 5 (M1) → 6 (M2+), Pint | fail CI on any error |
 | Time | `App\Support\Clock` bound to `FrozenClock` in tests; `Carbon::setTestNow` never used directly | |

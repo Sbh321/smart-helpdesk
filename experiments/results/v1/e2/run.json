@@ -1,0 +1,59 @@
+{
+    "experiment": "e2",
+    "title": "Duplicate detection accuracy",
+    "command": "php artisan experiment:run e2 --strategy=baseline --seed=42",
+    "seed": 42,
+    "dataset": "v1",
+    "strategy_selected": "baseline",
+    "strategy": {
+        "name": "jaccard_duplicates",
+        "version": "1.0.0",
+        "class": "App\\Modules\\Automation\\Strategies\\Baseline\\JaccardDuplicates"
+    },
+    "settings": {
+        "default_threshold": 0.35,
+        "thresholds": [
+            0.1,
+            0.15,
+            0.2,
+            0.25,
+            0.3,
+            0.35,
+            0.4,
+            0.45,
+            0.5,
+            0.55,
+            0.6,
+            0.65,
+            0.7,
+            0.75,
+            0.8,
+            0.85,
+            0.9
+        ],
+        "train_share": 0.7,
+        "split": "stratified by label, seeded shuffle",
+        "best_threshold_rule": "highest F1 on the training pairs; the lowest threshold wins a tie",
+        "recall_at_5": "each duplicate pair: side a searches the haystack plus every side b; a hit when its own side b is among the five suggestions",
+        "strategy_settings": {
+            "threshold": 1.0e-6,
+            "max_suggestions": 5,
+            "candidate_limit": 50,
+            "window_days": 30
+        }
+    },
+    "outputs": [
+        "t3-duplicate-thresholds.csv",
+        "t4-duplicate-held-out.csv",
+        "t5-duplicate-variants.csv",
+        "pair-scores.csv",
+        "summary.json"
+    ],
+    "environment": {
+        "git_commit": "0e8d3f8-dirty",
+        "php": "8.5.10",
+        "postgresql": "18.6 (Debian 18.6-1.pgdg13+2)",
+        "generated_at": "2026-09-21T06:14:25+00:00",
+        "duration_s": 4.5
+    }
+}

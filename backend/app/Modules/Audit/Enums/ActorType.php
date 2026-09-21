@@ -8,6 +8,6 @@ enum ActorType: string
 {
     case User = 'user';
     case PlatformUser = 'platform_user';
-    case Client = 'client';
+    case ApiClient = 'api_client';
     case System = 'system';
 }

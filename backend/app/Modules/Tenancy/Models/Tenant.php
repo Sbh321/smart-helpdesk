@@ -47,7 +47,7 @@ final class Tenant extends BaseTenant
     {
         return [
             'id', 'slug', 'name', 'status', 'plan', 'placement', 'owner_email', 'timezone',
-            'suspended_at', 'archived_at', 'created_at', 'updated_at',
+            'suspended_at', 'archived_at', 'storage_quota_bytes', 'created_at', 'updated_at',
         ];
     }
 

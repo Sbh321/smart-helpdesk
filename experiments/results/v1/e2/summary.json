@@ -1,0 +1,87 @@
+{
+    "default_threshold": 0.35,
+    "held_out": [
+        {
+            "variant": "title_description",
+            "threshold_choice": "default",
+            "threshold": 0.35,
+            "train_f1": 0.8661,
+            "test_pairs": 90,
+            "test_tp": 21,
+            "test_fp": 1,
+            "test_fn": 9,
+            "test_tn": 59,
+            "test_precision": 0.9545,
+            "test_recall": 0.7,
+            "test_f1": 0.8077
+        },
+        {
+            "variant": "title_description",
+            "threshold_choice": "best_on_train",
+            "threshold": 0.3,
+            "train_f1": 0.8702,
+            "test_pairs": 90,
+            "test_tp": 23,
+            "test_fp": 2,
+            "test_fn": 7,
+            "test_tn": 58,
+            "test_precision": 0.92,
+            "test_recall": 0.7667,
+            "test_f1": 0.8364
+        },
+        {
+            "variant": "title_only",
+            "threshold_choice": "default",
+            "threshold": 0.35,
+            "train_f1": 0.7869,
+            "test_pairs": 90,
+            "test_tp": 16,
+            "test_fp": 2,
+            "test_fn": 14,
+            "test_tn": 58,
+            "test_precision": 0.8889,
+            "test_recall": 0.5333,
+            "test_f1": 0.6667
+        },
+        {
+            "variant": "title_only",
+            "threshold_choice": "best_on_train",
+            "threshold": 0.15,
+            "train_f1": 0.8811,
+            "test_pairs": 90,
+            "test_tp": 30,
+            "test_fp": 3,
+            "test_fn": 0,
+            "test_tn": 57,
+            "test_precision": 0.9091,
+            "test_recall": 1.0,
+            "test_f1": 0.9524
+        }
+    ],
+    "variants": [
+        {
+            "variant": "title_description",
+            "mean_score_duplicates": 0.6648,
+            "mean_score_non_duplicates": 0.08,
+            "best_threshold": 0.3,
+            "test_f1_at_best": 0.8364,
+            "test_f1_at_default": 0.8077,
+            "recall_at_5_ranking_only": 0.92,
+            "recall_at_5_at_default": 0.75,
+            "recall_at_5_at_best": 0.79,
+            "pool_size": 5100
+        },
+        {
+            "variant": "title_only",
+            "mean_score_duplicates": 0.6148,
+            "mean_score_non_duplicates": 0.0241,
+            "best_threshold": 0.15,
+            "test_f1_at_best": 0.9524,
+            "test_f1_at_default": 0.6667,
+            "recall_at_5_ranking_only": 0.03,
+            "recall_at_5_at_default": 0.01,
+            "recall_at_5_at_best": 0.03,
+            "pool_size": 5100
+        }
+    ]
+}

@@ -35,7 +35,7 @@ Threat model and controls for the MVP. Test mapping in [10-quality/security-test
 | mail.manage (sender identity, inbound log) | ✔ | ✔ | — | — | — |
 | reports.view, reports.export | ✔ | ✔ | ✔ | own performance only | — |
 | reports.manage (saved/scheduled) | ✔ | ✔ | ✔ | — | — |
-| history.view | ✔ | ✔ | ✔ | tickets only | — |
+| history.view | ✔ | ✔ | ✔ | tickets only (see §History as built) | — |
 
 ## Threat model (STRIDE-lite)
 
@@ -94,6 +94,64 @@ Details that matter when adding endpoints:
   endpoint.
 - `LastOwnerGuard` refuses to remove the last active owner of a workspace.
 - Invitations name roles; acceptance assigns the ones that still exist.
+
+## Users and role assignment as built (M2-12)
+
+`/v1/users` (Settings → Users, `users.manage`): list with status (`active`, `invited`, `disabled`), role
+and text filters; invite; change name and roles; resend an invitation; disable and enable.
+
+- **Invitation.** Inviting creates the user without a password and a single-use, 48-hour invitation
+  that carries the roles; the roles are given on acceptance. Until then the user is listed as
+  `invited` and a role change edits the invitation. Resending issues a new link and ends the old one.
+  Invitations are throttled to 20 a minute per user because each one sends mail.
+- **Role assignment** (`RoleAssignmentGuard`), checked on invite, role change and disable:
+  1. Only an owner gives or takes the `owner` role. Owner and admin hold the same permissions, so a
+     permission check alone would let an admin make themselves owner.
+  2. A role may be given or taken only when the actor holds every one of its permissions.
+  Refusals are 403 `forbidden` with `meta.roles`.
+- **Role editing.** A permission may be added to or removed from a custom role only by a user who
+  holds it: editing a role reaches everyone who holds it, the editor included. A custom role that users
+  still hold cannot be deleted (409 `in_use`, `meta.users`).
+- **Disable.** A disabled user cannot sign in; their sessions and personal access tokens are deleted
+  at once and automatic assignment skips them. Nobody disables their own account (409 `conflict`,
+  `meta.reason: self`), and the last active owner keeps the role and the account (422 `last_owner`).
+- **Audit.** `user.invited`, `user.invitation_resent`, `user.role_changed` (old and new roles),
+  `user.disabled`, `user.enabled`.
+
+## History as built (M2-13)
+
+`history.view` is in the catalogue and held by owner, admin and manager. The matrix gives agents
+"tickets only"; since no single permission can say that, the history API opens the ticket family
+(`tickets`, `ticket_comments`, `ticket_assignments`, `ticket_sla_timers`, `ticket_duplicate_suggestions`,
+`sla_events`) to readers who hold `tickets.view` and `comments.internal` (agents, not developers). Every
+subject also needs its own view permission (`HistorySubjects::SUBJECTS`): `contacts.view` for contacts
+and organisations, `agents.view` for the directory, `media.view` for media, `users.manage` for users
+and `settings.manage` for workspace settings. Unknown subjects and records of another workspace are 404.
+
+## API clients as built (M3-04)
+
+Details in [07-api/authentication.md](../07-api/authentication.md) §3 As built.
+
+- **Scopes, not roles.** A client holds no role. `Gate::before` answers every ability for an API client
+  from `Integrations\Domain\ScopeMap` alone: `tickets:read` → `tickets.view`; `tickets:write` →
+  `tickets.create`, `tickets.update`, `tickets.resolve`, `tickets.close`; `contacts:read` →
+  `contacts.view`; `contacts:write` → `contacts.manage`; `catalog:read` → `agents.view`;
+  `webhooks:manage` → `integrations.manage`. No scope grants `tickets.assign`, `tickets.delete`,
+  `comments.internal`, `settings.manage`, `users.manage`, `roles.manage`, `audit.view` or
+  `history.view`; `tests/Unit/Integrations/ScopeMapTest.php` checks the map against the catalogue.
+- **Where, not only what.** A client reaches only routes marked `api-clients`; everything else,
+  including `/v1/api-clients` and `/v1/me`, is 403 whatever its scopes.
+- **Tenant binding.** The tenant comes from the token's stored row; the guard loads the client only
+  inside that tenant, so a token never works for another workspace, and a suspended workspace's
+  clients get no tokens.
+- **Revocation** is immediate: the guard checks the client and the token row on every request.
+- **Secrets**: 48 random characters, shown once in the create response, stored as a bcrypt hash.
+  Signing keys live in `storage/oauth-*.key` (git-ignored, 0600/0660) or `PASSPORT_*_KEY`.
+- **Actor.** Everything a client does is recorded as `api_client` with the client id, in `audit_logs`
+  and in `entity_changes`; tickets it creates carry `created_via = api` and `created_by_client_id`.
+- **Rate limits.** 10 token requests a minute per client id, 120 API calls a minute per client.
+- `integrations.manage` (owner, admin, developer) manages clients in Settings → API clients; every
+  create and revoke is audited (`api_client.created`, `api_client.revoked`).
 
 ## Security headers (Caddy)
 

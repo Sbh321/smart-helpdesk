@@ -1,0 +1,11 @@
+id,title,calendar,timer,expected_state,actual_state,expected_warning_at,actual_warning_at,expected_due_at,actual_due_at,expected_warnings,actual_warnings,expected_breaches,actual_breaches,match
+L01,"Agent replies within the first-response target",24x7,first_response,met,met,"2026-09-03 09:45","2026-09-03 09:45","2026-09-03 10:00","2026-09-03 10:00",0,0,0,0,true
+L02,"Resolution timer paused while pending 10:00-12:00",24x7,resolution,running,running,"2026-09-03 17:00","2026-09-03 17:00","2026-09-03 19:00","2026-09-03 19:00",0,0,0,0,true
+L03,"No reply: checked every minute until 10:30",24x7,first_response,breached,breached,"2026-09-03 09:45","2026-09-03 09:45","2026-09-03 10:00","2026-09-03 10:00",1,1,1,1,true
+L04,"As L02, then priority raised to P1 (4 h) at 13:00",24x7,resolution,running,running,"2026-09-03 14:00","2026-09-03 14:00","2026-09-03 15:00","2026-09-03 15:00",0,0,0,0,true
+L05,"Resolved at 16:00, reopened at 16:30: a new resolution timer",24x7,resolution,running,running,"2026-09-03 22:30","2026-09-03 22:30","2026-09-04 00:30","2026-09-04 00:30",0,0,0,0,true
+L06,"Working hours: created Thursday 15:00, 8 h, checked Friday 14:30",working_hours,resolution,warning,warning,"2026-09-18 14:00","2026-09-18 14:00","2026-09-18 16:00","2026-09-18 16:00",1,1,0,0,true
+L07,"Working hours: created Friday 16:00, Saturday closed",working_hours,resolution,running,running,"2026-09-20 15:00","2026-09-20 15:00","2026-09-20 17:00","2026-09-20 17:00",0,0,0,0,true
+L08,"Working hours: created Thursday 15:00, Friday is a holiday",working_hours,resolution,running,running,"2026-09-20 14:00","2026-09-20 14:00","2026-09-20 16:00","2026-09-20 16:00",0,0,0,0,true
+L09,"Working hours: pending Thursday 16:00 to Sunday 11:00 (9 working hours)",working_hours,resolution,running,running,"2026-09-20 16:00","2026-09-20 16:00","2026-09-21 11:00","2026-09-21 11:00",0,0,0,0,true
+L10,"As L09, then the target changes to 4 h on Sunday 11:30",working_hours,resolution,running,running,"2026-09-20 13:00","2026-09-20 13:00","2026-09-20 14:00","2026-09-20 14:00",0,0,0,0,true

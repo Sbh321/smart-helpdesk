@@ -88,8 +88,13 @@ it('keeps the nullable and credential tables on a uuid tenant_id too', function 
             ->first(['data_type', 'is_nullable']);
 
         expect($column)->not->toBeNull("{$table} has no tenant_id column.")
-            ->and($column->data_type)->toBe('uuid')
-            ->and($column->is_nullable)->toBe('YES', "{$table}.tenant_id is documented as nullable.");
+            ->and($column->data_type)->toBe('uuid');
+
+        // Credential tables may be NOT NULL (an OAuth client always has a workspace); sessions and
+        // Sanctum tokens are written before the tenant is known and stay nullable.
+        if (in_array($table, TenantTables::NULLABLE, true)) {
+            expect($column->is_nullable)->toBe('YES', "{$table}.tenant_id is documented as nullable.");
+        }
     }
 });
 

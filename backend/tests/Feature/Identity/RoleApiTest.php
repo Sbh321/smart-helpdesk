@@ -74,6 +74,7 @@ it('validates custom roles', function (array $payload, string $field): void {
     'unknown permission' => [['permissions' => ['tickets.fly']], 'permissions.0'],
     'upper case name' => [['name' => 'Triage'], 'name'],
     'duplicate name' => [['name' => 'owner'], 'name'],
+    'no permissions' => [['permissions' => []], 'permissions'],
 ]);
 
 it('never lets another workspace see or change a custom role', function (): void {
@@ -83,7 +84,8 @@ it('never lets another workspace see or change a custom role', function (): void
     $other = actingAsTenantUser($globex);
     $globex->run(fn () => $other->syncRoles([PermissionCatalogue::OWNER]));
 
-    $this->getJson('/v1/roles')->assertOk()->assertJsonCount(5, 'data');
+    $this->getJson('/v1/roles')->assertOk()->assertJsonCount(5, 'data')
+        ->assertJsonPath('data.0.is_global', true);
     $this->patchJson("/v1/roles/{$id}", ['permissions' => []])->assertNotFound();
 });
 
@@ -133,4 +135,38 @@ it('assigns the invited role when an invitation is accepted', function (): void 
     ])->assertOk();
 
     expect($this->acme->run(fn () => $user->fresh()->hasRole(PermissionCatalogue::MANAGER)))->toBeTrue();
+});
+
+it('never lets a role editor add or remove permissions they do not hold', function (): void {
+    $lead = createTenantUser($this->acme);
+    $this->acme->run(function () use ($lead): void {
+        setPermissionsTeamId($this->acme->getTenantKey());
+        $role = Role::query()->create(['name' => 'lead', 'guard_name' => 'web', 'tenant_id' => $this->acme->id]);
+        $role->givePermissionTo(['roles.manage', 'tickets.view']);
+        $lead->assignRole('lead');
+    });
+    actingAsTenantUser($this->acme, $lead);
+    $roleId = $this->acme->run(fn () => Role::query()->where('name', 'lead')->value('id'));
+
+    // Promoting their own role to settings.manage would promote them.
+    $this->patchJson("/v1/roles/{$roleId}", ['permissions' => ['roles.manage', 'tickets.view', 'settings.manage']])
+        ->assertForbidden()->assertJsonPath('meta.roles', ['settings.manage']);
+    $this->postJson('/v1/roles', ['name' => 'boss', 'permissions' => ['users.manage']])->assertForbidden();
+
+    $this->postJson('/v1/roles', ['name' => 'viewer', 'permissions' => ['tickets.view']])->assertCreated();
+});
+
+it('refuses to delete a custom role that users still hold', function (): void {
+    $role = $this->acme->run(fn () => Role::query()->create(['name' => 'triage', 'guard_name' => 'web', 'tenant_id' => $this->acme->id]));
+    $holder = createTenantUser($this->acme);
+    $this->acme->run(function () use ($holder): void {
+        setPermissionsTeamId($this->acme->getTenantKey());
+        $holder->assignRole('triage');
+    });
+
+    $this->deleteJson("/v1/roles/{$role->id}")->assertConflict()
+        ->assertJsonPath('code', 'in_use')->assertJsonPath('meta.users', 1);
+
+    $this->acme->run(fn () => $holder->removeRole('triage'));
+    $this->deleteJson("/v1/roles/{$role->id}")->assertNoContent();
 });

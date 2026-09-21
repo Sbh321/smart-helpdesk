@@ -15,6 +15,7 @@ import { Route as PlatformRouteImport } from './routes/_platform'
 import { Route as WorkspaceAppRouteImport } from './routes/$workspace/_app'
 import { Route as WorkspaceAuthRouteImport } from './routes/$workspace/_auth'
 import { Route as WorkspaceAppIndexRouteImport } from './routes/$workspace/_app/index'
+import { Route as WorkspaceAppNotificationsRouteImport } from './routes/$workspace/_app/notifications'
 import { Route as WorkspaceAppSettingsRouteImport } from './routes/$workspace/_app/settings'
 import { Route as WorkspaceAuthAcceptInvitationRouteImport } from './routes/$workspace/_auth/accept-invitation'
 import { Route as WorkspaceAuthLoginRouteImport } from './routes/$workspace/_auth/login'
@@ -27,8 +28,28 @@ import { Route as WorkspaceAppContactsNewRouteImport } from './routes/$workspace
 import { Route as WorkspaceAppOrganizationsIndexRouteImport } from './routes/$workspace/_app/organizations/index'
 import { Route as WorkspaceAppOrganizationsOrganizationIdRouteImport } from './routes/$workspace/_app/organizations/$organizationId'
 import { Route as WorkspaceAppOrganizationsNewRouteImport } from './routes/$workspace/_app/organizations/new'
+import { Route as WorkspaceAppReportsIndexRouteImport } from './routes/$workspace/_app/reports/index'
+import { Route as WorkspaceAppReportsReportKeyRouteImport } from './routes/$workspace/_app/reports/$reportKey'
+import { Route as WorkspaceAppSettingsIndexRouteImport } from './routes/$workspace/_app/settings/index'
+import { Route as WorkspaceAppSettingsAgentsRouteImport } from './routes/$workspace/_app/settings/agents'
+import { Route as WorkspaceAppSettingsApiClientsRouteImport } from './routes/$workspace/_app/settings/api-clients'
+import { Route as WorkspaceAppSettingsAutomationRouteImport } from './routes/$workspace/_app/settings/automation'
+import { Route as WorkspaceAppSettingsBrandingRouteImport } from './routes/$workspace/_app/settings/branding'
+import { Route as WorkspaceAppSettingsCalendarsRouteImport } from './routes/$workspace/_app/settings/calendars'
+import { Route as WorkspaceAppSettingsCategoriesRouteImport } from './routes/$workspace/_app/settings/categories'
+import { Route as WorkspaceAppSettingsGeneralRouteImport } from './routes/$workspace/_app/settings/general'
+import { Route as WorkspaceAppSettingsMediaRouteImport } from './routes/$workspace/_app/settings/media'
+import { Route as WorkspaceAppSettingsPriorityRouteImport } from './routes/$workspace/_app/settings/priority'
+import { Route as WorkspaceAppSettingsRolesRouteImport } from './routes/$workspace/_app/settings/roles'
+import { Route as WorkspaceAppSettingsShiftsRouteImport } from './routes/$workspace/_app/settings/shifts'
+import { Route as WorkspaceAppSettingsSkillsRouteImport } from './routes/$workspace/_app/settings/skills'
+import { Route as WorkspaceAppSettingsSlaRouteImport } from './routes/$workspace/_app/settings/sla'
+import { Route as WorkspaceAppSettingsTeamsRouteImport } from './routes/$workspace/_app/settings/teams'
+import { Route as WorkspaceAppSettingsTicketsRouteImport } from './routes/$workspace/_app/settings/tickets'
+import { Route as WorkspaceAppSettingsUsersRouteImport } from './routes/$workspace/_app/settings/users'
 import { Route as WorkspaceAppTicketsIndexRouteImport } from './routes/$workspace/_app/tickets/index'
 import { Route as WorkspaceAppTicketsTicketIdRouteImport } from './routes/$workspace/_app/tickets/$ticketId'
+import { Route as WorkspaceAppTicketsNewRouteImport } from './routes/$workspace/_app/tickets/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +78,12 @@ const WorkspaceAppIndexRoute = WorkspaceAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => WorkspaceAppRoute,
 } as any)
+const WorkspaceAppNotificationsRoute =
+  WorkspaceAppNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => WorkspaceAppRoute,
+  } as any)
 const WorkspaceAppSettingsRoute = WorkspaceAppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -124,6 +151,119 @@ const WorkspaceAppOrganizationsNewRoute =
     path: '/organizations/new',
     getParentRoute: () => WorkspaceAppRoute,
   } as any)
+const WorkspaceAppReportsIndexRoute =
+  WorkspaceAppReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
+    getParentRoute: () => WorkspaceAppRoute,
+  } as any)
+const WorkspaceAppReportsReportKeyRoute =
+  WorkspaceAppReportsReportKeyRouteImport.update({
+    id: '/reports/$reportKey',
+    path: '/reports/$reportKey',
+    getParentRoute: () => WorkspaceAppRoute,
+  } as any)
+const WorkspaceAppSettingsIndexRoute =
+  WorkspaceAppSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsAgentsRoute =
+  WorkspaceAppSettingsAgentsRouteImport.update({
+    id: '/agents',
+    path: '/agents',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsApiClientsRoute =
+  WorkspaceAppSettingsApiClientsRouteImport.update({
+    id: '/api-clients',
+    path: '/api-clients',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsAutomationRoute =
+  WorkspaceAppSettingsAutomationRouteImport.update({
+    id: '/automation',
+    path: '/automation',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsBrandingRoute =
+  WorkspaceAppSettingsBrandingRouteImport.update({
+    id: '/branding',
+    path: '/branding',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsCalendarsRoute =
+  WorkspaceAppSettingsCalendarsRouteImport.update({
+    id: '/calendars',
+    path: '/calendars',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsCategoriesRoute =
+  WorkspaceAppSettingsCategoriesRouteImport.update({
+    id: '/categories',
+    path: '/categories',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsGeneralRoute =
+  WorkspaceAppSettingsGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsMediaRoute =
+  WorkspaceAppSettingsMediaRouteImport.update({
+    id: '/media',
+    path: '/media',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsPriorityRoute =
+  WorkspaceAppSettingsPriorityRouteImport.update({
+    id: '/priority',
+    path: '/priority',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsRolesRoute =
+  WorkspaceAppSettingsRolesRouteImport.update({
+    id: '/roles',
+    path: '/roles',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsShiftsRoute =
+  WorkspaceAppSettingsShiftsRouteImport.update({
+    id: '/shifts',
+    path: '/shifts',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsSkillsRoute =
+  WorkspaceAppSettingsSkillsRouteImport.update({
+    id: '/skills',
+    path: '/skills',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsSlaRoute = WorkspaceAppSettingsSlaRouteImport.update({
+  id: '/sla',
+  path: '/sla',
+  getParentRoute: () => WorkspaceAppSettingsRoute,
+} as any)
+const WorkspaceAppSettingsTeamsRoute =
+  WorkspaceAppSettingsTeamsRouteImport.update({
+    id: '/teams',
+    path: '/teams',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsTicketsRoute =
+  WorkspaceAppSettingsTicketsRouteImport.update({
+    id: '/tickets',
+    path: '/tickets',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsUsersRoute =
+  WorkspaceAppSettingsUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
 const WorkspaceAppTicketsIndexRoute =
   WorkspaceAppTicketsIndexRouteImport.update({
     id: '/tickets/',
@@ -136,11 +276,17 @@ const WorkspaceAppTicketsTicketIdRoute =
     path: '/tickets/$ticketId',
     getParentRoute: () => WorkspaceAppRoute,
   } as any)
+const WorkspaceAppTicketsNewRoute = WorkspaceAppTicketsNewRouteImport.update({
+  id: '/tickets/new',
+  path: '/tickets/new',
+  getParentRoute: () => WorkspaceAppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$workspace': typeof WorkspaceRouteWithChildren
-  '/$workspace/settings': typeof WorkspaceAppSettingsRoute
+  '/$workspace/notifications': typeof WorkspaceAppNotificationsRoute
+  '/$workspace/settings': typeof WorkspaceAppSettingsRouteWithChildren
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/reset-password': typeof WorkspaceAuthResetPasswordRoute
@@ -151,15 +297,35 @@ export interface FileRoutesByFullPath {
   '/$workspace/contacts/new': typeof WorkspaceAppContactsNewRoute
   '/$workspace/organizations/$organizationId': typeof WorkspaceAppOrganizationsOrganizationIdRoute
   '/$workspace/organizations/new': typeof WorkspaceAppOrganizationsNewRoute
+  '/$workspace/reports/$reportKey': typeof WorkspaceAppReportsReportKeyRoute
+  '/$workspace/settings/agents': typeof WorkspaceAppSettingsAgentsRoute
+  '/$workspace/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
+  '/$workspace/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
+  '/$workspace/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
+  '/$workspace/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
+  '/$workspace/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
+  '/$workspace/settings/general': typeof WorkspaceAppSettingsGeneralRoute
+  '/$workspace/settings/media': typeof WorkspaceAppSettingsMediaRoute
+  '/$workspace/settings/priority': typeof WorkspaceAppSettingsPriorityRoute
+  '/$workspace/settings/roles': typeof WorkspaceAppSettingsRolesRoute
+  '/$workspace/settings/shifts': typeof WorkspaceAppSettingsShiftsRoute
+  '/$workspace/settings/skills': typeof WorkspaceAppSettingsSkillsRoute
+  '/$workspace/settings/sla': typeof WorkspaceAppSettingsSlaRoute
+  '/$workspace/settings/teams': typeof WorkspaceAppSettingsTeamsRoute
+  '/$workspace/settings/tickets': typeof WorkspaceAppSettingsTicketsRoute
+  '/$workspace/settings/users': typeof WorkspaceAppSettingsUsersRoute
   '/$workspace/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
+  '/$workspace/tickets/new': typeof WorkspaceAppTicketsNewRoute
   '/$workspace/contacts/': typeof WorkspaceAppContactsIndexRoute
   '/$workspace/organizations/': typeof WorkspaceAppOrganizationsIndexRoute
+  '/$workspace/reports/': typeof WorkspaceAppReportsIndexRoute
+  '/$workspace/settings/': typeof WorkspaceAppSettingsIndexRoute
   '/$workspace/tickets/': typeof WorkspaceAppTicketsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$workspace': typeof WorkspaceAppIndexRoute
-  '/$workspace/settings': typeof WorkspaceAppSettingsRoute
+  '/$workspace/notifications': typeof WorkspaceAppNotificationsRoute
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/reset-password': typeof WorkspaceAuthResetPasswordRoute
@@ -169,9 +335,29 @@ export interface FileRoutesByTo {
   '/$workspace/contacts/new': typeof WorkspaceAppContactsNewRoute
   '/$workspace/organizations/$organizationId': typeof WorkspaceAppOrganizationsOrganizationIdRoute
   '/$workspace/organizations/new': typeof WorkspaceAppOrganizationsNewRoute
+  '/$workspace/reports/$reportKey': typeof WorkspaceAppReportsReportKeyRoute
+  '/$workspace/settings/agents': typeof WorkspaceAppSettingsAgentsRoute
+  '/$workspace/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
+  '/$workspace/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
+  '/$workspace/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
+  '/$workspace/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
+  '/$workspace/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
+  '/$workspace/settings/general': typeof WorkspaceAppSettingsGeneralRoute
+  '/$workspace/settings/media': typeof WorkspaceAppSettingsMediaRoute
+  '/$workspace/settings/priority': typeof WorkspaceAppSettingsPriorityRoute
+  '/$workspace/settings/roles': typeof WorkspaceAppSettingsRolesRoute
+  '/$workspace/settings/shifts': typeof WorkspaceAppSettingsShiftsRoute
+  '/$workspace/settings/skills': typeof WorkspaceAppSettingsSkillsRoute
+  '/$workspace/settings/sla': typeof WorkspaceAppSettingsSlaRoute
+  '/$workspace/settings/teams': typeof WorkspaceAppSettingsTeamsRoute
+  '/$workspace/settings/tickets': typeof WorkspaceAppSettingsTicketsRoute
+  '/$workspace/settings/users': typeof WorkspaceAppSettingsUsersRoute
   '/$workspace/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
+  '/$workspace/tickets/new': typeof WorkspaceAppTicketsNewRoute
   '/$workspace/contacts': typeof WorkspaceAppContactsIndexRoute
   '/$workspace/organizations': typeof WorkspaceAppOrganizationsIndexRoute
+  '/$workspace/reports': typeof WorkspaceAppReportsIndexRoute
+  '/$workspace/settings': typeof WorkspaceAppSettingsIndexRoute
   '/$workspace/tickets': typeof WorkspaceAppTicketsIndexRoute
 }
 export interface FileRoutesById {
@@ -181,7 +367,8 @@ export interface FileRoutesById {
   '/_platform': typeof PlatformRouteWithChildren
   '/$workspace/_app': typeof WorkspaceAppRouteWithChildren
   '/$workspace/_auth': typeof WorkspaceAuthRouteWithChildren
-  '/$workspace/_app/settings': typeof WorkspaceAppSettingsRoute
+  '/$workspace/_app/notifications': typeof WorkspaceAppNotificationsRoute
+  '/$workspace/_app/settings': typeof WorkspaceAppSettingsRouteWithChildren
   '/$workspace/_auth/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/_auth/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/_auth/reset-password': typeof WorkspaceAuthResetPasswordRoute
@@ -192,9 +379,29 @@ export interface FileRoutesById {
   '/$workspace/_app/contacts/new': typeof WorkspaceAppContactsNewRoute
   '/$workspace/_app/organizations/$organizationId': typeof WorkspaceAppOrganizationsOrganizationIdRoute
   '/$workspace/_app/organizations/new': typeof WorkspaceAppOrganizationsNewRoute
+  '/$workspace/_app/reports/$reportKey': typeof WorkspaceAppReportsReportKeyRoute
+  '/$workspace/_app/settings/agents': typeof WorkspaceAppSettingsAgentsRoute
+  '/$workspace/_app/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
+  '/$workspace/_app/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
+  '/$workspace/_app/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
+  '/$workspace/_app/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
+  '/$workspace/_app/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
+  '/$workspace/_app/settings/general': typeof WorkspaceAppSettingsGeneralRoute
+  '/$workspace/_app/settings/media': typeof WorkspaceAppSettingsMediaRoute
+  '/$workspace/_app/settings/priority': typeof WorkspaceAppSettingsPriorityRoute
+  '/$workspace/_app/settings/roles': typeof WorkspaceAppSettingsRolesRoute
+  '/$workspace/_app/settings/shifts': typeof WorkspaceAppSettingsShiftsRoute
+  '/$workspace/_app/settings/skills': typeof WorkspaceAppSettingsSkillsRoute
+  '/$workspace/_app/settings/sla': typeof WorkspaceAppSettingsSlaRoute
+  '/$workspace/_app/settings/teams': typeof WorkspaceAppSettingsTeamsRoute
+  '/$workspace/_app/settings/tickets': typeof WorkspaceAppSettingsTicketsRoute
+  '/$workspace/_app/settings/users': typeof WorkspaceAppSettingsUsersRoute
   '/$workspace/_app/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
+  '/$workspace/_app/tickets/new': typeof WorkspaceAppTicketsNewRoute
   '/$workspace/_app/contacts/': typeof WorkspaceAppContactsIndexRoute
   '/$workspace/_app/organizations/': typeof WorkspaceAppOrganizationsIndexRoute
+  '/$workspace/_app/reports/': typeof WorkspaceAppReportsIndexRoute
+  '/$workspace/_app/settings/': typeof WorkspaceAppSettingsIndexRoute
   '/$workspace/_app/tickets/': typeof WorkspaceAppTicketsIndexRoute
 }
 export interface FileRouteTypes {
@@ -202,6 +409,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$workspace'
+    | '/$workspace/notifications'
     | '/$workspace/settings'
     | '/$workspace/accept-invitation'
     | '/$workspace/login'
@@ -213,15 +421,35 @@ export interface FileRouteTypes {
     | '/$workspace/contacts/new'
     | '/$workspace/organizations/$organizationId'
     | '/$workspace/organizations/new'
+    | '/$workspace/reports/$reportKey'
+    | '/$workspace/settings/agents'
+    | '/$workspace/settings/api-clients'
+    | '/$workspace/settings/automation'
+    | '/$workspace/settings/branding'
+    | '/$workspace/settings/calendars'
+    | '/$workspace/settings/categories'
+    | '/$workspace/settings/general'
+    | '/$workspace/settings/media'
+    | '/$workspace/settings/priority'
+    | '/$workspace/settings/roles'
+    | '/$workspace/settings/shifts'
+    | '/$workspace/settings/skills'
+    | '/$workspace/settings/sla'
+    | '/$workspace/settings/teams'
+    | '/$workspace/settings/tickets'
+    | '/$workspace/settings/users'
     | '/$workspace/tickets/$ticketId'
+    | '/$workspace/tickets/new'
     | '/$workspace/contacts/'
     | '/$workspace/organizations/'
+    | '/$workspace/reports/'
+    | '/$workspace/settings/'
     | '/$workspace/tickets/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$workspace'
-    | '/$workspace/settings'
+    | '/$workspace/notifications'
     | '/$workspace/accept-invitation'
     | '/$workspace/login'
     | '/$workspace/reset-password'
@@ -231,9 +459,29 @@ export interface FileRouteTypes {
     | '/$workspace/contacts/new'
     | '/$workspace/organizations/$organizationId'
     | '/$workspace/organizations/new'
+    | '/$workspace/reports/$reportKey'
+    | '/$workspace/settings/agents'
+    | '/$workspace/settings/api-clients'
+    | '/$workspace/settings/automation'
+    | '/$workspace/settings/branding'
+    | '/$workspace/settings/calendars'
+    | '/$workspace/settings/categories'
+    | '/$workspace/settings/general'
+    | '/$workspace/settings/media'
+    | '/$workspace/settings/priority'
+    | '/$workspace/settings/roles'
+    | '/$workspace/settings/shifts'
+    | '/$workspace/settings/skills'
+    | '/$workspace/settings/sla'
+    | '/$workspace/settings/teams'
+    | '/$workspace/settings/tickets'
+    | '/$workspace/settings/users'
     | '/$workspace/tickets/$ticketId'
+    | '/$workspace/tickets/new'
     | '/$workspace/contacts'
     | '/$workspace/organizations'
+    | '/$workspace/reports'
+    | '/$workspace/settings'
     | '/$workspace/tickets'
   id:
     | '__root__'
@@ -242,6 +490,7 @@ export interface FileRouteTypes {
     | '/_platform'
     | '/$workspace/_app'
     | '/$workspace/_auth'
+    | '/$workspace/_app/notifications'
     | '/$workspace/_app/settings'
     | '/$workspace/_auth/accept-invitation'
     | '/$workspace/_auth/login'
@@ -253,9 +502,29 @@ export interface FileRouteTypes {
     | '/$workspace/_app/contacts/new'
     | '/$workspace/_app/organizations/$organizationId'
     | '/$workspace/_app/organizations/new'
+    | '/$workspace/_app/reports/$reportKey'
+    | '/$workspace/_app/settings/agents'
+    | '/$workspace/_app/settings/api-clients'
+    | '/$workspace/_app/settings/automation'
+    | '/$workspace/_app/settings/branding'
+    | '/$workspace/_app/settings/calendars'
+    | '/$workspace/_app/settings/categories'
+    | '/$workspace/_app/settings/general'
+    | '/$workspace/_app/settings/media'
+    | '/$workspace/_app/settings/priority'
+    | '/$workspace/_app/settings/roles'
+    | '/$workspace/_app/settings/shifts'
+    | '/$workspace/_app/settings/skills'
+    | '/$workspace/_app/settings/sla'
+    | '/$workspace/_app/settings/teams'
+    | '/$workspace/_app/settings/tickets'
+    | '/$workspace/_app/settings/users'
     | '/$workspace/_app/tickets/$ticketId'
+    | '/$workspace/_app/tickets/new'
     | '/$workspace/_app/contacts/'
     | '/$workspace/_app/organizations/'
+    | '/$workspace/_app/reports/'
+    | '/$workspace/_app/settings/'
     | '/$workspace/_app/tickets/'
   fileRoutesById: FileRoutesById
 }
@@ -307,6 +576,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/$workspace/'
       preLoaderRoute: typeof WorkspaceAppIndexRouteImport
+      parentRoute: typeof WorkspaceAppRoute
+    }
+    '/$workspace/_app/notifications': {
+      id: '/$workspace/_app/notifications'
+      path: '/notifications'
+      fullPath: '/$workspace/notifications'
+      preLoaderRoute: typeof WorkspaceAppNotificationsRouteImport
       parentRoute: typeof WorkspaceAppRoute
     }
     '/$workspace/_app/settings': {
@@ -393,6 +669,139 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceAppOrganizationsNewRouteImport
       parentRoute: typeof WorkspaceAppRoute
     }
+    '/$workspace/_app/reports/': {
+      id: '/$workspace/_app/reports/'
+      path: '/reports'
+      fullPath: '/$workspace/reports/'
+      preLoaderRoute: typeof WorkspaceAppReportsIndexRouteImport
+      parentRoute: typeof WorkspaceAppRoute
+    }
+    '/$workspace/_app/reports/$reportKey': {
+      id: '/$workspace/_app/reports/$reportKey'
+      path: '/reports/$reportKey'
+      fullPath: '/$workspace/reports/$reportKey'
+      preLoaderRoute: typeof WorkspaceAppReportsReportKeyRouteImport
+      parentRoute: typeof WorkspaceAppRoute
+    }
+    '/$workspace/_app/settings/': {
+      id: '/$workspace/_app/settings/'
+      path: '/'
+      fullPath: '/$workspace/settings/'
+      preLoaderRoute: typeof WorkspaceAppSettingsIndexRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/agents': {
+      id: '/$workspace/_app/settings/agents'
+      path: '/agents'
+      fullPath: '/$workspace/settings/agents'
+      preLoaderRoute: typeof WorkspaceAppSettingsAgentsRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/api-clients': {
+      id: '/$workspace/_app/settings/api-clients'
+      path: '/api-clients'
+      fullPath: '/$workspace/settings/api-clients'
+      preLoaderRoute: typeof WorkspaceAppSettingsApiClientsRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/automation': {
+      id: '/$workspace/_app/settings/automation'
+      path: '/automation'
+      fullPath: '/$workspace/settings/automation'
+      preLoaderRoute: typeof WorkspaceAppSettingsAutomationRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/branding': {
+      id: '/$workspace/_app/settings/branding'
+      path: '/branding'
+      fullPath: '/$workspace/settings/branding'
+      preLoaderRoute: typeof WorkspaceAppSettingsBrandingRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/calendars': {
+      id: '/$workspace/_app/settings/calendars'
+      path: '/calendars'
+      fullPath: '/$workspace/settings/calendars'
+      preLoaderRoute: typeof WorkspaceAppSettingsCalendarsRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/categories': {
+      id: '/$workspace/_app/settings/categories'
+      path: '/categories'
+      fullPath: '/$workspace/settings/categories'
+      preLoaderRoute: typeof WorkspaceAppSettingsCategoriesRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/general': {
+      id: '/$workspace/_app/settings/general'
+      path: '/general'
+      fullPath: '/$workspace/settings/general'
+      preLoaderRoute: typeof WorkspaceAppSettingsGeneralRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/media': {
+      id: '/$workspace/_app/settings/media'
+      path: '/media'
+      fullPath: '/$workspace/settings/media'
+      preLoaderRoute: typeof WorkspaceAppSettingsMediaRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/priority': {
+      id: '/$workspace/_app/settings/priority'
+      path: '/priority'
+      fullPath: '/$workspace/settings/priority'
+      preLoaderRoute: typeof WorkspaceAppSettingsPriorityRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/roles': {
+      id: '/$workspace/_app/settings/roles'
+      path: '/roles'
+      fullPath: '/$workspace/settings/roles'
+      preLoaderRoute: typeof WorkspaceAppSettingsRolesRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/shifts': {
+      id: '/$workspace/_app/settings/shifts'
+      path: '/shifts'
+      fullPath: '/$workspace/settings/shifts'
+      preLoaderRoute: typeof WorkspaceAppSettingsShiftsRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/skills': {
+      id: '/$workspace/_app/settings/skills'
+      path: '/skills'
+      fullPath: '/$workspace/settings/skills'
+      preLoaderRoute: typeof WorkspaceAppSettingsSkillsRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/sla': {
+      id: '/$workspace/_app/settings/sla'
+      path: '/sla'
+      fullPath: '/$workspace/settings/sla'
+      preLoaderRoute: typeof WorkspaceAppSettingsSlaRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/teams': {
+      id: '/$workspace/_app/settings/teams'
+      path: '/teams'
+      fullPath: '/$workspace/settings/teams'
+      preLoaderRoute: typeof WorkspaceAppSettingsTeamsRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/tickets': {
+      id: '/$workspace/_app/settings/tickets'
+      path: '/tickets'
+      fullPath: '/$workspace/settings/tickets'
+      preLoaderRoute: typeof WorkspaceAppSettingsTicketsRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/users': {
+      id: '/$workspace/_app/settings/users'
+      path: '/users'
+      fullPath: '/$workspace/settings/users'
+      preLoaderRoute: typeof WorkspaceAppSettingsUsersRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
     '/$workspace/_app/tickets/': {
       id: '/$workspace/_app/tickets/'
       path: '/tickets'
@@ -407,33 +816,91 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceAppTicketsTicketIdRouteImport
       parentRoute: typeof WorkspaceAppRoute
     }
+    '/$workspace/_app/tickets/new': {
+      id: '/$workspace/_app/tickets/new'
+      path: '/tickets/new'
+      fullPath: '/$workspace/tickets/new'
+      preLoaderRoute: typeof WorkspaceAppTicketsNewRouteImport
+      parentRoute: typeof WorkspaceAppRoute
+    }
   }
 }
 
+interface WorkspaceAppSettingsRouteChildren {
+  WorkspaceAppSettingsAgentsRoute: typeof WorkspaceAppSettingsAgentsRoute
+  WorkspaceAppSettingsApiClientsRoute: typeof WorkspaceAppSettingsApiClientsRoute
+  WorkspaceAppSettingsAutomationRoute: typeof WorkspaceAppSettingsAutomationRoute
+  WorkspaceAppSettingsBrandingRoute: typeof WorkspaceAppSettingsBrandingRoute
+  WorkspaceAppSettingsCalendarsRoute: typeof WorkspaceAppSettingsCalendarsRoute
+  WorkspaceAppSettingsCategoriesRoute: typeof WorkspaceAppSettingsCategoriesRoute
+  WorkspaceAppSettingsGeneralRoute: typeof WorkspaceAppSettingsGeneralRoute
+  WorkspaceAppSettingsMediaRoute: typeof WorkspaceAppSettingsMediaRoute
+  WorkspaceAppSettingsPriorityRoute: typeof WorkspaceAppSettingsPriorityRoute
+  WorkspaceAppSettingsRolesRoute: typeof WorkspaceAppSettingsRolesRoute
+  WorkspaceAppSettingsShiftsRoute: typeof WorkspaceAppSettingsShiftsRoute
+  WorkspaceAppSettingsSkillsRoute: typeof WorkspaceAppSettingsSkillsRoute
+  WorkspaceAppSettingsSlaRoute: typeof WorkspaceAppSettingsSlaRoute
+  WorkspaceAppSettingsTeamsRoute: typeof WorkspaceAppSettingsTeamsRoute
+  WorkspaceAppSettingsTicketsRoute: typeof WorkspaceAppSettingsTicketsRoute
+  WorkspaceAppSettingsUsersRoute: typeof WorkspaceAppSettingsUsersRoute
+  WorkspaceAppSettingsIndexRoute: typeof WorkspaceAppSettingsIndexRoute
+}
+
+const WorkspaceAppSettingsRouteChildren: WorkspaceAppSettingsRouteChildren = {
+  WorkspaceAppSettingsAgentsRoute: WorkspaceAppSettingsAgentsRoute,
+  WorkspaceAppSettingsApiClientsRoute: WorkspaceAppSettingsApiClientsRoute,
+  WorkspaceAppSettingsAutomationRoute: WorkspaceAppSettingsAutomationRoute,
+  WorkspaceAppSettingsBrandingRoute: WorkspaceAppSettingsBrandingRoute,
+  WorkspaceAppSettingsCalendarsRoute: WorkspaceAppSettingsCalendarsRoute,
+  WorkspaceAppSettingsCategoriesRoute: WorkspaceAppSettingsCategoriesRoute,
+  WorkspaceAppSettingsGeneralRoute: WorkspaceAppSettingsGeneralRoute,
+  WorkspaceAppSettingsMediaRoute: WorkspaceAppSettingsMediaRoute,
+  WorkspaceAppSettingsPriorityRoute: WorkspaceAppSettingsPriorityRoute,
+  WorkspaceAppSettingsRolesRoute: WorkspaceAppSettingsRolesRoute,
+  WorkspaceAppSettingsShiftsRoute: WorkspaceAppSettingsShiftsRoute,
+  WorkspaceAppSettingsSkillsRoute: WorkspaceAppSettingsSkillsRoute,
+  WorkspaceAppSettingsSlaRoute: WorkspaceAppSettingsSlaRoute,
+  WorkspaceAppSettingsTeamsRoute: WorkspaceAppSettingsTeamsRoute,
+  WorkspaceAppSettingsTicketsRoute: WorkspaceAppSettingsTicketsRoute,
+  WorkspaceAppSettingsUsersRoute: WorkspaceAppSettingsUsersRoute,
+  WorkspaceAppSettingsIndexRoute: WorkspaceAppSettingsIndexRoute,
+}
+
+const WorkspaceAppSettingsRouteWithChildren =
+  WorkspaceAppSettingsRoute._addFileChildren(WorkspaceAppSettingsRouteChildren)
+
 interface WorkspaceAppRouteChildren {
-  WorkspaceAppSettingsRoute: typeof WorkspaceAppSettingsRoute
+  WorkspaceAppNotificationsRoute: typeof WorkspaceAppNotificationsRoute
+  WorkspaceAppSettingsRoute: typeof WorkspaceAppSettingsRouteWithChildren
   WorkspaceAppIndexRoute: typeof WorkspaceAppIndexRoute
   WorkspaceAppContactsContactIdRoute: typeof WorkspaceAppContactsContactIdRoute
   WorkspaceAppContactsNewRoute: typeof WorkspaceAppContactsNewRoute
   WorkspaceAppOrganizationsOrganizationIdRoute: typeof WorkspaceAppOrganizationsOrganizationIdRoute
   WorkspaceAppOrganizationsNewRoute: typeof WorkspaceAppOrganizationsNewRoute
+  WorkspaceAppReportsReportKeyRoute: typeof WorkspaceAppReportsReportKeyRoute
   WorkspaceAppTicketsTicketIdRoute: typeof WorkspaceAppTicketsTicketIdRoute
+  WorkspaceAppTicketsNewRoute: typeof WorkspaceAppTicketsNewRoute
   WorkspaceAppContactsIndexRoute: typeof WorkspaceAppContactsIndexRoute
   WorkspaceAppOrganizationsIndexRoute: typeof WorkspaceAppOrganizationsIndexRoute
+  WorkspaceAppReportsIndexRoute: typeof WorkspaceAppReportsIndexRoute
   WorkspaceAppTicketsIndexRoute: typeof WorkspaceAppTicketsIndexRoute
 }
 
 const WorkspaceAppRouteChildren: WorkspaceAppRouteChildren = {
-  WorkspaceAppSettingsRoute: WorkspaceAppSettingsRoute,
+  WorkspaceAppNotificationsRoute: WorkspaceAppNotificationsRoute,
+  WorkspaceAppSettingsRoute: WorkspaceAppSettingsRouteWithChildren,
   WorkspaceAppIndexRoute: WorkspaceAppIndexRoute,
   WorkspaceAppContactsContactIdRoute: WorkspaceAppContactsContactIdRoute,
   WorkspaceAppContactsNewRoute: WorkspaceAppContactsNewRoute,
   WorkspaceAppOrganizationsOrganizationIdRoute:
     WorkspaceAppOrganizationsOrganizationIdRoute,
   WorkspaceAppOrganizationsNewRoute: WorkspaceAppOrganizationsNewRoute,
+  WorkspaceAppReportsReportKeyRoute: WorkspaceAppReportsReportKeyRoute,
   WorkspaceAppTicketsTicketIdRoute: WorkspaceAppTicketsTicketIdRoute,
+  WorkspaceAppTicketsNewRoute: WorkspaceAppTicketsNewRoute,
   WorkspaceAppContactsIndexRoute: WorkspaceAppContactsIndexRoute,
   WorkspaceAppOrganizationsIndexRoute: WorkspaceAppOrganizationsIndexRoute,
+  WorkspaceAppReportsIndexRoute: WorkspaceAppReportsIndexRoute,
   WorkspaceAppTicketsIndexRoute: WorkspaceAppTicketsIndexRoute,
 }
 

@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Tickets\Events;
+
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
+
+final readonly class CommentAdded implements ShouldDispatchAfterCommit
+{
+    public function __construct(
+        public string $tenantId,
+        public string $ticketId,
+        public string $commentId,
+        public string $visibility,
+        public string $authorType,
+    ) {}
+}

@@ -30,7 +30,9 @@ ALTER ROLE helpdesk_app PASSWORD :'app_pw';
 ALTER ROLE helpdesk_backup PASSWORD :'backup_pw';
 SQL
 
-for db in helpdesk helpdesk_test; do
+# helpdesk_{a,b,c}_test let parallel workers run the backend suite at the same time
+# (TEST_DATABASE=helpdesk_a_test, see backend/tests/TestCase.php).
+for db in helpdesk helpdesk_test helpdesk_a_test helpdesk_b_test helpdesk_c_test; do
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -tAc \
     "SELECT 1 FROM pg_database WHERE datname = '${db}'" | grep -q 1 ||
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -c "CREATE DATABASE ${db} OWNER helpdesk_owner"

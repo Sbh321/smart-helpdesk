@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { toast } from 'sonner'
 import { copy } from '@/copy/en'
 import { SessionContext, type SessionContextValue, type SessionStatus } from '@/lib/auth'
+import { useTheme } from '@/lib/theme'
 import { logout } from './api/auth-requests'
 import { clearSession, reloadSession, sessionQuery } from './api/session-queries'
 
@@ -17,6 +18,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const { data, isPending } = useQuery(sessionQuery())
 
   const session = data ?? null
+  const { setTenantPrimary } = useTheme()
+
+  // The workspace's primary colour reaches the tokens through the ThemeProvider (themes.md §Tenant branding).
+  const primary = session?.tenant.branding.primary ?? null
+  useEffect(() => {
+    setTenantPrimary(primary)
+  }, [primary, setTenantPrimary])
   const status: SessionStatus = isPending ? 'loading' : session ? 'authenticated' : 'anonymous'
 
   const value: SessionContextValue = {

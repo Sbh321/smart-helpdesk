@@ -1,0 +1,74 @@
+{
+    "database": "helpdesk_c_test",
+    "tickets": 300,
+    "ticket_steps": 2664,
+    "entity_changes": 2664,
+    "days": 90,
+    "correctness": [
+        {
+            "check": "reconstruction, backward replay from the current row",
+            "items": 1000,
+            "correct": 1000,
+            "rate_pct": 100.0
+        },
+        {
+            "check": "reconstruction, forward replay from the insert",
+            "items": 1000,
+            "correct": 1000,
+            "rate_pct": 100.0
+        },
+        {
+            "check": "ticket intervals, incremental vs rebuilt",
+            "items": 300,
+            "correct": 300,
+            "rate_pct": 100.0
+        },
+        {
+            "check": "ticket facts, incremental vs rebuilt",
+            "items": 300,
+            "correct": 300,
+            "rate_pct": 100.0
+        },
+        {
+            "check": "daily snapshots, incremental vs rebuilt",
+            "items": 90,
+            "correct": 90,
+            "rate_pct": 100.0
+        }
+    ],
+    "latency": [
+        {
+            "measure": "backlog by team per day, 90 days (daily snapshots)",
+            "runs": 30,
+            "p50_ms": 0.245,
+            "p95_ms": 0.28,
+            "max_ms": 0.331
+        },
+        {
+            "measure": "backlog per day, 90 days (from intervals, no snapshots)",
+            "runs": 30,
+            "p50_ms": 16.948,
+            "p95_ms": 21.354,
+            "max_ms": 23.672
+        },
+        {
+            "measure": "time in status by team, 90 days (intervals)",
+            "runs": 30,
+            "p50_ms": 1.38,
+            "p95_ms": 1.479,
+            "max_ms": 1.523
+        },
+        {
+            "measure": "ticket as-of view (load changes and replay)",
+            "runs": 30,
+            "p50_ms": 0.785,
+            "p95_ms": 0.98,
+            "max_ms": 1.001
+        }
+    ],
+    "trigger_overhead": {
+        "mean_with_ms": 0.414,
+        "mean_without_ms": 0.218,
+        "overhead_pct": 89.7
+    }
+}

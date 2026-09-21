@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Health;
 
 use App\Modules\Media\Health\StorageCheck;
+use App\Modules\Sla\Health\SlaSweepCheck;
 use Spatie\Health\Checks\Checks\CacheCheck;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
 use Spatie\Health\Checks\Checks\DebugModeCheck;
@@ -33,6 +34,7 @@ final class HealthChecks
             StorageCheck::new()->disk((string) config('filesystems.default')),
             QueueCheck::new()->onQueue(config('helpdesk.health.queues'))->failWhenHealthJobTakesLongerThanMinutes(5),
             ScheduleCheck::new()->heartbeatMaxAgeInMinutes(2),
+            SlaSweepCheck::new(),
             HorizonCheck::new(),
             UsedDiskSpaceCheck::new()->warnWhenUsedSpaceIsAbovePercentage(70)->failWhenUsedSpaceIsAbovePercentage(90),
             DebugModeCheck::new()->if($production),

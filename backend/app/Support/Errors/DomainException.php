@@ -37,4 +37,25 @@ abstract class DomainException extends RuntimeException
     {
         return $this->meta;
     }
+
+    /**
+     * Extra top-level members of the problem document (RFC 9457 §3.2 extension members), for
+     * protocols that fix their own field names, such as OAuth's `error`.
+     *
+     * @return array<string, mixed>
+     */
+    public function extensions(): array
+    {
+        return [];
+    }
+
+    /**
+     * Field errors in the shape of a validation failure, for rules a form should show on a field.
+     *
+     * @return array<string, list<string>>
+     */
+    public function errors(): array
+    {
+        return [];
+    }
 }

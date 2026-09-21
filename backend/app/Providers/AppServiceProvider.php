@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Support\Experiments\RunExperiments;
 use App\Support\Health\HealthChecks;
 use App\Support\Logging\LogContext;
 use App\Support\Time\Clock;
@@ -31,5 +32,10 @@ final class AppServiceProvider extends ServiceProvider
 
         LogContext::register($this->app->make('events'));
         HealthChecks::register();
+
+        if ($this->app->runningInConsole()) {
+            // Modules tag their experiments with `experiments` (docs/12-academic/result-analysis-plan.md).
+            $this->commands([RunExperiments::class]);
+        }
     }
 }

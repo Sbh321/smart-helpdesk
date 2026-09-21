@@ -122,9 +122,11 @@ Recharts renders SVG, so `fill`/`stroke` values are CSS variables. shadcn's `Cha
 
 Same provider, attribute `data-density`; see [tokens.md](tokens.md) §Density and [spacing.md](spacing.md).
 
-## Tenant branding (future)
+## Tenant branding (built in M2-01)
 
 `ThemeProvider` receives `tenant.branding` from the session and injects a `<style id="tenant-brand">` element with the overrides described in [tokens.md](tokens.md) §Tenant branding, scoped to `:root[data-tenant]`. The overrides are theme-aware: the tenant supplies one primary colour, and the provider derives a lighter variant for dark mode by raising oklch lightness to ≥ 0.70 so contrast on dark surfaces holds. Nothing else in the app changes.
+
+As built (M2-01): `lib/theme/brand.ts` builds the CSS (`tenantBrandCss`) from a `#rrggbb` primary (MVP-SHORTCUT: hex only, as the API validates); `applyTenantBrand` writes it and `data-tenant`, and removes both when the workspace has no colour. The dark rule also matches a nested `[data-theme="dark"]` island. The Branding page previews an unsaved colour through `previewTenantPrimary` and ends the preview when it unmounts. The sidebar shows the workspace logo (`TenantLogo`): the dark variant in the dark theme, otherwise the light logo on a `--surface-elevated` tile, and the product mark when there is no logo or it fails to load.
 
 ## Tests
 

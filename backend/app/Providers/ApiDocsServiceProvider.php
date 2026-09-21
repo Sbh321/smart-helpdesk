@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Integrations\Domain\ScopeMap;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Operation;
@@ -11,6 +12,7 @@ use Dedoc\Scramble\Support\Generator\Reference;
 use Dedoc\Scramble\Support\Generator\Response;
 use Dedoc\Scramble\Support\Generator\Schema;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Dedoc\Scramble\Support\Generator\SecuritySchemes\OAuthFlow;
 use Dedoc\Scramble\Support\Generator\Server;
 use Dedoc\Scramble\Support\Generator\Types\ArrayType;
 use Dedoc\Scramble\Support\Generator\Types\IntegerType;
@@ -48,11 +50,18 @@ final class ApiDocsServiceProvider extends ServiceProvider
                     ->as('session')
                     ->setDescription('SPA session (Sanctum). Call `GET /sanctum/csrf-cookie` first and send the `XSRF-TOKEN` cookie value as `X-XSRF-TOKEN` on unsafe methods.'),
             );
-            // MVP-SHORTCUT: bearer placeholder until OAuth client credentials exist; V1: oauth2 clientCredentials flow with scopes (M3 API clients).
+            // API clients: OAuth 2.0 client credentials (docs/07-api/authentication.md §3).
             $openApi->secure(
-                SecurityScheme::http('bearer')
-                    ->as('bearer')
-                    ->setDescription('API client access token.'),
+                SecurityScheme::oauth2()
+                    ->flow('clientCredentials', function (OAuthFlow $flow): void {
+                        $flow->tokenUrl('https://'.config('helpdesk.hosts.api').'/oauth/token');
+
+                        foreach (ScopeMap::DESCRIPTIONS as $scope => $description) {
+                            $flow->addScope($scope, $description);
+                        }
+                    })
+                    ->as('oauth2')
+                    ->setDescription('API client access token from `POST /oauth/token` (client credentials, 1 hour). Only endpoints open to API clients accept it.'),
             );
 
             $problem = $openApi->components->addSchema(self::PROBLEM_SCHEMA, Schema::fromType(self::problemDetailsType()));

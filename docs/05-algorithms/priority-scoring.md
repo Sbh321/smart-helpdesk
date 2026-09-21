@@ -2,6 +2,8 @@
 
 Contract: `PriorityStrategy`. Baseline class: `App\Modules\Automation\Strategies\Baseline\BasicWeightedPriority` (`#[AcademicBaseline]`, `@deprecated` pointing to ADR-0023). Replaceable after the defence ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)); richer candidate: [future/priority-scoring-advanced.md](future/priority-scoring-advanced.md). Requirements FR-AUT-01..03.
 
+M2-04 is integrated and covered by feature tests; see [Integration as built](#integration-as-built-m2-04).
+
 ## Idea
 
 A ticket's priority is a **weighted sum** of four things an agent can see: how much of the business is affected (impact), how quickly harm grows (urgency), how important the customer is (tier) and how long the ticket has waited (age). This is Simple Additive Weighting, the most basic multi-criteria decision method [SAW]; the age term is the "ageing" technique operating systems use so that waiting work is not starved [Silberschatz]. Impact and urgency are the inputs ITSM tools use for priority matrices [Jira, ServiceNow, GLPI]; ITIL 4 notes that priority should also consider the backlog, which the age term does in the simplest possible way [ITIL 4].
@@ -75,6 +77,16 @@ Because contributions are stored almost unrounded, the one-decimal parts in the 
 
 **Complexity:** constant time per ticket (four terms); the hourly pass is linear in the number of open tickets.
 
+### Integration as built (M2-04)
+
+- Tickets knows nothing about scoring. `CreateTicket` and `UpdateTicket` (when impact or urgency changed) raise the synchronous `Tickets\Events\TicketPriorityInputsChanged` inside their transaction; `Automation\Listeners\ScorePriorityOnTicketInputs` calls `Actions\ScoreTicketPriority`, which is the only caller of the `PriorityStrategy` contract besides the preview.
+- `ScoreTicketPriority` locks the ticket row, takes "now" from `Clock`, measures the waiting time on the workspace's default business calendar (24×7 when there is none) and stores `priority_score`, `priority_level` and `priority_explanation`. When the effective level moves it recomputes the SLA deadlines and writes a `priority_changed` history row plus the `PriorityChanged` event (actor `system` for the ageing pass); the first scoring of a new ticket writes no such row. A refreshed score alone does not move `updated_at`.
+- `tickets:reevaluate-priority {--tenant=}` is the hourly ageing pass: every active workspace, tickets in `TicketStatus::active()` only (open, assigned, in progress, pending), chunks of 500, the age calendar resolved once per workspace.
+- `POST /tickets/{ticket}/priority` (`tickets.update`), body `{level, reason}`: `level` must be present, `null` clears the override, `reason` is required with a level. The override always wins: later scoring refreshes the score and the computed level, `effective_level` stays, `manual_override` is `true` in the explanation. Each call writes a `priority_overridden` history row and the audit entry `ticket.priority_overridden` with the old and new override and effective level. A resolved or closed ticket answers 409 `conflict`.
+- `POST /settings/automation/priority/preview` (`settings.manage`) scores up to 20 samples with unsaved weights, thresholds and `age_full_hours`; settings the strategy refuses answer 422. Nothing is stored.
+- Settings come from `config/helpdesk.php` until the Settings service exists (M2-01); `priority_settings_version` is fixed at 1 (`MVP-SHORTCUT`).
+- Feature tests: `tests/Feature/Automation/Priority/` (worked examples on create and preview, edit, ageing with `FrozenClock`, business calendar, override, permissions, cross-workspace 404).
+
 ## Worked examples
 
 | Ticket | Impact | Urgency | Tier | Waited | Score | Level |
@@ -94,6 +106,17 @@ Scaled values at their bounds; score between 0 and 100; contributions add up to 
 ## Evaluation (experiment E3)
 
 Scenario table as above for 12 tickets; one-at-a-time sensitivity: change each weight by ±0.1 (others rescaled) and count how many of 200 generated tickets change level; ageing curve for a P3 ticket from 0 to 96 hours.
+
+**Results (M3-10, seed 42, dataset v1; tables T6–T7, plots 7–8, `experiments/results/v1/e3/`).** All **12 of 12** scenarios give the expected score and level: the five worked examples, the three exact thresholds (75.0 → P1, 50.0 → P2, 25.0 → P3), the 72-hour age cap and four mixed cases. With the default weights the 200 generated tickets split P1 25, P2 70, P3 75, P4 30.
+
+| Weight changed | −0.1: tickets changing level (up / down) | +0.1: tickets changing level (up / down) |
+|---|---|---|
+| impact 0.40 | 29 (10 / 19) | 33 (16 / 17) |
+| urgency 0.35 | 32 (15 / 17) | 28 (16 / 12) |
+| tier 0.15 | **43** (32 / 11) | 22 (3 / 19) |
+| age 0.10 | 21 (2 / 19) | 35 (27 / 8) |
+
+A ±0.1 change moves 10.5–21.5 % of tickets by one level, so the levels are moderately sensitive to hand-chosen weights; lowering the tier weight has the largest effect (standard-tier tickets gain relative weight). The ageing ticket (impact 2, urgency 3, premium) rises from 44.2 at 0 h to P2 at **42 h** and stops at 54.2 after 72 h.
 
 ## Limitations and replacement
 

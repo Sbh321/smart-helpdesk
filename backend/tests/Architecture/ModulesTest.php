@@ -28,7 +28,24 @@ arch('contacts do not depend on tickets or automation')
 
 arch('tickets depend only on contacts, agents and media among domain modules')
     ->expect('App\Modules\Tickets')
-    ->not->toUse(['App\Modules\Integrations', 'App\Modules\Reporting', 'App\Modules\Mail', 'App\Modules\Notifications']);
+    ->not->toUse([
+        'App\Modules\Automation', 'App\Modules\Sla', 'App\Modules\Integrations', 'App\Modules\Reporting',
+        'App\Modules\Mail', 'App\Modules\Notifications',
+    ]);
+
+// Automation and Sla hook into tickets through the synchronous events in Tickets\Events; the
+// arrows never point the other way (docs/03-architecture/backend.md §Dependency rules).
+arch('agents do not depend on tickets, automation or sla')
+    ->expect('App\Modules\Agents')
+    ->not->toUse(['App\Modules\Tickets', 'App\Modules\Automation', 'App\Modules\Sla']);
+
+arch('sla depends on tickets but never on automation')
+    ->expect('App\Modules\Sla')
+    ->not->toUse(['App\Modules\Automation']);
+
+arch('media depends on tenancy only among domain modules')
+    ->expect('App\Modules\Media')
+    ->not->toUse(['App\Modules\Tickets', 'App\Modules\Automation', 'App\Modules\Sla', 'App\Modules\Agents']);
 
 arch('reporting is never imported by other modules')
     ->expect([

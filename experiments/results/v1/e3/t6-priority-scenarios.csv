@@ -1,0 +1,13 @@
+id,title,impact,urgency,tier,waited_h,expected_score,actual_score,expected_level,actual_level,match
+S01,"Payment system down for all users",4,4,enterprise,0,90,90,P1,P1,true
+S02,"Report export slow for one department",3,2,standard,0,38.3,38.3,P3,P3,true
+S03,"Team cannot upload files",2,3,premium,24,47.5,47.5,P3,P3,true
+S04,"Team cannot upload files, after 72 h",2,3,premium,72,54.2,54.2,P2,P2,true
+S05,"Typo on a help page",1,1,standard,0,0,0,P4,P4,true
+S06,"Whole company cannot send email",4,4,standard,0,75,75,P1,P1,true
+S07,"Department cannot print invoices",3,3,standard,0,50,50,P2,P2,true
+S08,"Team calendar out of sync",2,2,standard,0,25,25,P3,P3,true
+S09,"Enterprise feature request waiting four days",1,1,enterprise,96,25,25,P3,P3,true
+S10,"One user locked out before a deadline",1,4,standard,0,35,35,P3,P3,true
+S11,"Organisation-wide slow reports, low urgency",4,1,enterprise,0,55,55,P2,P2,true
+S12,"Premium department laptops failing, 48 h old",3,4,premium,48,75.8,75.8,P1,P1,true

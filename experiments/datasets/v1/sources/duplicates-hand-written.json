@@ -1,0 +1,445 @@
+{
+  "note": "Hand-written duplicate pairs for E2 (dataset v1): each pair describes the same problem in different words. Written and labelled by one person on 2026-09-21 (threat to validity, evaluation-methodology.md §5). Merged into duplicates.json by experiment:generate-duplicates.",
+  "pairs": [
+    {
+      "category": "account",
+      "a": {
+        "title": "Cannot login after password reset",
+        "description": "Login page shows error ERR-401 after I reset my password."
+      },
+      "b": {
+        "title": "Login fails after resetting password",
+        "description": "Error ERR-401 on login page."
+      }
+    },
+    {
+      "category": "account",
+      "a": {
+        "title": "Two-factor code never arrives",
+        "description": "I enabled two-factor authentication but the SMS code never reaches my phone."
+      },
+      "b": {
+        "title": "Not receiving 2FA SMS",
+        "description": "The verification code for two-factor login is not sent to my mobile."
+      }
+    },
+    {
+      "category": "account",
+      "a": {
+        "title": "Invitation link expired for new hire",
+        "description": "Our new accountant clicked the invitation link and it says the link has expired."
+      },
+      "b": {
+        "title": "New user invite says expired",
+        "description": "The invite email we sent to our new accountant shows an expired link message."
+      }
+    },
+    {
+      "category": "account",
+      "a": {
+        "title": "Account locked after failed attempts",
+        "description": "My account got locked after three wrong passwords and I cannot unlock it."
+      },
+      "b": {
+        "title": "Locked out of my account",
+        "description": "After typing the wrong password a few times the account is locked and there is no unlock option."
+      }
+    },
+    {
+      "category": "account",
+      "a": {
+        "title": "Single sign-on redirects in a loop",
+        "description": "When I sign in with Microsoft SSO the page keeps redirecting back to the start."
+      },
+      "b": {
+        "title": "SSO login loop",
+        "description": "Signing in through Microsoft single sign-on loops between the login page and the portal."
+      }
+    },
+    {
+      "category": "account",
+      "a": {
+        "title": "Cannot change my email address",
+        "description": "The profile page gives an error when I try to update my email address."
+      },
+      "b": {
+        "title": "Email change fails on profile",
+        "description": "Updating the email on my profile shows an error and the old address stays."
+      }
+    },
+    {
+      "category": "account",
+      "a": {
+        "title": "Logged out every few minutes",
+        "description": "The portal logs me out every five minutes even while I am working."
+      },
+      "b": {
+        "title": "Session expires too quickly",
+        "description": "My session keeps ending after a few minutes and I have to log in again."
+      }
+    },
+    {
+      "category": "billing",
+      "a": {
+        "title": "Charged twice for September subscription",
+        "description": "Our card was charged twice for the September subscription renewal."
+      },
+      "b": {
+        "title": "Duplicate charge on card",
+        "description": "We see two identical charges for the subscription this month on our company card."
+      }
+    },
+    {
+      "category": "billing",
+      "a": {
+        "title": "Invoice amount does not match contract",
+        "description": "The invoice for August shows 1200 but our contract says 950 per month."
+      },
+      "b": {
+        "title": "Wrong amount on August invoice",
+        "description": "August invoice total is higher than the monthly price agreed in our contract."
+      }
+    },
+    {
+      "category": "billing",
+      "a": {
+        "title": "Refund not received",
+        "description": "We cancelled the extra licences two weeks ago but the refund has not arrived."
+      },
+      "b": {
+        "title": "Still waiting for refund",
+        "description": "The refund for the cancelled licences is not in our bank account yet."
+      }
+    },
+    {
+      "category": "billing",
+      "a": {
+        "title": "Cannot download invoice PDF",
+        "description": "Clicking download on the invoice page gives a blank PDF."
+      },
+      "b": {
+        "title": "Invoice PDF is blank",
+        "description": "The invoice download shows an empty page instead of the PDF."
+      }
+    },
+    {
+      "category": "billing",
+      "a": {
+        "title": "VAT number missing on invoices",
+        "description": "Our VAT registration number is not printed on the invoices."
+      },
+      "b": {
+        "title": "Invoices without tax number",
+        "description": "The company tax number does not appear on our invoices and finance needs it."
+      }
+    },
+    {
+      "category": "billing",
+      "a": {
+        "title": "Payment declined with valid card",
+        "description": "The payment is declined although the card works everywhere else."
+      },
+      "b": {
+        "title": "Card payment keeps getting declined",
+        "description": "Our valid credit card is rejected every time we try to pay the bill."
+      }
+    },
+    {
+      "category": "billing",
+      "a": {
+        "title": "Update billing address",
+        "description": "We moved offices and the billing address on invoices is still the old one."
+      },
+      "b": {
+        "title": "Old address printed on invoices",
+        "description": "Invoices still show our previous office address after the move."
+      }
+    },
+    {
+      "category": "technical",
+      "a": {
+        "title": "Dashboard very slow to load",
+        "description": "The dashboard takes more than a minute to load since Monday."
+      },
+      "b": {
+        "title": "Dashboard loading takes forever",
+        "description": "Since Monday the main dashboard is extremely slow, around one minute to open."
+      }
+    },
+    {
+      "category": "technical",
+      "a": {
+        "title": "CSV export times out",
+        "description": "Exporting the ticket list to CSV times out for large date ranges."
+      },
+      "b": {
+        "title": "Export fails for big reports",
+        "description": "The CSV export stops with a timeout when I choose a long period."
+      }
+    },
+    {
+      "category": "technical",
+      "a": {
+        "title": "File upload fails over 10 MB",
+        "description": "Uploading attachments larger than 10 MB fails with an error."
+      },
+      "b": {
+        "title": "Cannot attach large files",
+        "description": "Attachments bigger than ten megabytes are rejected with an upload error."
+      }
+    },
+    {
+      "category": "technical",
+      "a": {
+        "title": "Search returns no results",
+        "description": "Searching for customer names returns nothing even though the records exist."
+      },
+      "b": {
+        "title": "Search not finding customers",
+        "description": "Customer names that exist in the system do not show up in search."
+      }
+    },
+    {
+      "category": "technical",
+      "a": {
+        "title": "Mobile app crashes on start",
+        "description": "The Android app closes immediately after opening since the latest update."
+      },
+      "b": {
+        "title": "App crashing on Android",
+        "description": "After updating, the Android application crashes as soon as it starts."
+      }
+    },
+    {
+      "category": "technical",
+      "a": {
+        "title": "API returns 500 error",
+        "description": "Our integration gets HTTP 500 from the tickets API since this morning."
+      },
+      "b": {
+        "title": "Server error from tickets API",
+        "description": "Calls to the tickets API fail with internal server error 500 starting today."
+      }
+    },
+    {
+      "category": "technical",
+      "a": {
+        "title": "Calendar sync stopped",
+        "description": "Events from the helpdesk no longer appear in our Google calendar."
+      },
+      "b": {
+        "title": "Google calendar not syncing",
+        "description": "The helpdesk calendar stopped syncing events to Google."
+      }
+    },
+    {
+      "category": "network",
+      "a": {
+        "title": "VPN disconnects every few minutes",
+        "description": "The VPN connection drops every five minutes when working from home."
+      },
+      "b": {
+        "title": "VPN keeps dropping",
+        "description": "Working remotely, my VPN session disconnects repeatedly after a few minutes."
+      }
+    },
+    {
+      "category": "network",
+      "a": {
+        "title": "Office wifi very slow",
+        "description": "The wifi on the second floor is extremely slow since yesterday."
+      },
+      "b": {
+        "title": "Slow wireless on second floor",
+        "description": "Wireless internet on floor two has been crawling since yesterday."
+      }
+    },
+    {
+      "category": "network",
+      "a": {
+        "title": "Cannot reach shared network drive",
+        "description": "The shared drive S: is not reachable from any office computer."
+      },
+      "b": {
+        "title": "Network drive unavailable",
+        "description": "Nobody in the office can open the S: shared drive."
+      }
+    },
+    {
+      "category": "network",
+      "a": {
+        "title": "Remote desktop connection fails",
+        "description": "Remote desktop to the accounting server fails with a connection error."
+      },
+      "b": {
+        "title": "Cannot connect to accounting server via RDP",
+        "description": "RDP to the accounting server shows connection failed."
+      }
+    },
+    {
+      "category": "network",
+      "a": {
+        "title": "Website blocked by firewall",
+        "description": "The firewall blocks our supplier portal so we cannot place orders."
+      },
+      "b": {
+        "title": "Supplier portal blocked",
+        "description": "We cannot open the supplier ordering portal because the firewall blocks it."
+      }
+    },
+    {
+      "category": "network",
+      "a": {
+        "title": "Video calls freezing",
+        "description": "Video calls freeze and drop audio during meetings in the main office."
+      },
+      "b": {
+        "title": "Choppy video meetings",
+        "description": "In the main office our video meetings keep freezing and the sound cuts out."
+      }
+    },
+    {
+      "category": "network",
+      "a": {
+        "title": "DNS not resolving internal sites",
+        "description": "Internal sites like intranet.local do not resolve since the router change."
+      },
+      "b": {
+        "title": "Intranet address not found",
+        "description": "After the router was replaced the intranet name cannot be resolved."
+      }
+    },
+    {
+      "category": "hardware",
+      "a": {
+        "title": "Printer prints blank pages",
+        "description": "The printer on the third floor prints only blank pages."
+      },
+      "b": {
+        "title": "Third floor printer outputs empty pages",
+        "description": "Every job sent to the printer upstairs comes out blank."
+      }
+    },
+    {
+      "category": "hardware",
+      "a": {
+        "title": "Laptop does not turn on",
+        "description": "My laptop does not power on even when it is plugged in."
+      },
+      "b": {
+        "title": "Laptop dead, will not start",
+        "description": "The laptop shows no lights and will not start on the charger."
+      }
+    },
+    {
+      "category": "hardware",
+      "a": {
+        "title": "External monitor not detected",
+        "description": "The second monitor is not detected when connected to the docking station."
+      },
+      "b": {
+        "title": "Docking station monitor no signal",
+        "description": "My external screen shows no signal through the dock."
+      }
+    },
+    {
+      "category": "hardware",
+      "a": {
+        "title": "Laptop battery drains fast",
+        "description": "The laptop battery goes from full to empty in about an hour."
+      },
+      "b": {
+        "title": "Battery lasts only one hour",
+        "description": "My notebook battery runs out within an hour of use."
+      }
+    },
+    {
+      "category": "hardware",
+      "a": {
+        "title": "Headset microphone not working",
+        "description": "Colleagues cannot hear me because the headset microphone is not working."
+      },
+      "b": {
+        "title": "Mic on headset silent",
+        "description": "My headset mic produces no sound in calls."
+      }
+    },
+    {
+      "category": "hardware",
+      "a": {
+        "title": "Projector in meeting room flickers",
+        "description": "The projector in meeting room four flickers during presentations."
+      },
+      "b": {
+        "title": "Flickering projector room 4",
+        "description": "Presentations in room four are hard to watch because the projector keeps flickering."
+      }
+    },
+    {
+      "category": "hardware",
+      "a": {
+        "title": "Keyboard keys stuck",
+        "description": "Several keys on my keyboard are stuck after a coffee spill."
+      },
+      "b": {
+        "title": "Coffee spilled on keyboard",
+        "description": "I spilled coffee and now some keys do not work."
+      }
+    },
+    {
+      "category": "general",
+      "a": {
+        "title": "Request for admin training",
+        "description": "Could you schedule a training session for our two new administrators?"
+      },
+      "b": {
+        "title": "Training for new admins",
+        "description": "We need a training session for the two administrators who joined this month."
+      }
+    },
+    {
+      "category": "general",
+      "a": {
+        "title": "Documentation for reports is outdated",
+        "description": "The help article about reports still shows the old menu."
+      },
+      "b": {
+        "title": "Reports help page out of date",
+        "description": "The documentation page on reports describes a menu that no longer exists."
+      }
+    },
+    {
+      "category": "general",
+      "a": {
+        "title": "Need more licences",
+        "description": "We need five additional user licences for the new branch office."
+      },
+      "b": {
+        "title": "Additional licences for branch",
+        "description": "Please add five more user licences for our new branch."
+      }
+    },
+    {
+      "category": "general",
+      "a": {
+        "title": "Data retention policy question",
+        "description": "How long do you keep deleted tickets and attachments?"
+      },
+      "b": {
+        "title": "Retention period for deleted data",
+        "description": "What is the retention period for tickets and files after deletion?"
+      }
+    },
+    {
+      "category": "general",
+      "a": {
+        "title": "Support hours during Dashain holidays",
+        "description": "Will your support desk be open during the Dashain holidays next month?"
+      },
+      "b": {
+        "title": "Holiday support schedule",
+        "description": "Please share the support opening hours for the Dashain holiday period."
+      }
+    }
+  ]
+}

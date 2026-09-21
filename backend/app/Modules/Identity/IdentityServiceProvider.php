@@ -43,5 +43,9 @@ final class IdentityServiceProvider extends ModuleServiceProvider
 
             return Limit::perMinute(5)->by($key);
         });
+
+        // Every invitation sends a mail: twenty a minute per user keeps a mistake from flooding inboxes.
+        RateLimiter::for('user-invitations', fn (Request $request): Limit => Limit::perMinute(20)
+            ->by('user-invitations:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 }

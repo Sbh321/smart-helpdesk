@@ -2,8 +2,10 @@ import axe, { type Result } from 'axe-core'
 import { HttpResponse, http } from 'msw'
 import { expect, test } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { copy } from '@/copy/en'
+import { copy, fill } from '@/copy/en'
+import { AGENT_FIXTURES } from './msw/agents'
 import { setupMswWorker } from './msw/browser'
+import { db } from './msw/data'
 import { apiUrl, sessionFixture } from './msw/handlers'
 import { renderApp } from './render-app'
 
@@ -120,6 +122,38 @@ test('the ticket list and the new-ticket dialog have no serious or critical axe 
   expect(await scan(document.body)).toEqual([])
 })
 
+test('the ticket list with a selection, the bulk dialog and its results have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({
+          permissions: ['tickets.view', 'tickets.update', 'tickets.assign', 'tickets.close', 'agents.view'],
+        }),
+      }),
+    ),
+  )
+  const { screen } = await renderApp('/acme/tickets')
+  const table = screen.getByRole('table', { name: copy.tickets.list.label })
+  await expect.element(table.getByRole('row').nth(1)).toBeVisible()
+  await table.getByRole('checkbox', { name: copy.dataTable.selectAll }).click()
+  const bar = screen.getByRole('region', { name: copy.dataTable.bulkActions })
+  await expect.element(bar).toBeVisible()
+  expect(await scan(screen.container)).toEqual([])
+
+  await bar.getByRole('button', { name: copy.tickets.bulk.changeStatus }).click()
+  const dialog = screen.getByRole('dialog', { name: fill(copy.tickets.bulk.statusTitle, { count: 25 }) })
+  await dialog.getByRole('button', { name: fill(copy.tickets.bulk.submit, { count: 25 }) }).click()
+  await expect.element(dialog.getByText(copy.tickets.bulk.statusRequired)).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+
+  await dialog.getByRole('combobox', { name: copy.tickets.bulk.statusLabel }).click()
+  await screen.getByRole('option', { name: copy.tickets.status.closed }).click()
+  await dialog.getByRole('button', { name: fill(copy.tickets.bulk.submit, { count: 25 }) }).click()
+  const result = screen.getByRole('dialog', { name: copy.tickets.bulk.resultTitle })
+  await expect.element(result.getByRole('button', { name: copy.tickets.bulk.selectFailed })).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+})
+
 test('the contact form and the organisation form have no serious or critical axe violations', async () => {
   worker.use(
     http.get(apiUrl('/me'), () =>
@@ -142,4 +176,272 @@ test('the contact form and the organisation form have no serious or critical axe
     .element(organization.screen.getByRole('heading', { level: 1, name: copy.organizations.newTitle }))
     .toBeVisible()
   expect(await scan(organization.screen.container)).toEqual([])
+})
+
+test('the directory Settings forms have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({
+          permissions: [
+            'tickets.view',
+            'settings.manage',
+            'agents.view',
+            'agents.manage',
+            'teams.manage',
+            'shifts.manage',
+          ],
+        }),
+      }),
+    ),
+  )
+
+  for (const [path, action] of [
+    ['skills', 'Add skill'],
+    ['teams', 'Add team'],
+    ['categories', 'Add category'],
+    ['agents', 'Add agent'],
+  ]) {
+    const app = await renderApp(`/acme/settings/${path}`)
+    await app.screen.getByRole('button', { name: action }).click()
+    expect(await scan(app.screen.container)).toEqual([])
+    await app.screen.unmount()
+  }
+
+  const shifts = await renderApp('/acme/settings/shifts')
+  const firstAgent = AGENT_FIXTURES[0]
+  if (!firstAgent) throw new Error('Missing Agent fixture')
+  await shifts.screen.getByRole('combobox', { name: copy.settings.selectAgent }).click()
+  await shifts.screen.getByRole('option', { name: firstAgent.user.name }).click()
+  await expect
+    .element(shifts.screen.getByRole('region', { name: copy.settings.weeklyTemplate }))
+    .toBeVisible()
+  expect(await scan(shifts.screen.container)).toEqual([])
+})
+
+test('the SLA, calendar and priority Settings forms have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({
+          permissions: ['tickets.view', 'settings.manage', 'sla.manage', 'calendars.manage'],
+        }),
+      }),
+    ),
+  )
+
+  const sla = await renderApp('/acme/settings/sla')
+  await sla.screen.getByRole('button', { name: copy.sla.addPolicy }).click()
+  await sla.screen.getByRole('button', { name: copy.sla.savePolicy }).click()
+  await expect.element(sla.screen.getByText(copy.sla.validation.nameRequired)).toBeVisible()
+  expect(await scan(sla.screen.container)).toEqual([])
+  await sla.screen.unmount()
+
+  const calendars = await renderApp('/acme/settings/calendars')
+  await calendars.screen.getByRole('button', { name: copy.sla.addCalendar }).click()
+  expect(await scan(calendars.screen.container)).toEqual([])
+  await calendars.screen.getByRole('button', { name: 'Remove Dashain', exact: true }).click()
+  await expect.element(calendars.screen.getByRole('alertdialog')).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+  await calendars.screen.unmount()
+
+  const priority = await renderApp('/acme/settings/priority')
+  await priority.screen.getByRole('button', { name: copy.priority.preview }).click()
+  await expect
+    .element(priority.screen.getByRole('table', { name: copy.priority.previewCaption }))
+    .toBeVisible()
+  expect(await scan(priority.screen.container)).toEqual([])
+})
+
+test('the workspace Settings pages have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ['tickets.view', 'settings.manage'] }) }),
+    ),
+  )
+
+  for (const path of ['general', 'branding', 'automation', 'tickets']) {
+    const app = await renderApp(`/acme/settings/${path}`)
+    await expect.element(app.screen.getByRole('heading', { level: 2 }).first()).toBeVisible()
+    await expect
+      .element(app.screen.getByRole('button', { name: copy.workspaceSettings.save }).first())
+      .toBeVisible()
+    expect(await scan(app.screen.container), path).toEqual([])
+    await app.screen.unmount()
+  }
+})
+
+test('the notification bell, its popover and the notifications page have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ['tickets.view'], unread_notifications: 2 }) }),
+    ),
+  )
+
+  const shell = await renderApp('/acme')
+  await shell.screen.getByRole('button', { name: /^Notifications/ }).click()
+  await expect.element(shell.screen.getByRole('list', { name: copy.notifications.latest })).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+  await shell.screen.unmount()
+
+  const page = await renderApp('/acme/notifications')
+  await expect.element(page.screen.getByRole('list', { name: copy.notifications.title })).toBeVisible()
+  expect(await scan(page.screen.container)).toEqual([])
+})
+
+test('the Media library, its folder tree and its dialogs have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({ permissions: ['media.view', 'media.manage', 'media.upload'] }),
+      }),
+    ),
+  )
+  const { screen } = await renderApp('/acme/settings/media')
+  await expect.element(screen.getByRole('table', { name: copy.media.tableLabel })).toBeVisible()
+  await screen.getByRole('treeitem', { name: 'Brand' }).click()
+  expect(await scan(screen.container)).toEqual([])
+
+  await screen.getByRole('button', { name: copy.media.deleteFolder }).click()
+  await expect.element(screen.getByRole('alertdialog')).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+  await screen.getByRole('alertdialog').getByRole('button', { name: copy.confirm.cancel }).click()
+
+  await screen.getByRole('treeitem', { name: copy.media.allFolders }).click()
+  await screen.getByRole('button', { name: 'Edit screenshot-27.png' }).click()
+  await expect.element(screen.getByRole('dialog', { name: copy.media.editTitle })).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+})
+
+test('the ticket tabs and the assignment dialog have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({
+          permissions: [
+            'tickets.view',
+            'tickets.update',
+            'tickets.assign',
+            'comments.internal',
+            'agents.view',
+            'media.view',
+            'media.upload',
+          ],
+        }),
+      }),
+    ),
+  )
+  const ticket = db.tickets[0]
+  if (!ticket) throw new Error('Missing ticket fixture')
+  const { screen } = await renderApp(`/acme/tickets/${ticket.id}`)
+  for (const tab of [
+    copy.tickets.detail.comments,
+    copy.tickets.detail.attachments,
+    copy.tickets.detail.duplicates,
+  ]) {
+    await screen.getByRole('tab', { name: tab }).click()
+    await expect.element(screen.getByRole('tabpanel')).toBeVisible()
+    expect(await scan(screen.container)).toEqual([])
+  }
+  await screen.getByRole('button', { name: copy.assignment.title, exact: true }).click()
+  await expect.element(screen.getByRole('table', { name: copy.assignment.rankingCaption })).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+})
+
+test('the Users and Roles Settings pages and their dialogs have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({
+          permissions: ['tickets.view', 'settings.manage', 'users.manage', 'roles.manage'],
+        }),
+      }),
+    ),
+  )
+
+  const users = await renderApp('/acme/settings/users')
+  await expect
+    .element(users.screen.getByRole('table', { name: copy.users.tableLabel }).getByText('Asha Rai'))
+    .toBeVisible()
+  expect(await scan(users.screen.container)).toEqual([])
+  await users.screen.getByRole('button', { name: copy.users.invite }).click()
+  const invite = users.screen.getByRole('dialog', { name: copy.users.inviteTitle })
+  await invite.getByRole('button', { name: copy.users.sendInvitation }).click()
+  await expect
+    .element(invite.getByRole('textbox', { name: copy.users.name }))
+    .toHaveAttribute('aria-invalid', 'true')
+  expect(await scan(document.body)).toEqual([])
+  await users.screen.unmount()
+
+  const roles = await renderApp('/acme/settings/roles')
+  await expect.element(roles.screen.getByRole('heading', { level: 4, name: 'Owner' })).toBeVisible()
+  expect(await scan(roles.screen.container)).toEqual([])
+  await roles.screen.getByRole('button', { name: 'Edit billing-lead' }).click()
+  const editor = roles.screen.getByRole('dialog', { name: 'Edit billing-lead' })
+  await expect.element(editor.getByRole('checkbox', { name: 'View tickets' })).toBeChecked()
+  expect(await scan(document.body)).toEqual([])
+})
+
+test('the API clients page, its create dialog and the one-time secret have no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ['tickets.view', 'integrations.manage'] }) }),
+    ),
+  )
+  const { screen } = await renderApp('/acme/settings/api-clients')
+  await expect
+    .element(screen.getByRole('table', { name: copy.apiClients.listLabel }).getByText('Monitoring'))
+    .toBeVisible()
+  expect(await scan(screen.container)).toEqual([])
+
+  await screen.getByRole('button', { name: copy.apiClients.create }).click()
+  const dialog = screen.getByRole('dialog', { name: copy.apiClients.createTitle })
+  await dialog.getByRole('button', { name: copy.apiClients.save }).click()
+  await expect
+    .element(dialog.getByRole('textbox', { name: copy.apiClients.name }))
+    .toHaveAttribute('aria-invalid', 'true')
+  expect(await scan(document.body)).toEqual([])
+
+  await dialog.getByRole('textbox', { name: copy.apiClients.name }).fill('Nagios')
+  await dialog.getByRole('checkbox', { name: /^tickets:read/ }).click()
+  await dialog.getByRole('button', { name: copy.apiClients.save }).click()
+  const secret = screen.getByRole('dialog', { name: 'Nagios' })
+  await expect.element(secret.getByRole('textbox', { name: copy.apiClients.clientSecret })).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+})
+
+const REPORT_PERMISSIONS = ['reports.view', 'tickets.view', 'contacts.view', 'agents.view']
+
+test('the dashboard (KPI tiles, six charts and their tables) has no serious or critical axe violations', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: REPORT_PERMISSIONS }) }),
+    ),
+  )
+  const { screen } = await renderApp('/acme')
+  await expect.element(screen.getByRole('region', { name: 'Tickets created' })).toBeVisible()
+  await expect.element(screen.getByRole('heading', { name: 'Median time in status' })).toBeVisible()
+  await screen.getByRole('button', { name: copy.reports.showTable }).first().click()
+
+  expect(await scan(screen.container)).toEqual([])
+})
+
+test.each([
+  ['a bar chart report', 'rpt-t06', 'Response and resolution times'],
+  ['a line and area chart report', 'rpt-t02', 'Backlog over time'],
+  ['the heatmap report', 'rpt-t11', 'Workload heatmap'],
+])('%s has no serious or critical axe violations', async (_kind, key, title) => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: REPORT_PERMISSIONS }) }),
+    ),
+  )
+  const { screen } = await renderApp(`/acme/reports/${key}?compare=previous`)
+  await expect.element(screen.getByRole('heading', { level: 1, name: title })).toBeVisible()
+  await expect
+    .element(screen.getByRole('table', { name: fill(copy.reports.tableLabel, { title }) }))
+    .toBeVisible()
+  await expect.element(screen.getByRole('heading', { name: copy.reports.totals })).toBeVisible()
+
+  expect(await scan(screen.container)).toEqual([])
 })

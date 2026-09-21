@@ -127,6 +127,16 @@ Items referenced by `MVP-SHORTCUT` markers written while building milestone 1.
 | V1-FE-07 | Server-side option search in list filters (organisations, tags) | filters load the first 100 options once | `GET /v1/organizations?search=`, `EntityCombobox` | S |
 | V1-FE-08 | "Load older" paging on ticket history | the detail page shows the newest 50 entries | `GET /v1/tickets/{id}/history?cursor=` | S |
 
+## Added to V1 during milestone 2 (2026-09-21)
+
+Items referenced by `MVP-SHORTCUT` markers written while building milestone 2.
+
+| ID | Item | Why deferred | Seam | Size |
+|---|---|---|---|---|
+| V1-PL-14 | `oklch()` brand colours | hex covers the settings form and the contrast check; the token page allows oklch | `BrandingSection` rules, `lib/theme/brand.ts` | S |
+| V1-NT-01 | Notification digests and backlog suppression | a breach backlog (scheduler down, bulk import, back-dated sample data) mails every manager once per timer; the MVP matrix sends each event on its own | `SendTicketNotifications`, `notification_key`, `notifications` queue | S |
+| V1-NT-02 | Workspace logo in notification and reply mail | the logo needs a public, non-expiring URL | `TicketNotification::toMail`, M3-18 mail identity, Branding folder | S |
+
 ## Added to V1 on 2026-09-17 (second round)
 
 | ID | Item | Why deferred | Seam | Size |

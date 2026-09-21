@@ -29,12 +29,29 @@ final class ReportableTables
      * @var array<string, list<string>>
      */
     public const TABLES = [
+        'agent_profiles' => [],
+        'agent_shifts' => [],
+        'agent_skills' => [],
+        'business_calendars' => [],
+        'calendar_holidays' => [],
         'categories' => [],
         'contacts' => [],
+        'media_folders' => [],
+        'media_items' => ['storage_key'],
+        'mediables' => [],
         'organizations' => [],
+        'sla_events' => [],
+        'sla_policies' => [],
+        'sla_targets' => [],
+        'skills' => [],
+        'team_members' => [],
+        'teams' => [],
         'tenant_settings' => [],
         'ticket_assignments' => [],
-        'ticket_comments' => [],
+        // ADR-0022 records comment metadata only; text bodies are never versioned (history doc §10).
+        'ticket_comments' => ['body'],
+        'ticket_duplicate_suggestions' => [],
+        'ticket_sla_timers' => [],
         // search_vector is derived from title and description, which are recorded themselves.
         'tickets' => ['search_vector'],
         'users' => ['password', 'remember_token'],

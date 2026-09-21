@@ -7,7 +7,7 @@ Rules that CI enforces and reviewers check. Tooling versions: [01-research/versi
 | Tool | Configuration | Policy |
 |---|---|---|
 | Pint 1.32 | `laravel` preset plus `declare_strict_types`, `ordered_imports`, `final_class` off (Eloquent models are not final) | `vendor/bin/pint --test` in CI; `pint` in the pre-commit hook |
-| Larastan 3.12 | `phpstan.neon`: level 5 in M1, level 6 from M2 day 1; `paths: app, tests`; `checkModelProperties: true`; `--memory-limit=1G` | Baseline file allowed only for third-party stubs; no `@phpstan-ignore` without a comment naming the reason |
+| Larastan 3.12 | `phpstan.neon`: level 5 in M1, level 6 since the M2 exit review (2026-09-21); `paths: app, config, routes, database`; `--memory-limit=1G` | Baseline file allowed only for third-party stubs; no `@phpstan-ignore` without a comment naming the reason. One scoped exception: `missingType.iterableValue` for API resource `toArray()`, because Scramble infers the schema from the returned literal and a loose array docblock hides it |
 | Pest arch | `tests/Architecture/*` | see below |
 | `composer audit` | CI | fails on high/critical |
 

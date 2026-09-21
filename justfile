@@ -61,6 +61,10 @@ test: test-backend test-frontend
 test-backend *args:
     docker compose exec -T app vendor/bin/pest {{args}}
 
+# unit and contract coverage with pcov (the algorithm namespaces must stay at 100 %, definition-of-done.md)
+coverage *args:
+    docker compose exec -T app php -d pcov.enabled=1 vendor/bin/pest tests/Unit tests/Contracts --coverage {{args}}
+
 test-frontend:
     pnpm -C frontend test
 
@@ -94,9 +98,10 @@ api-drift:
 plan:
     python3 roadmap/tools/schedule.py --ready
 
-reproduce seed="42":
-    docker compose exec app php artisan experiment:run --all --seed={{seed}}
-    python3 experiments/plots.py
+# regenerate every experiment table (E1-E4, E6) and plots 1-10 (experiments/README.md); E6 wipes the *_test database named by db
+reproduce seed="42" db="helpdesk_test":
+    docker compose run --rm --no-deps -T -e EXPERIMENTS_DATABASE={{db}} -v "{{justfile_directory()}}/experiments:/var/www/experiments" app php -d memory_limit=2G artisan experiment:run all --seed={{seed}} --commit="$(git describe --always --dirty)"
+    uv run --with-requirements experiments/requirements.txt python experiments/plots.py
 
 report:
     cd report && ./build.sh

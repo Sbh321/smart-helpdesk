@@ -21,6 +21,7 @@ final class CategoryFactory extends Factory
     {
         return [
             'name' => fake()->unique()->words(2, true),
+            'default_team_id' => null,
             'is_active' => true,
             'sort_order' => 0,
         ];

@@ -80,6 +80,14 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | laravel-echo, @laravel/echo-react | 2.5.0 | `^2.5` | Should-have |
 | Deferred | @tanstack/react-virtual 3.14, zustand 5.0, storybook 10.6, i18next 26 | — | V1 |
 
+## Experiment tooling (report only)
+
+Not part of the application or its images; used on the developer machine to draw the result-analysis plots ([12-academic/result-analysis-plan.md](../12-academic/result-analysis-plan.md)).
+
+| Package | Version | Constraint | Class | Reason |
+|---|---|---|---|---|
+| matplotlib (Python 3.13, with numpy 2.5) | 3.11.2 | `==3.11.2` in `experiments/requirements.txt`, run through `uv run --with-requirements` | Required (report) | Plots 1–10 as PNG and SVG from the committed CSV results; the standard, scriptable plotting library, so `just reproduce` regenerates every figure without a browser. The SPA's Recharts is interactive and not suited to report figures; a spreadsheet would not be reproducible. |
+
 ## Compatibility notes
 
 - PHP 8.5 is required by Pest 5 / PHPUnit 13; Laravel 13 supports 8.3–8.5.

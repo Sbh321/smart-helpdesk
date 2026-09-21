@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Tickets\Models;
 
+use App\Modules\Agents\Models\Skill;
+use App\Modules\Agents\Models\Team;
 use App\Modules\Tenancy\Concerns\BelongsToTenant;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
@@ -42,6 +45,12 @@ final class Category extends Model
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class)->withPivot('tenant_id');
+    }
+
+    /** @return BelongsTo<Team, $this> */
+    public function defaultTeam(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'default_team_id');
     }
 
     /**

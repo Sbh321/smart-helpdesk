@@ -1,0 +1,6 @@
+check,items,correct,rate_pct
+"reconstruction, backward replay from the current row",1000,1000,100
+"reconstruction, forward replay from the insert",1000,1000,100
+"ticket intervals, incremental vs rebuilt",300,300,100
+"ticket facts, incremental vs rebuilt",300,300,100
+"daily snapshots, incremental vs rebuilt",90,90,100

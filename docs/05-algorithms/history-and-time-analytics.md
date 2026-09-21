@@ -90,8 +90,8 @@ registering the table — fails. Decisions:
   `DELETE` and `TRUNCATE` are revoked. Reads go through `App\Modules\Reporting\Models\EntityChange`
   (tenant-scoped, `changedAttributes()` because Eloquent already has a `$changes` property) and
   `EntityChange::toRecordedChange()` hands the row to the replayer of §3.
-- **Subjects so far.** `users` and `tenant_settings`; tickets, contacts, organisations and the rest of
-  the ADR-0022 list are registered by their own migrations in M2.
+- **Subjects.** Every table of the ADR-0022 list is registered (M2). `ticket_comments` excludes `body`
+  (metadata only, M2-13).
 
 ## 3. Point-in-time reconstruction (backward replay)
 
@@ -200,7 +200,9 @@ function snapshotDay(tenant, day):
         upsert report_daily_snapshots (tenant, day, D, key, metrics)
 ```
 
-`reports:rebuild` recomputes intervals and facts for all tickets of a tenant, then snapshots from the first ticket's day to yesterday; it is idempotent because all writes are upserts keyed by natural keys. `reports:verify` samples tickets and days and compares stored values with a fresh computation.
+`reports:rebuild` recomputes intervals and facts for all tickets of a tenant, then snapshots from the first ticket's day to yesterday; it is idempotent because every write replaces the rows of one ticket or one day. `reports:verify` samples tickets and days and compares stored values with a fresh computation.
+
+**Implementation (M2-13).** `Support\DailySnapshotBuilder` (compute and write), `Support\TicketReportWriter` with `Support\TicketTimeline`. Tests: the worked example of §4 as a feature test; backlog at the end of 12 days against a ticket-by-ticket count over 40 seeded random histories; flows placed under exactly one value per dimension; idempotent days; a 23-hour daylight-saving day; rebuild equals the incremental jobs. Details in [reporting.md](../04-domain/reporting.md) §As built (M2-13).
 
 ## 6. Percentiles and rates
 
@@ -225,6 +227,27 @@ Trigger tests (insert/update/delete, excluded columns, no-op updates ignored, ac
 ## 9. Experiment (E6)
 
 On the demo tenant plus a generated history of 10 000 tickets: (a) reconstruction correctness rate over 1 000 random (entity, instant) samples, expected 100 %; (b) agreement between incremental and rebuilt read models, expected 100 %; (c) latency of the heaviest reports (backlog over 90 days, time in status by team, contact 360) at the 95th percentile; (d) write overhead of the trigger measured as ticket-update latency with and without capture.
+
+**As run (M3-10, `php artisan experiment:run e6`, tables T10–T11, plot 10, `experiments/results/v1/e6/`).** To keep the run near 30 seconds it uses one generated workspace instead of the demo tenant: 300 tickets over 90 days (2 664 ticket changes, Asia/Kathmandu), replayed in time order the way the application writes them — ticket row change (captured by the trigger), ticket event, incremental read-model refresh with the clock at that instant, and a daily snapshot at each workspace midnight. It runs only on a `*_test` database, which it migrates from scratch. The expected state of a sample is the row recorded right after the previous statement, taken independently of `entity_changes`; instants fall between statements. Latency at 10 000+ tickets is E5 (M3-11).
+
+| Check | Items | Correct |
+|---|---|---|
+| (a) reconstruction, backward replay from the current row | 1 000 samples | 1 000 (100 %) |
+| (a) reconstruction, forward replay from the insert | 1 000 samples | 1 000 (100 %) |
+| (b) ticket intervals, incremental vs rebuilt | 300 tickets | 300 (100 %) |
+| (b) ticket facts, incremental vs rebuilt | 300 tickets | 300 (100 %) |
+| (b) daily snapshots, incremental vs rebuilt | 90 days | 90 (100 %) |
+
+| Measure (30 runs; updates: 300) | p50 | p95 |
+|---|---|---|
+| (c) backlog by team per day, 90 days, from snapshots | 0.25 ms | 0.28 ms |
+| (c) backlog per day, 90 days, from intervals (no snapshots) | 16.9 ms | 21.4 ms |
+| (c) time in status by team, 90 days | 1.38 ms | 1.48 ms |
+| (c) ticket as-of view (load changes and replay) | 0.79 ms | 0.98 ms |
+| (d) ticket update with change capture | 0.40 ms | 0.54 ms |
+| (d) ticket update without change capture | 0.20 ms | 0.33 ms |
+
+(d) The trigger roughly doubles the cost of a bare single-row update (mean 0.41 ms against 0.22 ms, about +0.2 ms); a real ticket update does much more work around it, so the absolute cost matters more than the percentage. Timings are from the developer machine (Docker, PostgreSQL 18.6) and vary between runs; the snapshots make the 90-day backlog about 70 times cheaper than computing it from intervals.
 
 ## 10. Limitations
 

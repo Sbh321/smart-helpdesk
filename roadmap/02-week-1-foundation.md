@@ -1,5 +1,7 @@
 # Milestone 1 — Foundation
 
+**Milestone status:** `[~]` In progress — 22 of 23 tasks done; M1-05 awaits its first green GitHub run after the owner adds a remote and pushes.
+
 Goal: a running multi-tenant skeleton with authentication, permissions, design system, contacts and the ticket data model, all under CI. Exit criteria: [00-mvp-definition.md](00-mvp-definition.md). Status legend: `[ ]` todo · `[~]` doing · `[x]` done · `[-]` cut.
 
 ## Track plan
@@ -343,12 +345,12 @@ These classes are the minimal academic baselines behind replaceable contracts ([
 | `/v1/me` unread notification count is 0 | M2-09 |
 | Ticket priority fixed at P4, no assignment or duplicate check on create | M2-04, M2-05, M2-10 |
 | No default SLA policy in provisioning | M2-03 |
-| `team_id`, `assigned_agent_id`, `default_team_id` without foreign keys | M2-02 |
+| `team_id`, `assigned_agent_id`, `default_team_id` without foreign keys | removed by M2-02 migration (2026-09-19) |
 | API clients are Sanctum tokens; `created_by_client_id` has no foreign key; bearer requests record `system` | M3-04 |
 | API reference documents a bearer scheme only | M3-04 |
 | Platform console not wired to the admin host | V1-PL-13 |
 | Organisation filter loads the first 100 options | V1-FE-07 |
-| Ticket history shows the newest 50 entries | M2-06 or V1-FE-08 |
+| Ticket history shows the newest 50 entries | removed by M2-06 cursor pagination (2026-09-18) |
 | Theme preference is not synced to `/v1/me/preferences` | M2-01 |
 
 The risk review is in [07-risk-register.md](07-risk-register.md) §Review log, and the report evidence notes are in [report-mapping.md](../docs/12-academic/report-mapping.md).

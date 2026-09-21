@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Agents\Models\AgentProfile;
 use App\Modules\Contacts\Models\Contact;
 use App\Modules\Contacts\Models\Organization;
 use App\Modules\Tickets\Domain\Priority;
@@ -23,6 +24,7 @@ beforeEach(function (): void {
     $this->other = Contact::factory()->forTenant($this->acme)->create();
     $this->billing = Category::factory()->forTenant($this->acme)->create(['name' => 'Billing']);
     $this->tech = Category::factory()->forTenant($this->acme)->create(['name' => 'Technical']);
+    $this->assignedAgent = AgentProfile::factory()->forTenant($this->acme)->create();
 
     $make = fn (array $attributes, ?Contact $contact = null, ?Category $category = null) => Ticket::factory()
         ->forContact($contact ?? $this->contact, $category ?? $this->billing)
@@ -30,7 +32,7 @@ beforeEach(function (): void {
 
     $this->t1 = $make(['number' => 1, 'title' => 'Printers are offline on floor two', 'description' => 'Nothing prints.', 'priority_score' => 90, 'priority_level' => Priority::P1, 'impact' => 4, 'created_at' => '2026-09-10 04:00:00']);
     $this->t2 = $make(['number' => 2, 'title' => 'Invoice total is wrong', 'description' => 'The refund was not applied.', 'priority_score' => 40, 'priority_level' => Priority::P3, 'impact' => 2, 'status' => TicketStatus::Pending, 'created_at' => '2026-09-12 10:00:00'], $this->other, $this->tech);
-    $this->t3 = $make(['number' => 3, 'title' => 'VPN drops', 'description' => 'Connection resets hourly.', 'priority_score' => 60, 'priority_level' => Priority::P2, 'impact' => 1, 'priority_override_level' => Priority::P1, 'status' => TicketStatus::Resolved, 'resolved_at' => '2026-09-15 00:00:00', 'assigned_agent_id' => '0199aaaa-0000-7000-8000-00000000a001', 'created_at' => '2026-09-14 20:00:00']);
+    $this->t3 = $make(['number' => 3, 'title' => 'VPN drops', 'description' => 'Connection resets hourly.', 'priority_score' => 60, 'priority_level' => Priority::P2, 'impact' => 1, 'priority_override_level' => Priority::P1, 'status' => TicketStatus::Resolved, 'resolved_at' => '2026-09-15 00:00:00', 'assigned_agent_id' => $this->assignedAgent->id, 'created_at' => '2026-09-14 20:00:00']);
 
     [$foreignContact, $foreignCategory] = ticketPrerequisites($this->globex);
     Ticket::factory()->forContact($foreignContact, $foreignCategory)->create(['number' => 1, 'title' => 'Printers broken at Globex']);

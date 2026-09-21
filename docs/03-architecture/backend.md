@@ -7,7 +7,7 @@ Laravel 13, PHP 8.5, API-only. Decision: [ADR-0004](../adr/0004-modular-monolith
 | Module | Owns | Public surface (what others may use) |
 |---|---|---|
 | `Platform` | `tenants` CRUD for super admins, platform users, tenant provisioning (`ProvisionTenant` action seeds defaults) | events `TenantProvisioned`, `TenantSuspended` |
-| `Tenancy` | tenant resolution, bootstrappers (RLS setting, permission team, prefixes), `tenant_settings` (JSONB, schema-validated), `Settings` facade | `Tenancy::current()`, `Settings::get('priority.weights')` |
+| `Tenancy` | tenant resolution, bootstrappers (RLS setting, permission team, prefixes), `tenant_settings` (JSONB, versioned), the `Settings` service and `SettingsRegistry` (sections are registered by the owning modules, [configuration.md](configuration.md)) | `Tenancy::current()`, `Settings::get('automation.priority.baseline.weights')`, `Settings::version()` |
 | `Identity` | users, invitations, sessions/auth controllers, roles/permissions (spatie), password reset | `User` model, `can` checks, events `UserInvited`, `RoleChanged` |
 | `Contacts` | contacts, organisations, tags (polymorphic `taggables` live here) | models, `FindOrCreateContact` action |
 | `Agents` | agent profiles, teams, skills, availability, workload counters | `AgentProfile`, `Team`, `Skill` models, `AgentDirectory` query (eligible agents) |
@@ -38,6 +38,19 @@ ADR-0004 fixed the original rules; the modules added by ADR-0018, ADR-0019 and A
 | `Notifications`, `Integrations`, `Reporting`, `Audit` | listeners/readers only; never imported by domain modules |
 
 The Pest architecture test encodes this table.
+
+### How Automation and Sla hook into tickets (as built, M2)
+
+Tickets never calls Automation or Sla. Its actions fire **synchronous hook events** inside the ticket transaction, and the other modules listen. A listener failure rolls the ticket change back, which is what the domain needs: a ticket without its priority or timers must not exist.
+
+| Hook event (`Tickets\Events`) | Fired by | Listeners |
+|---|---|---|
+| `TicketPriorityInputsChanged` (`initial` flag) | `CreateTicket`, `UpdateTicket` on impact or urgency change | `Automation\Listeners\ScorePriorityOnTicketInputs` |
+| `TicketCreated` | `CreateTicket`, after scoring and the `created` history entry | `Sla\Listeners\StartSlaOnTicketCreated`, `Automation\Listeners\SuggestDuplicatesOnTicketCreated`, `Automation\Listeners\AutoAssignOnTicketCreated` |
+| `TicketLifecycleChanged` | every status change | `Sla\Listeners\AdvanceSlaOnTicketLifecycle`, the Automation workload listener |
+| `FirstPublicReplyRecorded` | `AddComment` on an agent's first public reply | `Sla\Listeners\MeetFirstResponseOnReply` |
+
+Priority is scored before `TicketCreated`, because the SLA targets depend on the effective priority. Events that leave the process boundary (`CommentAdded`, `TicketStatusChanged`, `TicketAssigned`, `PriorityChanged`) are dispatched after commit; `Mail\Listeners\SendPublicReplyToContact` listens to `CommentAdded`. Agents needs ticket facts for its HTTP layer (workload, in-use checks) and gets them through the `Agents\Contracts\DirectoryUsage` interface, implemented in Automation.
 
 ## Folder layout of a module
 

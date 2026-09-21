@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Http\Resources;
 
 use App\Models\User;
+use App\Modules\Agents\Http\Resources\AgentSessionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Everything the SPA needs after sign-in (docs/07-api/conventions.md).
  *
- * MVP-SHORTCUT: the unread count is a placeholder; V1: none (M2-09 notifications fill it).
- *
  * @mixin User
  */
 final class MeResource extends JsonResource
 {
     /**
-     * @return array{user: UserResource, tenant: TenantResource, permissions: list<string>, unread_notifications: int}
+     * @return array{user: UserResource, tenant: TenantResource, permissions: list<string>, agent_profile: AgentSessionResource|null, unread_notifications: int}
      */
     public function toArray(Request $request): array
     {
@@ -26,7 +25,9 @@ final class MeResource extends JsonResource
             'user' => new UserResource($this->resource),
             'tenant' => new TenantResource(tenant()),
             'permissions' => $this->permissionNames(),
-            'unread_notifications' => 0,
+            'agent_profile' => $this->agentProfile === null ? null : new AgentSessionResource($this->agentProfile),
+            // Laravel's own relation on the user: Identity does not import the Notifications module.
+            'unread_notifications' => $this->unreadNotifications()->count(),
         ];
     }
 

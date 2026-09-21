@@ -12,6 +12,7 @@ use Stancl\Tenancy\Contracts\UniqueIdentifierGenerator;
  */
 final class UuidV7Generator implements UniqueIdentifierGenerator
 {
+    /** @param mixed $resource the model; unused, every id is a fresh UUID v7 */
     public static function generate($resource): string
     {
         return (string) Str::uuid7();

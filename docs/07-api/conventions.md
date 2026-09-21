@@ -52,7 +52,7 @@ Reasons: one shape for singles and collections; Scramble infers it without confi
 | Header | Direction | Behaviour |
 |---|---|---|
 | `X-Request-Id` | in/out | Accepted if the client sends a valid UUID-like token (≤ 64 chars, `[A-Za-z0-9_-]`); otherwise generated. Echoed on every response, included in logs and in problem details as `request_id`. |
-| `Idempotency-Key` | in | Honoured on `POST /tickets`, `POST /tickets/{ticket}/comments`, `POST /contacts` for **client-credentials** requests. Key + client id + route are stored in `idempotency_keys` for 24 h with the response; a replay returns the stored response with `Idempotent-Replayed: true`; a different body with the same key → `422 idempotency_key_reused`. |
+| `Idempotency-Key` | in | Honoured on `POST /tickets` and `POST /contacts` for **client-credentials** requests (the comment route opens to clients later). 1–255 visible ASCII characters. The SHA-256 of the key, the client id, the route name, a hash of method + path + canonical JSON body and the first 2xx response are stored per workspace in `idempotency_keys` for 24 h; a replay returns the stored status and body with `Idempotent-Replayed: true`; the same key with a different body → `422 idempotency_key_reused`; a repeat while the first is still running → `409 conflict`; failed responses are not stored, so a corrected retry may reuse the key. Keys are per client. SPA requests ignore the header. |
 | `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After` | out | Laravel throttle headers; `Retry-After` on 429 |
 | `Deprecation`, `Sunset` | out | see [versioning.md](versioning.md) |
 | `Accept` | in | `application/json` (default); anything else → 406 `not_acceptable` |
@@ -94,9 +94,28 @@ Reasons: one shape for singles and collections; Scramble infers it without confi
 
 Keys are `rl:{tenant}:{user|client}:{group}` ([03-architecture/tenancy.md](../03-architecture/tenancy.md)).
 
+## Bulk actions
+
+`POST /v1/tickets/bulk/transition` `{ticket_ids, status, comment?}` and `POST /v1/tickets/bulk/assign`
+`{ticket_ids, agent_id?, team_id?}` or `{ticket_ids, auto: true}` take 1 to 100 distinct ids (M2-11).
+Each ticket is its own transaction with the rules of the single-ticket endpoint, so one ticket's failure
+never undoes another's. The answer is 200 with one row per id and a summary; a row that failed carries
+the problem code and detail the single endpoint would have answered:
+
+```json
+{"data": [{"ticket_id": "…", "ok": true, "code": null, "detail": null, "details": {"number": 1042, "status": "in_progress"}},
+          {"ticket_id": "…", "ok": false, "code": "invalid_transition", "detail": "…", "details": {"allowed": ["in_progress"]}}],
+ "meta": {"total": 2, "succeeded": 1, "failed": 1}}
+```
+
+A malformed body is a 422 for the whole request and a missing permission a 403. An id of another
+workspace is a `not_found` row. Clients chunk larger selections into several requests.
+
 ## Endpoint inventory (MVP)
 
-Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials (API clients), **P** = platform admin guard, **–** = public. Permission column lists what the guard must hold; client scopes carry the same names with `:` instead of `.` ([authentication.md](authentication.md)).
+Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials (API clients), **P** = platform admin guard, **–** = public. Permission column lists what the guard must hold; for C the client's token scopes must map to it ([authentication.md](authentication.md) §Scopes → permissions).
+
+As built (M3-04): a route is open to API clients only when it carries the `api-clients` middleware; every other `/v1` route answers a client with 403 `forbidden` ("This endpoint is not available to API clients."). Open today: `GET /tickets`, `POST /tickets`, `GET /tickets/{ticket}`, `GET /tickets/{ticket}/history`, `GET /tickets/{ticket}/comments` (public comments only), `GET /categories`, `GET /tags`, and the contact and organisation list/show/create/update routes plus `GET /contacts/typeahead`. `PATCH /tickets/{ticket}`, `POST …/transition`, `POST …/comments` and the media routes are still S only (MVP-SHORTCUT in `Tickets/Routes/api.php`: those actions record a user actor).
 
 ### Auth and session
 
@@ -129,12 +148,13 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 
 | Method | Path | Guard | Permission |
 |---|---|---|---|
-| GET | `/v1/users` | S | `users.manage` (or `agents.view` for the agent subset) |
-| POST | `/v1/users/invitations` | S | `users.manage` |
-| PATCH | `/v1/users/{user}` | S | `users.manage` |
+| GET | `/v1/users`, `/v1/users/{user}` | S | `users.manage`; filters `status`, `role`, `search` (the agent picker uses `/v1/agents/available-users`) |
+| POST | `/v1/users/invitations` | S | `users.manage`; throttled 20/min |
+| PATCH | `/v1/users/{user}` | S | `users.manage`; name and roles ([security.md](../03-architecture/security.md) §Users and role assignment) |
+| POST | `/v1/users/{user}/invitation` | S | `users.manage`; resend a pending invitation; throttled 20/min |
 | POST | `/v1/users/{user}/disable`, `/enable` | S | `users.manage` |
 | GET/POST | `/v1/roles` | S | `roles.manage`; the list returns the global defaults plus this workspace's custom roles |
-| PATCH/DELETE | `/v1/roles/{role}` | S | `roles.manage`; default roles answer 404, so they cannot be edited |
+| PATCH/DELETE | `/v1/roles/{role}` | S | `roles.manage`; default roles answer 404, so they cannot be edited; only permissions the editor holds can change; a role users hold cannot be deleted (409 `in_use`) |
 | GET | `/v1/permissions` | S | `roles.manage` |
 
 ### Contacts
@@ -162,12 +182,15 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 | GET/POST | `/v1/skills` | S | `agents.view` / `agents.manage` |
 | PATCH/DELETE | `/v1/skills/{skill}` | S | `agents.manage` |
 | GET/POST | `/v1/teams` | S, C (GET) | `agents.view` / `teams.manage` |
-| GET/PATCH/DELETE | `/v1/teams/{team}` | S | `teams.manage` |
+| PATCH/DELETE | `/v1/teams/{team}` | S | `teams.manage` |
 | PUT | `/v1/teams/{team}/members` | S | `teams.manage` |
-| GET | `/v1/agents` | S, C | `agents.view` (`include=skills,teams`) |
-| GET/PATCH | `/v1/agents/{agent}` | S | `agents.view` / `agents.manage` (availability: self or manager) |
-| PUT | `/v1/agents/{agent}/skills` | S | `agents.manage` |
-| GET | `/v1/agents/{agent}/workload` | S | `agents.view` (Should-have) |
+| GET/POST | `/v1/agents` | S | `agents.view` / `agents.manage` |
+| GET | `/v1/agents/available-users` | S | `agents.manage` |
+| GET/PATCH/DELETE | `/v1/agents/{agent}` | S | `agents.view` / `agents.view` (availability-only: self or manager) / `agents.manage` |
+| GET | `/v1/agents/{agent}/workload` | S | `agents.view` |
+| GET/PUT | `/v1/agents/{agent}/shifts` | S | `agents.view` + self or `shifts.manage` / `shifts.manage` |
+
+Agent PATCH accepts partial fields, including availability alone. A manager can replace the Agent's skill levels and team memberships using `skills` and `team_ids` on this PATCH; there is no separate `/agents/{agent}/skills` endpoint. Shift PUT replaces the full schedule. Category DELETE conflicts when Tickets reference it; Agent DELETE conflicts while an active Ticket is assigned to the profile.
 
 ### Tickets
 
@@ -182,11 +205,13 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 | POST | `/v1/tickets/{ticket}/transition` | S, C | `tickets.update`; `tickets.resolve` / `tickets.close` / `tickets.reopen` by target | body `{ status, comment? }` |
 | POST | `/v1/tickets/{ticket}/assign` | S | `tickets.assign` | `{ team_id?, agent_id? }`; returns ranking explanation |
 | POST | `/v1/tickets/{ticket}/auto-assign` | S | `tickets.assign` | re-runs the assigner |
+| GET | `/v1/tickets/{ticket}/assignment-candidates` | S | `tickets.assign` | ranked eligible and excluded Agents |
+| POST | `/v1/tickets/{ticket}/unassign` | S | `tickets.assign` | returns ticket; records assignment history |
 | POST | `/v1/tickets/{ticket}/priority` | S | `tickets.update` | `{ level, reason }` override; `{ level: null }` clears |
-| POST | `/v1/tickets/{ticket}/mark-duplicate` | S | `tickets.close` | `{ duplicate_of_id }` |
+| POST | `/v1/tickets/{ticket}/mark-duplicate` | S | `tickets.update`, `tickets.close` | `{ candidate_ticket_id }`; open Ticket only |
 | GET | `/v1/tickets/{ticket}/history` | S, C | `tickets.view` | cursor feed |
-| GET | `/v1/tickets/{ticket}/duplicate-suggestions` | S | `tickets.view` | |
-| POST | `/v1/duplicate-suggestions/{suggestion}/dismiss` | S | `tickets.update` | records "not a duplicate" |
+| GET | `/v1/tickets/{ticket}/duplicates` | S | `tickets.view` | stored suggestions |
+| POST | `/v1/tickets/{ticket}/duplicates/{candidate}/dismiss` | S | `tickets.update` | records "not a duplicate" |
 | GET/POST | `/v1/tickets/{ticket}/comments` | S, C | `tickets.view` / `tickets.update`; `comments.internal` for `visibility=internal` | |
 | PATCH/DELETE | `/v1/comments/{comment}` | S | author or `tickets.update` | within 15 min |
 | POST | `/v1/media/intent` | S, C | `media.upload` | returns presigned PUT; optional `attach_to` (ticket/comment) |
@@ -200,11 +225,12 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 | GET/POST/PATCH/DELETE | `/v1/media/folders[/{folder}]` | S | `media.manage` (GET: `media.view`) | |
 | GET | `/v1/media/usage` | S | `media.view` | quota |
 | DELETE | `/v1/tickets/{ticket}/attachments/{media}` | S | `tickets.update` | unlink |
-| GET/POST/PATCH/DELETE | `/v1/calendars[/{calendar}]` (+ `/holidays`) | S | `calendars.manage` (GET: `sla.manage`) | business calendars |
+| GET/POST/PATCH/DELETE | `/v1/calendars[/{calendar}]` (+ `/holidays`) | S | `calendars.manage` (GET: `tickets.view`) | Business calendars; active timer edits return 409 |
+| GET | `/v1/tickets/{ticket}/sla` | S | `tickets.view` | persisted timer states and deadlines |
 | GET/PUT | `/v1/agents/{agent}/shifts` | S | `shifts.manage` (own: `agents.view`) | weekly template + exceptions |
 | GET/PATCH | `/v1/settings/email` | S | `mail.manage` | sender identity, intake address, DNS records |
 | GET | `/v1/inbound-emails` | S | `mail.manage` | inbound log, cursor pagination |
-| POST | `/v1/tickets/bulk/assign`, `/bulk/transition` | S | `tickets.assign` / `tickets.update` | Should-have; ≤ 100 ids |
+| POST | `/v1/tickets/bulk/assign`, `/bulk/transition` | S | `tickets.assign` / `tickets.update` | ≤ 100 distinct ids; see §Bulk actions |
 
 ### SLA and automation settings
 
@@ -212,11 +238,11 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 |---|---|---|---|
 | GET | `/v1/sla-policies` | S, C (GET) | `tickets.view` |
 | POST | `/v1/sla-policies` | S | `sla.manage` |
-| GET/PATCH/DELETE | `/v1/sla-policies/{policy}` | S | `sla.manage` |
+| GET/PATCH/DELETE | `/v1/sla-policies/{policy}` | S | GET: `tickets.view`; mutations: `sla.manage` |
 | POST | `/v1/sla-policies/{policy}/apply-to-open-tickets` | S | `sla.manage` |
-| GET | `/v1/settings` | S | `settings.manage` (read subset for all users via `/me`) |
-| PATCH | `/v1/settings/{section}` | S | `settings.manage` (`general`, `branding`, `automation`, `tickets`, `features`) |
-| POST | `/v1/settings/automation/preview` | S | `settings.manage` — scores sample tickets with candidate weights |
+| GET | `/v1/settings`, `/v1/settings/{section}` | S | `settings.manage` (branding, features and the version reach every user through `/me`) |
+| PATCH | `/v1/settings/{section}` | S | `settings.manage`; partial body; sections `general`, `branding`, `automation.priority`, `automation.assignment`, `automation.duplicates`, `tickets`, `sla`, `shifts`, `features` |
+| POST | `/v1/settings/automation/priority/preview` | S | `settings.manage` — scores sample tickets with candidate weights |
 
 ### Notifications, reports, history, exports
 
@@ -240,9 +266,11 @@ Guards: **S** = Sanctum session (SPA users), **C** = Passport client credentials
 
 | Method | Path | Guard | Permission |
 |---|---|---|---|
-| GET/POST | `/v1/api-clients` | S | `integrations.manage` |
-| GET/PATCH | `/v1/api-clients/{client}` | S | `integrations.manage` |
-| POST | `/v1/api-clients/{client}/revoke`, `/rotate-secret` | S | `integrations.manage` |
+| POST | `/oauth/token` (api host, not under `/v1`) | – | client id + secret; `grant_type=client_credentials` only; 10/min per client id |
+| GET | `/v1/api-clients` | S | `integrations.manage` — active first, newest first; never the secret |
+| GET | `/v1/api-clients/scopes` | S | `integrations.manage` — scopes with description and granted permissions |
+| POST | `/v1/api-clients` | S | `integrations.manage` — `{name, scopes[]}`; 201 with `client_id` and `client_secret` (shown once) |
+| POST | `/v1/api-clients/{client}/revoke` | S | `integrations.manage` — immediate, idempotent |
 | GET/POST | `/v1/webhooks` | S, C | `integrations.manage` |
 | GET/PATCH/DELETE | `/v1/webhooks/{webhook}` | S, C | `integrations.manage` |
 | POST | `/v1/webhooks/{webhook}/test`, `/enable`, `/disable`, `/rotate-secret` | S, C | `integrations.manage` |

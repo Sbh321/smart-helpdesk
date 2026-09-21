@@ -113,12 +113,13 @@ demo-reset:              docker compose exec app php artisan demo:reset         
 demo-tick minutes="30":  docker compose exec app php artisan demo:tick {{minutes}} # advances the demo clock; SLA sweep runs immediately
 test:                    just test-backend && just test-frontend
 test-backend *args:      docker compose exec -T app vendor/bin/pest {{args}}         # helpdesk_test only; migrations run as the owner
+coverage *args:          unit and contract tests with pcov --coverage              # pcov ships in the development image, off by default
 test-frontend:           pnpm -C frontend test && pnpm -C frontend test:browser
 e2e:                     docker compose --profile dev --profile storage --profile demo --profile e2e up -d --wait && docker compose run --rm playwright
 lint:                    docker compose exec app vendor/bin/pint --test && docker compose exec app vendor/bin/phpstan analyse && pnpm -C frontend lint && pnpm -C frontend typecheck
 fmt:                     docker compose exec app vendor/bin/pint && pnpm -C frontend format
 types:                   docker compose exec app php artisan scramble:export --path=openapi.json && pnpm -C frontend api:types
-reproduce seed="42":     docker compose exec app php artisan experiment:run --all --seed={{seed}} && python3 experiments/plots.py
+reproduce seed db:       docker compose run --rm --no-deps -v ./experiments:/var/www/experiments app php artisan experiment:run all --seed={{seed}} && uv run --with-requirements experiments/requirements.txt python experiments/plots.py  (E6 migrates the *_test database {{db}}; experiments/README.md)
 deploy env:              cd infra/tofu/envs/{{env}} && tofu apply && cd ../../../ansible && ansible-playbook -i inventory/{{env}}.ini site.yml
 ```
 

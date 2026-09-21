@@ -65,7 +65,7 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@/features/*", "@/routes/*", "@/components/*"],
+                    "group": ["@/features/**", "@/routes/**", "@/components/**"],
                     "message": "lib must not import features, routes or components (docs/03-architecture/frontend.md)."
                   }
                 ]
@@ -85,7 +85,7 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@/features/*", "@/routes/*"],
+                    "group": ["@/features/**", "@/routes/**"],
                     "message": "components must not import features or routes."
                   }
                 ]

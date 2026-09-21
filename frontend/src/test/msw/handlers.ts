@@ -67,8 +67,12 @@ export function sessionFixture(
       name: 'Acme',
       status: 'active',
       timezone: 'Asia/Kathmandu',
+      settings_version: 1,
+      branding: { primary: null, logo_url: null, logo_dark_url: null },
+      features: { realtime: false, exports: true },
     },
     permissions: [],
+    agent_profile: null,
     unread_notifications: 0,
     ...overrides,
   }

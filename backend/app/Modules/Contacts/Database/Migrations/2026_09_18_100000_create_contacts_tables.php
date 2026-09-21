@@ -52,9 +52,8 @@ return new class extends Migration
             $table->unique(['tenant_id', 'id']);
             $table->index(['tenant_id', 'name'], 'contacts_tenant_name_idx');
             $table->index(['tenant_id', 'organization_id'], 'contacts_tenant_org_idx');
-            $table->foreign(['tenant_id', 'organization_id'], 'contacts_organization_fk')
-                ->references(['tenant_id', 'id'])->on('organizations')->nullOnDelete();
         });
+        TenantTables::nullableForeign('contacts', 'organization_id', 'organizations', 'contacts_organization_fk');
         DB::statement('CREATE UNIQUE INDEX contacts_tenant_email_key ON contacts (tenant_id, lower(email))');
         DB::statement('CREATE INDEX contacts_name_trgm_gin ON contacts USING gin (name gin_trgm_ops)');
         DB::statement('CREATE INDEX contacts_email_trgm_gin ON contacts USING gin (email gin_trgm_ops)');

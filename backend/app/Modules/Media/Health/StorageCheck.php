@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Media\Health;
 
+use App\Modules\Media\Support\MediaStorage;
 use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Health\Checks\Check;
@@ -15,7 +16,8 @@ use Throwable;
  */
 final class StorageCheck extends Check
 {
-    private string $disk = 's3';
+    /** Null means the disk Media stores on (MediaStorage::diskName()). */
+    private ?string $disk = null;
 
     public function disk(string $disk): self
     {
@@ -26,10 +28,11 @@ final class StorageCheck extends Check
 
     public function run(): Result
     {
-        $result = Result::make()->meta(['disk' => $this->disk]);
+        $name = $this->disk ?? app(MediaStorage::class)->diskName();
+        $result = Result::make()->meta(['disk' => $name]);
 
         try {
-            $disk = Storage::disk($this->disk);
+            $disk = Storage::disk($name);
 
             if (! $disk instanceof AwsS3V3Adapter) {
                 // Local disks (tests, single-machine installs without S3) only need to be writable.

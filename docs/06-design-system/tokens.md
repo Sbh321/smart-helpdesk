@@ -448,7 +448,7 @@ Rule order matters. `:root, [data-density="comfortable"]` comes first and `[data
 
 Typography sizes are unchanged (compact does not shrink text). Table virtualisation is not needed because row height is a token, not measured.
 
-## Tenant branding (V1 hook, MVP-ready)
+## Tenant branding (built in M2-01)
 
 Tenant settings expose `branding.primary` (oklch or hex) and `branding.logo_url` (light and dark variants). At boot the SPA injects:
 
@@ -457,3 +457,5 @@ Tenant settings expose `branding.primary` (oklch or hex) and `branding.logo_url`
 ```
 
 `--primary-foreground` is computed client-side (`pickForeground` in `src/lib/theme/contrast.ts`, contrast against `--neutral-0` and `--neutral-950`, choose the higher; reject the colour in settings if neither reaches 4.5:1). Because every utility already resolves `var(--primary)` at runtime, no rebuild is needed. Full white-label (fonts, radius, all semantic colours) is deferred; the token layering makes it a settings form, not a code change.
+
+As built (M2-01): the settings form blocks a colour below 4.5:1 with a message and the API rejects it too (`BrandingSection::check`, WCAG ratio against white and near-black); the form also warns when the colour is below 3:1 on a white page, because links and focus rings in it would be hard to see. Hex only for now.

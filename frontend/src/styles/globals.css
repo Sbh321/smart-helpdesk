@@ -11,6 +11,19 @@
   html {
     @apply bg-background font-sans text-foreground;
   }
+  /* Native <progress> (storage use, upload progress): token colours instead of the browser's grey. */
+  progress {
+    @apply h-2 appearance-none overflow-hidden rounded-full border-0 bg-muted;
+  }
+  progress::-webkit-progress-bar {
+    @apply bg-muted;
+  }
+  progress::-webkit-progress-value {
+    @apply bg-primary;
+  }
+  progress::-moz-progress-bar {
+    @apply bg-primary;
+  }
   body {
     /* Agents scan dense tables: the app body is text-sm (typography.md). */
     @apply bg-background text-sm text-foreground;
@@ -41,5 +54,19 @@
     animation-iteration-count: 1;
     transition-duration: 0.01ms;
     scroll-behavior: auto;
+  }
+}
+
+/*
+ * Print (reports, roadmap M3-20): the shell's navigation is hidden by `print:hidden`; tables print in
+ * full instead of inside their scroll box, and chart tables that are visually hidden on screen show.
+ */
+@media print {
+  [data-slot="data-table-scroll"] {
+    max-height: none;
+    overflow: visible;
+  }
+  main {
+    padding: 0;
   }
 }

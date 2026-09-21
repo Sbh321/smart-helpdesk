@@ -18,6 +18,8 @@ pnpm dlx shadcn@latest add \
 
 Primitives are added when the task that needs them lands, not all at once, so `src/components/ui/` only ever holds code that is in use. The **Status** column below is the inventory; it is updated by the task that adds a component.
 
+The primary Button keeps its opaque semantic background on hover. A translucent fill reduced white-label contrast below WCAG AA; the rendered Settings forms are covered by the browser axe scan.
+
 ## Primitive inventory (shadcn on Base UI)
 
 | shadcn component | Base UI primitive | Used for | Status |
@@ -29,12 +31,12 @@ Primitives are added when the task that needs them lands, not all at once, so `s
 | `checkbox`, `radio-group`, `switch` | `Checkbox`, `Radio`, `Switch` | settings, row selection | `checkbox` installed (M1-14): DataTable row selection; the others not yet |
 | `dialog`, `alert-dialog`, `sheet` | `Dialog`, `AlertDialog` | forms, confirmations, side panels | `dialog` installed (M1-12); the others not yet |
 | `popover`, `tooltip`, `dropdown-menu`, `menubar` | `Popover`, `Tooltip`, `Menu`, `Menubar` | explanations, row actions | `popover`, `dropdown-menu` installed (M1-12); `tooltip`, `menubar` not yet |
-| `tabs`, `card`, `badge`, `separator`, `skeleton`, `scroll-area`, `avatar`, `progress` | `Tabs`, `Separator`, `ScrollArea`, `Avatar`, `Progress` | layout and feedback | `card`, `badge`, `separator`, `skeleton`, `avatar` installed (M1-12); `tabs`, `scroll-area`, `progress` not yet |
+| `tabs`, `card`, `badge`, `separator`, `skeleton`, `scroll-area`, `avatar`, `progress` | `Tabs`, `Separator`, `ScrollArea`, `Avatar`, `Progress` | layout and feedback | `card`, `badge`, `separator`, `skeleton`, `avatar` installed (M1-12); `tabs` added on Base UI (M2-06); `scroll-area`, `progress` not yet |
 | `table`, `pagination` | plain elements | `DataTable` base | `table` installed (M1-14); `pagination` **not** installed: it is a list of page-number links, and a server-mode table with `meta.total` needs first/previous/next/last buttons and a range, which `DataTablePagination` draws with `Button` |
 | `sonner` | (sonner) | toasts | installed (M1-12); rewritten to read our `ThemeProvider` instead of `next-themes` |
 | `command` | (cmdk) | **only** `CommandPalette` | not yet: the M1-12 palette is a `Dialog` with a navigation list; `cmdk` waits for ticket search, which needs the ticket list (M2-10) |
 | `calendar`, `date-picker` | (react-day-picker 10) + `Popover` | date-range filters | `calendar` installed (M1-14, `react-day-picker` 10.0.1): `DateRangeFilter`; `date-picker` is a docs recipe, not a component, and `DateRangeFilter` is that recipe |
-| `sidebar`, `breadcrumb`, `alert`, `empty`, `kbd`, `chart` | assorted | shell, banners, empty states, shortcut hints, Recharts wrapper | `breadcrumb`, `alert`, `empty`, `kbd` installed (M1-12); `chart` not yet (M3-01). `sidebar` is **not** installed: the shell's navigation is a plain `nav` + list (about forty lines), and the shadcn `sidebar` block brings collapsible rails, a provider and cookie persistence the MVP does not use |
+| `sidebar`, `breadcrumb`, `alert`, `empty`, `kbd`, `chart` | assorted | shell, banners, empty states, shortcut hints, Recharts wrapper | `breadcrumb`, `alert`, `empty`, `kbd` installed (M1-12); `chart` installed (M3-01, Recharts 3.10; its dark selector changed from `.dark` to `[data-theme="dark"]`, though every chart colour is a CSS variable anyway). `sidebar` is **not** installed: the shell's navigation is a plain `nav` + list (about forty lines), and the shadcn `sidebar` block brings collapsible rails, a provider and cookie persistence the MVP does not use |
 
 Rule: if a picker needs search, use `combobox`; never build `Popover + Command`. `cmdk` is quarantined in one file so it can be replaced by Base UI `Combobox` without touching features.
 
@@ -56,7 +58,7 @@ Each composition is one kebab-case file in `src/components/shared/` (`empty-stat
 | `ThemeToggle` | `shared/theme-toggle.tsx` | built (M1-11) |
 | `AppShell`, `Sidebar`, `Topbar`, `Breadcrumbs` | `layout/` | built (M1-12) |
 | `AuthLayout` | `layout/auth-layout.tsx` | built (M1-12); the card frame of the pre-authentication pages |
-| `NotificationBell` | `layout/notification-bell.tsx` | placeholder (M1-12): count from the session, list in M2-16 |
+| `NotificationBell` | `features/notifications/components/notification-bell.tsx` | built (M2-09): polled unread badge, latest ten with mark read, "View all"; mounted by the route through the `Topbar` `notifications` slot |
 | `CommandPalette` | `layout/command-palette.tsx` | shell (M1-12): ⌘K/Ctrl+K opens a dialog listing the permitted routes; search and actions with the ticket list (M2-10) |
 | `DataTable`, `FilterBar`, `SearchFilter`, `MultiSelectFilter`, `DateRangeFilter`, `SelectFilter` | `shared/data-table/` | built (M1-14; `SelectFilter` M1-15); a folder rather than one file, because the table, its footer, its column menu, its keyboard hook, its storage helper and the filter primitives are eleven files behind one `index.ts` |
 | `FormField`, `SelectField`, `TextareaField` | `shared/form-field.tsx`, `select-field.tsx`, `textarea-field.tsx` | built (M1-15): the label/description/error frame of `TextField` for any control, and the two controls the forms needed |
@@ -65,7 +67,9 @@ Each composition is one kebab-case file in `src/components/shared/` (`empty-stat
 | `FormErrorBanner` | `shared/form-error-banner.tsx` | built (M1-15): a failed save that is not about one field (403, 409, 5xx, offline), with the request id |
 | `BackLink` | `shared/back-link.tsx` | built (M1-15): "← Back to …" in the `PageHeader` eyebrow of detail pages |
 | `StatusBadge`, `PriorityBadge` | `shared/status-badge.tsx`, `priority-badge.tsx` | built (M1-17) without the explanation popover and the "manual" marker (M2) |
-| `SlaBadge`, `ExplanationPanel`, `Timeline`, `CommentComposer`, `AttachmentUploader`, `ConfirmDialog`, `KpiTile`, chart wrappers | — | not yet (M2, M3) |
+| `ConfirmDialog` | `shared/confirm-dialog.tsx` | built (M2) on `ui/alert-dialog.tsx` (Base UI `AlertDialog`): holiday, Media item trash/purge and folder delete |
+| `KpiTile`, `ChartCard` | `shared/kpi-tile.tsx`, `shared/chart-card.tsx` | built (M3-01): dashboard and report tiles; a chart with its always-present table alternative |
+| `SlaBadge`, `ExplanationPanel`, `Timeline`, `CommentComposer`, `AttachmentUploader` | — | not yet (M2, M3) |
 | `DensityToggle` | — | not yet |
 
 ### DataTable
@@ -89,14 +93,16 @@ interface DataTableProps<TRow, TSort extends string> {
   emptyState: ReactNode;                        // the caller knows "empty" from "no matches"
   toolbar?: ReactNode;                          // usually a FilterBar
   bulkActions?(selection: { ids: string[]; clear(): void }): ReactNode;  // also switches the selection column on
+  selection?: { ids: readonly string[]; onChange(ids: string[]): void };  // controlled, kept across pages (M2-11)
+  defaultColumnVisibility?: Record<string, boolean>;                      // e.g. { sla_due_at: false } (M2-11)
 }
 ```
 
 - **Server mode only.** `manualPagination`, `manualSorting`, `rowCount`; no client row models are registered. Filtering is not a table feature: filters are not per column, they live in the URL next to sort and page, so there is no `manualFiltering` and no column-filter state. Sort, page and page size come in as props and leave through `onStateChange`; nothing about the list's query is local state.
 - **Columns** come from `dataTableColumnHelper<TRow>()`; `meta: { label, className? }` gives the column menu and the sort button their text. Sorting is opt-in (`enableSorting: true`) and the column id must be a field on the endpoint's sort allow-list. `enableHiding: false` keeps a column out of the column menu.
 - **Sort** cycles ascending → descending → the endpoint's default; sortable headers carry `aria-sort` (`ascending`/`descending`/`none`) and a `button` named after the column; plain headers carry none. `aria-sort` follows the primary field of a two-field sort (tickets default to `-priority_score,-created_at`, so Priority reads "descending"). When "back to the default" would look like no change — the default already sorts that column in the direction just left — the cycle takes the other direction instead, which is why the table takes `defaultSort` (M1-17).
-- **Column visibility** is a per-browser preference in `localStorage` (`sh.table.<id>.columns`); every storage access is in `try/catch` and a failure reads as "no preference".
-- **Selection** exists when `bulkActions` is given: a checkbox column (select-all is `indeterminate` when part of the page is selected) and a `section` labelled "Actions for the selected rows" above the table showing the count, the caller's actions and "Clear selection". Selection covers the loaded page only.
+- **Column visibility** is a per-browser preference in `localStorage` (`sh.table.<id>.columns`); every storage access is in `try/catch` and a failure reads as "no preference". `defaultColumnVisibility` hides columns the viewer has not toggled yet.
+- **Selection** exists when `bulkActions` is given: a checkbox column (select-all is `indeterminate` when part of the page is selected) and a `section` labelled "Actions for the selected rows" above the table showing the count, the caller's actions and "Clear selection". Without `selection` it covers the loaded page only; with it (M2-11, the ticket list) the parent owns the ids, rows of other pages stay selected, select-all adds or removes the page's rows only, and `bulkActions` receives every selected id.
 - **Keyboard:** one row is in the tab order (roving `tabindex`); ↑/↓ or `k`/`j` move, Home/End jump, Enter opens (`onRowOpen`), `x`/Space toggles selection. Keys pressed inside a control in the row (the checkbox) belong to the control. With `onRowOpen`, the table is described by a visually hidden hint.
 - **States:** skeleton rows plus a `status` message and `aria-busy` on first load; the previous page stays visible, dimmed and `aria-busy`, while the next one loads (`placeholderData: keepPreviousData` in the query); `ErrorState` with retry and request id when the fetch fails; the caller's `emptyState` when the list is empty; "This page is empty / Go to the first page" when a page number beyond the end came from the URL.
 - **Layout:** a scroll container (`max-h-[min(70dvh,48rem)]`) with a sticky header; the footer (`DataTablePagination`) shows the page-size `Select` (25/50/100), "26–50 of 1,387", "Page 2 of 56" and first/previous/next/last buttons inside a `nav` named "Pagination".
@@ -140,6 +146,28 @@ Three local changes to the generated `ui/combobox.tsx`, all accessible names axe
 | `SlaBadge` | `{ timer: SlaTimerSummary; now?: Date; variant: 'badge' \| 'countdown' }` | state colour + icon; countdown variant shows remaining/overdue duration updating every 30 s, announced through `aria-live="polite"` only on state change, not every tick |
 
 As built (M1-17): `StatusBadge` `{ status }` and `PriorityBadge` `{ level }` on the `--status-*` / `--priority-*` tokens, text always written out (`Open`, `P1 Critical`), unknown values rendered as plain text. `score`, `explanation` and `overridden` wait for the ticket page (M2).
+
+M2-06 progress: the detail header pairs these badges with a separate `PriorityExplanation`
+popover and a visible manual-override marker. The popover validates the stored strategy result
+shape and shows strategy/version and the `name`, `value`, `weight`, `contribution` factor table;
+it never recalculates priority. Empty or unrecognised explanations have an explicit empty state.
+The broader assignment/duplicate `ExplanationPanel` remains with the integration tasks.
+
+The ticket screen now uses Base UI tabs for Timeline, Comments, Attachments and Duplicates.
+Timeline reads cursor pages and offers “Load older events”; the other tabs are integration
+states until their owning tasks land. The screen supports edit (`e` outside text controls),
+server-supplied transition actions, resolution-comment validation, close confirmation,
+optimistic status changes with rollback, and mutation error feedback. Assignment, priority
+The M2-05 candidate-ranking and assignment dialog (including the `a` shortcut) is implemented but unverified. An M2-03 ticket SLA panel now reads persisted timers, shows state/deadline and strategy metadata, polls every 30 seconds, and announces remaining time politely; it awaits the Week 2 accessibility and browser pass. The M2-04 priority override dialog is also implemented but unverified.
+
+Settings → SLA policies and Business calendars now have initial editors for per-priority targets, zone/weekly windows and holidays. They are implementation-in-progress until form validation, mutation feedback, typed route generation and axe/browser checks run at the Week 2 gate.
+
+The ticket Comments tab now has a paginated public-reply/internal-note composer, `r` shortcut and a restricted Markdown renderer. Raw HTML is never parsed; it is rendered as escaped React text. The tab needs axe, sanitisation and Mailpit checks before M2-07 is Done.
+
+Ticket creation is available at `/{workspace}/tickets/new` as well as the list dialog. Both
+reuse the same form, with inline contact creation using `ContactForm`, organisation display,
+impact/urgency help and tags. Attachment and duplicate sections are explicitly unavailable
+until M2-08/M2-10. No new package was added.
 
 ### ExplanationPanel
 
@@ -187,7 +215,7 @@ Tabs `Public reply` / `Internal note` (internal styled with `--warning` eyebrow)
 
 Unread count badge (from session, polled/realtime), `Popover` list of the latest 10 notifications with mark-read, "View all" route; new notifications announced in an `aria-live="polite"` region as "n new notifications".
 
-As built (M1-12): the badge and the `aria-live` region are real and read `unread_notifications` from the session; the popover body says where the list is coming from (M2-16) instead of showing an empty inbox.
+As built (M2-09): the count is polled every 30 s (`meta.total` of the unread list, the session value until the first answer); the popover lists the latest ten, unread first, each with its ticket link (opening marks it read) and a "Mark as read" button named after the notification; "Mark all as read" and "View all notifications" close it. Only a rise after the first reading is announced ("n new notifications"), so signing in does not read out the backlog. It lives in the notifications feature and reaches the shell through a slot, because `components/` may not import features.
 
 ### ThemeToggle / DensityToggle
 
@@ -195,11 +223,11 @@ As built (M1-12): the badge and the `aria-live` region are real and read `unread
 
 ### KpiTile
 
-`{ label, value, delta?, trend?: number[], intent?: 'neutral' | 'success' | 'warning' | 'destructive' }` — dashboard tile with `text-3xl tabular-nums` value and a tiny sparkline (Recharts `LineChart` without axes).
+`{ label, value, change?: { direction: 'up' | 'down' | 'flat', text } | null, noChange?, footer?, headingLevel? }` — a `section` named by its heading, the value in `text-3xl tabular-nums`, the change against the previous period **in words** ("Up 12% from 40", "Up 2.5 pp from 90%") with a decorative arrow, and an optional footer link. As built (M3-01) there is no sparkline and no intent colour: whether "up" is good depends on the measure (resolved vs breaches), so colour would mislead. The value arrives formatted (`features/reports/format.ts`: counts, durations as "3h 20m", percentages, ratios, bytes).
 
-### Chart compositions
+### ChartCard and the report charts
 
-`TicketsOverTimeChart`, `TicketsByStatusChart`, `TicketsByPriorityChart`, `TicketsByCategoryChart`, `AgentWorkloadChart`, `SlaComplianceChart` — thin wrappers over shadcn `ChartContainer` with a `ChartConfig` mapping keys to semantic tokens, each with a visually hidden `<table>` of the same data for screen readers.
+`ChartCard { title, description?, actions?, children, table, showTableLabel, hideTableLabel }` (shared) frames a chart with its accessible table: the table is always rendered, visually hidden (`sr-only`) until the toggle (`aria-expanded`) shows it, and printed. The charts themselves are feature-owned in `features/reports/components/`: `SeriesChart` (line, area, horizontal bar, histogram over shadcn `ChartContainer`; `--chart-1..6` in series order, `accessibilityLayer`, values formatted by unit on the axis and in the tooltip, a legend only for two or more series, never two value axes), `HeatmapChart` (weekday × hour CSS grid, one hue mixed into the surface with `color-mix`, `role="img"`), `ChartTable` (the plain table). The six named compositions planned here (`TicketsOverTimeChart`, …) were not built: the dashboard's six series come from the API with their report and measures, so one generic `SeriesChart` draws them all. Status and priority bars use the series colours, not the badge tints: `--priority-p4` and the status surfaces are below 3:1 on the surface.
 
 ## Feature-owned components
 

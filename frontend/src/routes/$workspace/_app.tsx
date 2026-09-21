@@ -2,7 +2,9 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { AppShell } from '@/components/layout/app-shell'
 import { ErrorState } from '@/components/shared/error-state'
 import { NotFoundState } from '@/components/shared/not-found-state'
+import { AvailabilityControl } from '@/features/agents'
 import { ensureSession } from '@/features/auth'
+import { NotificationBell } from '@/features/notifications'
 import { guardWorkspaceRoute, REDIRECT_PARAM } from '@/lib/auth'
 
 /**
@@ -38,7 +40,11 @@ export const Route = createFileRoute('/$workspace/_app')({
 function AppLayout() {
   const { workspace } = Route.useParams()
   return (
-    <AppShell workspace={workspace}>
+    <AppShell
+      workspace={workspace}
+      topbarActions={<AvailabilityControl />}
+      topbarNotifications={<NotificationBell workspace={workspace} />}
+    >
       <Outlet />
     </AppShell>
   )

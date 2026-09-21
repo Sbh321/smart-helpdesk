@@ -14,15 +14,24 @@ use App\Support\Errors\ErrorCode;
  */
 final class InvalidTransition extends DomainException
 {
-    public static function between(TicketStatus $from, TicketStatus $to): self
+    /**
+     * @param  list<TicketStatus>|null  $allowed
+     */
+    public static function between(TicketStatus $from, TicketStatus $to, ?array $allowed = null, ?string $reason = null): self
     {
+        $meta = [
+            'from' => $from->value,
+            'to' => $to->value,
+            'allowed' => array_map(fn (TicketStatus $status): string => $status->value, $allowed ?? $from->allowedTargets()),
+        ];
+
+        if ($reason !== null) {
+            $meta['reason'] = $reason;
+        }
+
         return new self(
             sprintf('A ticket cannot move from %s to %s.', $from->value, $to->value),
-            [
-                'from' => $from->value,
-                'to' => $to->value,
-                'allowed' => array_map(fn (TicketStatus $status): string => $status->value, $from->allowedTargets()),
-            ],
+            $meta,
         );
     }
 

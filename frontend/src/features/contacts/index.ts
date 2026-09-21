@@ -7,8 +7,9 @@ export {
   listContacts,
   NO_ORGANIZATION,
 } from './api/contact-queries'
-export { organizationListSchema } from './api/organization-queries'
+export { organizationListSchema, organizationQueries } from './api/organization-queries'
 export { tagQueries } from './api/tag-queries'
+export { ContactForm } from './components/contact-form'
 export { ContactList } from './components/contact-list'
 export { ContactScreen, ContactsScreen, NewContactScreen } from './components/contact-screens'
 export {

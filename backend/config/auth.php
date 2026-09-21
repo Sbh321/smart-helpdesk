@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Modules\Integrations\Models\ApiClient;
 use App\Modules\Platform\Models\PlatformUser;
 
 return [
@@ -52,6 +53,13 @@ return [
             'provider' => 'users',
         ],
 
+        // API clients: Passport client-credentials bearer tokens (ADR-0007). The principal is the
+        // client itself; the guard loads it and never uses the provider, which is named so static
+        // analysis knows what `$request->user()` can be.
+        'api' => [
+            'driver' => 'api-client',
+            'provider' => 'api_clients',
+        ],
         // Platform super admins: own table, own cookie, only on the admin host.
         'platform' => [
             'driver' => 'session',
@@ -85,6 +93,10 @@ return [
         'platform_users' => [
             'driver' => 'eloquent',
             'model' => PlatformUser::class,
+        ],
+        'api_clients' => [
+            'driver' => 'eloquent',
+            'model' => ApiClient::class,
         ],
 
         // 'users' => [

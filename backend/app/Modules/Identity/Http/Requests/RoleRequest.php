@@ -4,12 +4,25 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Http\Requests;
 
+use App\Modules\Identity\Models\Role;
 use App\Modules\Identity\Support\PermissionCatalogue;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 final class RoleRequest extends FormRequest
 {
+    /**
+     * A role of another workspace, or a global default, is "not found" before any validation, so the
+     * answer never tells whether an id exists elsewhere.
+     */
+    public function authorize(): bool
+    {
+        $role = $this->route('role');
+        abort_if($role instanceof Role && $role->tenant_id !== tenant()?->getTenantKey(), 404);
+
+        return true;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -27,7 +40,7 @@ final class RoleRequest extends FormRequest
                     ))
                     ->ignore($this->route('role')?->getKey()),
             ],
-            'permissions' => [$required, 'array'],
+            'permissions' => [$required, 'array', 'min:1'],
             'permissions.*' => ['string', Rule::in(PermissionCatalogue::all())],
         ];
     }

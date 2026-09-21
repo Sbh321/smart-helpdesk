@@ -2,7 +2,23 @@
 
 Contract: `SlaStrategy`. Baseline class: `App\Modules\Sla\Strategies\Baseline\SimpleSlaTimer`, with `TwentyFourSevenCalendar` and `WorkingHoursCalendar` (`App\Modules\Sla\Domain\Calendar`) behind the `BusinessCalendar` interface and time from the `Clock` interface. The class carries `#[AcademicBaseline]` and `@deprecated` pointing to ADR-0023. Replaceable after the defence ([ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)); richer candidate: [future/sla-evaluation-advanced.md](future/sla-evaluation-advanced.md). Requirements FR-AUT-07..09. Data model: [sla.md](../04-domain/sla.md).
 
+## Integration as built (M2-03)
+
+- **Wiring.** Sla listens to synchronous, in-transaction Tickets events: `TicketCreated` starts both timers (Organisation-tier policy, else the default), `TicketLifecycleChanged` pauses, resumes, meets, cancels and restarts them, `FirstPublicReplyRecorded` meets the first response. Tickets never imports Sla. Automation calls `RecomputeTicketSla` when the effective priority changes (score or override).
+- **Reopen.** A reopened ticket gets a new resolution timer from the policy it already had; the deadline is computed with the calendar that is stored on the timer.
+- **Storage.** `sla_events` is append-only for the runtime role (no `UPDATE`/`DELETE` grant). A partial unique index allows one unfinished timer per ticket and kind. `SlaTimerStore` is the only writer.
+- **Default policy.** `EnsureDefaultSlaPolicy` is the one runtime seed (24×7, P1 30/240, P2 60/480, P3 240/1440, P4 480/4320 minutes); tenant provisioning calls it. The schema migration keeps an inline copy for existing tenants because a migration must not change with application code.
+- **Errors.** A policy without a target for the ticket's priority answers 422 `sla_target_missing`. Deleting or editing a calendar or policy that running timers use answers 409 `in_use` with `meta.used_by`; unchanged weekly hours are not an edit (order-insensitive comparison).
+- **Sweep.** `sla:evaluate` runs every minute (`onOneServer`, `withoutOverlapping`, `runInBackground`) and dispatches `EvaluateSlaTimers` to the `sla` queue: `ShouldBeUnique`, `tries = 1`, timeout 55 s. It selects the tenants with due work, then handles each timer in its own transaction with `FOR UPDATE SKIP LOCKED`; a failing timer or tenant is reported and skipped. A sweep stops taking timers after 40 s of wall time and the next minute continues, so a backlog never runs into the timeout. Telescope records nothing during a sweep. The heartbeat `sla:last_sweep_at` is always written; `/health` fails when it is older than three minutes.
+- **API.** `GET/POST/PATCH/DELETE /calendars` (+ `/holidays`) with `calendars.manage`, `/sla-policies` with `sla.manage`, reads with `tickets.view`; `GET /tickets/{id}/sla` returns both timers with the explanation.
+- **Measured (E4, local, `tests/Performance`, group `performance`, not in the default run).** One check over 10 000 running timers with 100 due: 0.2 s (target < 5 s). A backlog of 10 000 due timers, each with its SLA event, ticket history row and change-capture rows: about 27 s on an idle machine, about 10 ms per timer under load.
+- **Not here.** Warning and breach notifications are M2-09.
+
+Run the measurement with `docker compose exec -T -e TEST_DATABASE=helpdesk_c_test app php -d memory_limit=2G vendor/bin/pest tests/Performance --group=performance`.
+
 ## Idea
+
+Existing timers also snapshot the policy warning fraction so a later policy edit cannot change their recomputed warning point. M2-07 invokes `CompleteFirstResponse` on the first public user comment, including a resolution comment, and M2-04 invokes `RecomputeTicketSla` after effective priority changes. These integrations still require the deferred Week 2 API timeline tests before the worked examples are confirmed.
 
 Each ticket has two **timers**: time to the first public reply and time to resolution. A timer is a small **state machine** [Harel]: it starts when the ticket is created, stops (pauses) while the team is waiting for the customer, warns when 75 % of the allowed time is used, and is breached when the time runs out. Working hours are handled by a calendar that only counts open hours. Commercial helpdesks use the same two metrics and a pause-while-waiting rule [Zendesk, Jira, Zammad].
 
@@ -164,6 +180,21 @@ Each state transition and each illegal one; the five timelines and the working-h
 ## Evaluation (experiment E4)
 
 Ten scripted timelines with hand-computed expectations; the report table lists expected and actual due times and states. Performance: one check over 10 000 running timers.
+
+**Results (M3-10, dataset v1; table T8, `experiments/results/v1/e4/`).** The ten timelines are the worked examples above (1–5 on 24×7, the main working-hours example and cases 6–9), run through the `SlaStrategy` contract with a frozen clock set to each step. **10 of 10** match on state, warning time, due time and notification counts; timeline 3, checked every minute from 09:00 to 10:30, emits exactly one warning (09:45) and one breach (10:00).
+
+| # | Case | Expected (state · warning · due) | Actual |
+|---|---|---|---|
+| L01 | first reply 09:40 | met · 09:45 · 10:00 | same |
+| L02 | pending 10:00–12:00 | running · 17:00 · 19:00 | same |
+| L03 | no reply, checked each minute | breached · 09:45 · 10:00 (1 warning, 1 breach) | same |
+| L04 | as L02, P1 at 13:00 | running · 14:00 · 15:00 | same |
+| L05 | resolved 16:00, reopened 16:30 | running · 22:30 · 00:30 next day | same |
+| L06 | working hours, Thu 15:00, checked Fri 14:30 | warning · Fri 14:00 · Fri 16:00 | same |
+| L07 | Fri 16:00, Saturday closed | running · Sun 15:00 · Sun 17:00 | same |
+| L08 | Friday holiday | running · Sun 14:00 · Sun 16:00 | same |
+| L09 | pending Thu 16:00 → Sun 11:00 | running · Sun 16:00 · Mon 11:00 | same |
+| L10 | as L09, target 4 h | running · Sun 13:00 · Sun 14:00 | same |
 
 ## Limitations and replacement
 

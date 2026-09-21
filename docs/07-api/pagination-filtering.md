@@ -27,17 +27,17 @@ Ticket list filters:
 |---|---|---|
 | `filter[status]` | `open,assigned,in_progress,pending,resolved,closed`; alias `active` = all but resolved/closed | `status IN (...)` |
 | `filter[priority]` | `P1,P2,P3,P4` (effective level) | `priority_level IN (...)` |
-| `filter[assignee_id]` | UUIDs or `unassigned` or `me` | `assigned_agent_id IN (...)` / `IS NULL` |
+| `filter[assignee_id]` | UUIDs or `unassigned` or `me` (the signed-in user's Agent profile; nothing when there is none) | `assigned_agent_id IN (...)` / `IS NULL` |
 | `filter[team_id]` | UUIDs or `none` | |
 | `filter[category_id]` | UUIDs | |
 | `filter[organization_id]` | UUIDs | |
 | `filter[contact_id]` | UUIDs | |
 | `filter[tag]` | tag slugs | `EXISTS (taggables …)` |
-| `filter[sla_state]` | `running,warning,breached,paused,met` (resolution timer) | join on `ticket_sla_timers` |
+| `filter[sla_state]` | `running,warning,breached,paused,met` (resolution timer of the latest cycle) | correlated subquery on `ticket_sla_timers` |
 | `filter[created_between]` | `YYYY-MM-DD,YYYY-MM-DD` (tenant timezone, inclusive) | `created_at >= … AND created_at < …+1d` |
 | `filter[updated_since]` | ISO-8601 instant | for API pollers |
 | `filter[impact]`, `filter[urgency]` | `1..4` lists | |
-| `filter[has_duplicate_suggestion]` | `true` | `EXISTS` |
+| `filter[has_duplicate_suggestion]` | `true` (a pending suggestion) | `EXISTS` |
 | `filter[number]` | integer | exact |
 
 Contacts: `filter[organization_id]`, `filter[tag]`, `filter[archived]`. Agents: `filter[team_id]`, `filter[skill_id]`, `filter[availability]`. Deliveries: `filter[state]`, `filter[event_type]`. Audit logs: `filter[action]`, `filter[actor_id]`, `filter[subject_type]`, `filter[created_between]`.
@@ -61,7 +61,7 @@ Unknown sort fields → 422.
 
 ## Includes
 
-`include=` loads relations allow-listed per endpoint (`contact,organization,assignee,team,category,tags,sla_timers,duplicate_suggestions` on tickets). Includes never change the base shape; they add nested objects. Collections cap includes to those that are eager-loadable in one query per relation (no N+1; asserted by a test with `preventLazyLoading`).
+`include=` loads relations allow-listed per endpoint (`contact,organization,category,tags` on tickets as built; `assignee`, `team`, `sla_timers` and `duplicate_suggestions` are not includes yet, so the list reads Agent and Team names from the directory and the SLA state only as a filter and a sort). Includes never change the base shape; they add nested objects. Collections cap includes to those that are eager-loadable in one query per relation (no N+1; asserted by a test with `preventLazyLoading`).
 
 ## Implementation mapping
 
@@ -83,14 +83,15 @@ final class TicketListQuery
 }
 ```
 
-`TicketListParams` is a readonly DTO built by `IndexTicketsRequest`, which validates the allow-lists. The frontend's `ticketListSearchSchema` (Zod) mirrors the same rules, so invalid URLs are rejected client-side before a request is made.
+`TicketListParams` is a readonly DTO built by `IndexTicketsRequest`, which validates the allow-lists. The frontend's `ticketListSchema` (`defineListSchema`, Zod) mirrors the same rules, so invalid URLs are rejected client-side before a request is made.
 
 ## Examples
 
 ```http
 GET /v1/tickets?filter[status]=open,assigned&filter[priority]=P1,P2&filter[assignee_id]=unassigned&sort=-priority_score&per_page=50
 GET /v1/tickets?search="password reset" -invoice&filter[created_between]=2026-09-01,2026-09-17
-GET /v1/tickets?filter[sla_state]=warning,breached&include=assignee,sla_timers
+GET /v1/tickets?filter[sla_state]=warning,breached&sort=sla_due_at&include=contact,category
+GET /v1/tickets?filter[assignee_id]=me&filter[status]=active&filter[team_id]=none,019…&filter[has_duplicate_suggestion]=true
 GET /v1/tickets/019.../history?per_page=50&cursor=eyJjcmVhdGVkX2F0Ijo…
 GET /v1/contacts?search=arj&filter[organization_id]=019...
 ```

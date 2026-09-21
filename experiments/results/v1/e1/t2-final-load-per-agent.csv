@@ -1,0 +1,9 @@
+agent,capacity,skills,random_final_open,random_avg_open,random_assigned,round_robin_final_open,round_robin_avg_open,round_robin_assigned,least_loaded_agent_final_open,least_loaded_agent_avg_open,least_loaded_agent_assigned
+agent-01,12,"account technical",7,8.24,71,4,6.51,53,8,6.31,62
+agent-02,11,"hardware network",3,2.19,37,7,3.24,47,6,5.07,60
+agent-03,12,"billing network technical",11,5.23,66,8,5.99,73,9,6.56,61
+agent-04,12,"account billing network",4,5.09,61,7,6.08,69,6,6.17,69
+agent-05,8,"account hardware network",4,5.97,65,5,4.45,51,5,4.14,48
+agent-06,9,"billing network technical",7,6.17,67,13,6.59,80,7,4.97,57
+agent-07,11,"hardware network",5,2.2,37,4,3.64,41,6,4.88,76
+agent-08,11,"account billing technical",14,9.11,96,7,7.7,86,8,6.1,67

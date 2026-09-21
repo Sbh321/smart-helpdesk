@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Tenancy\Http\Middleware;
 
+use App\Modules\Tenancy\Bootstrappers\RlsTenancyBootstrapper;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
@@ -12,11 +13,13 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * The authenticated principal must belong to the resolved tenant. A mismatch means a tampered
+ * The authenticated principal (a user or an API client) must belong to the resolved tenant. A mismatch means a tampered
  * or stale session: it is destroyed, logged at critical level and answered with 401.
  */
 final class EnsureTenantMembership
 {
+    public function __construct(private readonly RlsTenancyBootstrapper $bootstrapper) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
@@ -41,6 +44,9 @@ final class EnsureTenantMembership
 
             throw new AuthenticationException;
         }
+
+        // Change capture records who acted; token guards fire no Authenticated event.
+        $this->bootstrapper->refreshActor();
 
         return $next($request);
     }

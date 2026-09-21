@@ -109,9 +109,11 @@ Deviations from the plan above:
   and the non-owner runtime role are already in place, so that task only adds the policies.
 - **`sessions.tenant_id` and `sessions.guard` exist but are not written yet**; the login endpoint
   (M1-08) fills them. The resolver reads the tenant from the session payload.
-- **`personal_access_tokens.tenant_id`** is the MVP stand-in for `oauth_clients.tenant_id`; Passport
-  client credentials arrive in M3-04. Sanctum tokens use UUID keys so the token string never carries
-  an incrementing id.
+- **`personal_access_tokens.tenant_id`** was the MVP stand-in for `oauth_clients.tenant_id`; since
+  M3-04 `oauth_clients` and `oauth_access_tokens` carry a NOT NULL `tenant_id` and are credential
+  tables (`TenantTables::CREDENTIALS`, no RLS). The resolver reads the tenant of a Passport token from
+  `oauth_access_tokens` by the JWT's `jti`. Sanctum tokens use UUID keys so the token string never
+  carries an incrementing id.
 - **`User` still lives in `App\Models`** until M1-08 moves it into the Identity module.
 - A user whose session names another tenant is logged out with a `critical` log line
   (`tenancy.membership_mismatch`) and a 401.

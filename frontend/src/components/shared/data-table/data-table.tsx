@@ -18,7 +18,11 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/compon
 import { copy, fill } from '@/copy/en'
 import { formatSort, type PageSize, parseSort, type SortSpec, type SortValue } from '@/lib/list-params'
 import { cn } from '@/lib/utils'
-import { readColumnVisibility, writeColumnVisibility } from './column-visibility-storage'
+import {
+  type ColumnVisibility,
+  readColumnVisibility,
+  writeColumnVisibility,
+} from './column-visibility-storage'
 import { DataTableColumnToggle } from './data-table-column-toggle'
 import { type DataTableColumns, dataTableFeatures } from './data-table-columns'
 import { DataTablePagination } from './data-table-pagination'
@@ -39,9 +43,18 @@ export type DataTableStatePatch<TSort extends string = string> = {
 }
 
 export interface DataTableSelection {
-  /** Ids of the selected rows on the loaded page. */
+  /**
+   * Ids of the selected rows: on the loaded page, or every selected id (across pages) when the parent
+   * controls the selection through `selection`.
+   */
   ids: string[]
   clear: () => void
+}
+
+/** A selection the parent owns; ids stay selected when the page, sort or filters change. */
+export interface DataTableControlledSelection {
+  ids: readonly string[]
+  onChange: (ids: string[]) => void
 }
 
 export interface DataTableProps<TRow extends RowData, TSort extends string = string> {
@@ -74,6 +87,10 @@ export interface DataTableProps<TRow extends RowData, TSort extends string = str
   toolbar?: ReactNode
   /** Renders the bulk actions; the selection column exists only when this is given. */
   bulkActions?: (selection: DataTableSelection) => ReactNode
+  /** Makes the selection controlled (kept across pages); without it the selection is local. */
+  selection?: DataTableControlledSelection
+  /** Visibility of columns the viewer has not toggled yet (`{ sla_due_at: false }` hides one by default). */
+  defaultColumnVisibility?: ColumnVisibility
 }
 
 const EMPTY_ROWS: never[] = []
@@ -109,16 +126,32 @@ export function DataTable<TRow extends RowData, TSort extends string = string>({
   emptyState,
   toolbar,
   bulkActions,
+  selection,
+  defaultColumnVisibility,
 }: DataTableProps<TRow, TSort>) {
   // TanStack Table's row and header methods read table state the React Compiler cannot see, so a
   // memoised row would keep showing stale selection or visibility. This component opts out.
   'use no memo'
 
   const hintId = useId()
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>(() =>
-    readColumnVisibility(id),
+  const [localSelection, setLocalSelection] = useState<RowSelectionState>({})
+  const controlledIds = selection?.ids
+  const controlledSelection = useMemo<RowSelectionState | undefined>(
+    () => (controlledIds ? Object.fromEntries(controlledIds.map((rowId) => [rowId, true])) : undefined),
+    [controlledIds],
   )
+  const rowSelection = controlledSelection ?? localSelection
+  const setRowSelection = (next: RowSelectionState) => {
+    if (selection) {
+      selection.onChange(Object.keys(next).filter((rowId) => next[rowId] === true))
+    } else {
+      setLocalSelection(next)
+    }
+  }
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>(() => ({
+    ...defaultColumnVisibility,
+    ...readColumnVisibility(id),
+  }))
   const current = parseSort(state.sort)
   // Controlled slices must keep their identity between renders: useTable publishes a changed slice
   // back into its store, which re-renders, which would build a new array again — a render loop.
@@ -148,7 +181,7 @@ export function DataTable<TRow extends RowData, TSort extends string = string>({
       columnVisibility,
     },
     onRowSelectionChange: (updater: Updater<RowSelectionState>) =>
-      setRowSelection((previous) => (typeof updater === 'function' ? updater(previous) : updater)),
+      setRowSelection(typeof updater === 'function' ? updater(rowSelection) : updater),
     onColumnVisibilityChange: (updater: Updater<ColumnVisibilityState>) => {
       const next = typeof updater === 'function' ? updater(columnVisibility) : updater
       setColumnVisibility(next)
@@ -159,8 +192,9 @@ export function DataTable<TRow extends RowData, TSort extends string = string>({
   const rows = table.getRowModel().rows
   const selectable = bulkActions !== undefined
   const pageIds = rows.map((row) => row.id)
-  const selectedIds = pageIds.filter((rowId) => rowSelection[rowId] === true)
-  const allSelected = pageIds.length > 0 && selectedIds.length === pageIds.length
+  const selectedOnPage = pageIds.filter((rowId) => rowSelection[rowId] === true)
+  const allSelected = pageIds.length > 0 && selectedOnPage.length === pageIds.length
+  const selectedIds = controlledIds ? [...controlledIds] : selectedOnPage
   const clearSelection = () => setRowSelection({})
 
   const openRow = (index: number) => {
@@ -244,7 +278,7 @@ export function DataTable<TRow extends RowData, TSort extends string = string>({
                   <Checkbox
                     aria-label={copy.dataTable.selectAll}
                     checked={allSelected}
-                    indeterminate={selectedIds.length > 0 && !allSelected}
+                    indeterminate={selectedOnPage.length > 0 && !allSelected}
                     disabled={rows.length === 0}
                     onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked)}
                   />

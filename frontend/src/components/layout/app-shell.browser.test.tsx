@@ -46,15 +46,6 @@ test('the account menu opens and signs the user out', async () => {
   expect(currentPath()).toBe('/acme/login')
 })
 
-test('the notification bell opens and says where the real list is coming from', async () => {
-  const { screen } = await openShell()
-
-  await screen.getByRole('button', { name: copy.shell.notifications.label }).click()
-
-  await expect.element(screen.getByText(copy.shell.notifications.none)).toBeVisible()
-  await expect.element(screen.getByText(copy.shell.notifications.placeholder)).toBeVisible()
-})
-
 test('the command palette opens with Ctrl+K and navigates', async () => {
   worker.use(
     http.get(apiUrl('/me'), () =>

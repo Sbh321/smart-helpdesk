@@ -8,7 +8,8 @@ One `scheduler` container runs `php artisan schedule:work` (exactly one replica)
 |---|---|---|---|---|
 | `sla:evaluate` | every minute | dispatches `EvaluateSlaTimers` to `sla` | one pass over all tenants' due timers (`FOR UPDATE SKIP LOCKED`), tenant context set per row batch | Sla |
 | `tickets:reevaluate-priority` | hourly at :05 | batches of 500 on `default` | iterate active tenants with `tenancy()->run()`; open tickets only | Automation |
-| `tickets:auto-close` | daily 03:10 | inline (small) | per tenant, `resolved_at < now − auto_close_days` | Tickets |
+| `reports:snapshot-daily` | hourly at :20 | inline | per tenant, the local yesterday; replaces the day's rows (M2-13) | Reporting |
+| `tickets:auto-close` | daily 03:10 | inline (small) | per tenant, `resolved_at <= now − tickets.auto_close_days` (the workspace setting), closed as actor `system`; built in M2-01 | Tickets |
 | `media:cleanup` | hourly at :20 | `media` | pending uploads > 1 h; trashed items > 30 days (objects and variants deleted, quota released) | Media |
 | `mail:fetch-inbound` | every minute | inline fetch, `mail` queue per message | IMAP fetch of the inbound mailbox; idempotent on `message_id`; `withoutOverlapping` | Mail |
 | `agents:reconcile-workload` | daily 03:30 | `default` | recompute `active_ticket_count` from tickets; log discrepancies | Agents |
@@ -47,7 +48,7 @@ Two patterns, chosen per task:
 
 ## Heartbeat and health
 
-`scheduler:heartbeat` writes a cache key every minute; `ScheduleCheck` in `/health` fails when it is older than two minutes; `SlaSweepCheck` fails when `sla:last_sweep_at` is older than three minutes. The container healthcheck `schedule:heartbeat-check` (tiny command) reads the same key so Docker restarts a hung scheduler.
+`scheduler:heartbeat` writes a cache key every minute; `ScheduleCheck` in `/health` fails when it is older than two minutes; `SlaSweepCheck` fails when `sla:last_sweep_at` is older than three minutes. The SLA job writes that heartbeat when a sweep ends, also after failures or when it stopped at its 40 s time budget (a backlog continues in the next minute). The container healthcheck `schedule:heartbeat-check` (tiny command) reads the scheduler key so Docker restarts a hung scheduler.
 
 ## Running manually
 

@@ -53,6 +53,21 @@ return [
         'sla' => 'App\\Modules\\Sla\\Strategies\\Baseline\\SimpleSlaTimer',
     ],
 
+    // Algorithm experiments (docs/05-algorithms/evaluation-methodology.md). `experiment:run --strategy=<name>`
+    // looks the strategy up here, so a replacement is measured on the same datasets before it is bound above.
+    // E6 needs a database and only ever runs against a *_test database.
+    'experiments' => [
+        'path' => env('EXPERIMENTS_PATH', dirname(__DIR__, 2).'/experiments'),
+        'dataset' => 'v1',
+        'database' => env('EXPERIMENTS_DATABASE', env('TEST_DATABASE', 'helpdesk_test')),
+        'strategies' => [
+            'priority' => ['baseline' => 'App\\Modules\\Automation\\Strategies\\Baseline\\BasicWeightedPriority'],
+            'assignment' => ['baseline' => 'App\\Modules\\Automation\\Strategies\\Baseline\\LeastLoadedAgent'],
+            'duplicates' => ['baseline' => 'App\\Modules\\Automation\\Strategies\\Baseline\\JaccardDuplicates'],
+            'sla' => ['baseline' => 'App\\Modules\\Sla\\Strategies\\Baseline\\SimpleSlaTimer'],
+        ],
+    ],
+
     // Tenant-overridable settings, namespaced per strategy.
     'automation' => [
         'priority' => [
@@ -74,11 +89,18 @@ return [
         // Seeded into every new workspace by ProvisionTenant; editable later (M2-02).
         'default_categories' => ['General', 'Billing', 'Technical issue', 'Account and access', 'Feature request', 'Other'],
     ],
-    'sla' => ['warning_fraction' => 0.75],
+    'sla' => ['warning_fraction' => 0.75, 'first_response_applies_to_agent_created' => true],
     'shifts' => ['enforce' => false],
     'features' => ['realtime' => false, 'exports' => true],
 
     'media' => [
+        // Storage disk; null follows FILESYSTEM_DISK (s3 in dev/production, local under test).
+        'disk' => env('MEDIA_DISK'),
+        // Disk that signs browser URLs; null means s3-presign for the s3 disk, else the storage disk.
+        'presign_disk' => env('MEDIA_PRESIGN_DISK'),
+        // Images above this many pixels get no variants (decoding costs ~4 bytes per pixel).
+        'variant_max_pixels' => 40_000_000,
+        // At most 25 MiB: the media_items size CHECK constraint is the hard ceiling.
         'max_file_bytes' => 25 * 1024 * 1024,
         'default_quota_bytes' => 5 * 1024 * 1024 * 1024,
         'allowed_mime' => [

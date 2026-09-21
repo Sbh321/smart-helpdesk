@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Integrations\Http\Middleware\RestrictApiClients;
 use App\Modules\Platform\Http\Middleware\UsePlatformSession;
 use App\Modules\Platform\Http\Middleware\ValidatePlatformCsrfToken;
 use App\Modules\Tenancy\Http\Middleware\EnsureCentralContext;
@@ -44,11 +45,16 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         // Tenant resolution groups (docs/03-architecture/tenancy.md §Tenant resolution).
+        // `auth:sanctum,api`: SPA sessions (and Sanctum tokens) first, then API client bearer
+        // tokens (docs/07-api/authentication.md §4). Clients only reach routes marked for them,
+        // and are rate limited per client.
         $middleware->group('tenant', [
             ResolveTenantFromPrincipal::class,
             EnsureTenantActive::class,
-            'auth:sanctum',
+            'auth:sanctum,api',
             EnsureTenantMembership::class,
+            RestrictApiClients::class,
+            'throttle:api-clients',
         ]);
         $middleware->group('tenant.guest', [
             InitializeTenancyFromWorkspace::class,
@@ -69,6 +75,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(AuthenticatesRequests::class, InitializeTenancyFromWorkspace::class);
         $middleware->prependToPriorityList(AuthenticatesRequests::class, EnsureTenantActive::class);
         $middleware->appendToPriorityList(AuthenticatesRequests::class, EnsureTenantMembership::class);
+        $middleware->appendToPriorityList(EnsureTenantMembership::class, RestrictApiClients::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // RFC 9457 problem details for the API hosts (docs/03-architecture/error-handling.md).

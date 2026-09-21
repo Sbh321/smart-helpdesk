@@ -13,6 +13,7 @@ use Illuminate\Session\DatabaseSessionHandler;
  */
 final class TenantAwareDatabaseSessionHandler extends DatabaseSessionHandler
 {
+    /** @param array<mixed> $payload */
     protected function addUserInformation(&$payload): static
     {
         parent::addUserInformation($payload);

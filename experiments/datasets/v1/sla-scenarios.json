@@ -1,0 +1,520 @@
+{
+  "meta": {
+    "dataset": "v1",
+    "written_on": "2026-09-21",
+    "timelines": 10,
+    "note": "Hand-written SLA timelines for E4 with hand-computed expectations (docs/05-algorithms/sla-evaluation.md worked examples). Times are local to each timeline's time zone, format Y-m-d H:i. 24x7 timelines use 2026-09-03 (Thursday, UTC); working-hours timelines use Sunday-Friday 10:00-17:00 Asia/Kathmandu, 2026-09-17 is a Thursday. Warning fraction 0.75. warnings/breaches count the events emitted over the whole timeline."
+  },
+  "timelines": [
+    {
+      "id": "L01",
+      "title": "Agent replies within the first-response target",
+      "source": "sla-evaluation.md worked example 1",
+      "calendar": {
+        "type": "24x7"
+      },
+      "timezone": "UTC",
+      "timer": "first_response",
+      "target_minutes": 60,
+      "steps": [
+        {
+          "at": "2026-09-03 09:00",
+          "do": "start"
+        },
+        {
+          "at": "2026-09-03 09:30",
+          "do": "check"
+        },
+        {
+          "at": "2026-09-03 09:40",
+          "do": "complete"
+        }
+      ],
+      "expected": {
+        "state": "met",
+        "warning_at": "2026-09-03 09:45",
+        "due_at": "2026-09-03 10:00",
+        "warnings": 0,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L02",
+      "title": "Resolution timer paused while pending 10:00-12:00",
+      "source": "worked example 2",
+      "calendar": {
+        "type": "24x7"
+      },
+      "timezone": "UTC",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-03 09:00",
+          "do": "start"
+        },
+        {
+          "at": "2026-09-03 10:00",
+          "do": "pause"
+        },
+        {
+          "at": "2026-09-03 12:00",
+          "do": "resume"
+        }
+      ],
+      "expected": {
+        "state": "running",
+        "warning_at": "2026-09-03 17:00",
+        "due_at": "2026-09-03 19:00",
+        "warnings": 0,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L03",
+      "title": "No reply: checked every minute until 10:30",
+      "source": "worked example 3",
+      "calendar": {
+        "type": "24x7"
+      },
+      "timezone": "UTC",
+      "timer": "first_response",
+      "target_minutes": 60,
+      "steps": [
+        {
+          "at": "2026-09-03 09:00",
+          "do": "start"
+        },
+        {
+          "do": "checks",
+          "from": "2026-09-03 09:00",
+          "to": "2026-09-03 10:30",
+          "every_minutes": 1
+        }
+      ],
+      "expected": {
+        "state": "breached",
+        "warning_at": "2026-09-03 09:45",
+        "due_at": "2026-09-03 10:00",
+        "warnings": 1,
+        "breaches": 1
+      }
+    },
+    {
+      "id": "L04",
+      "title": "As L02, then priority raised to P1 (4 h) at 13:00",
+      "source": "worked example 4",
+      "calendar": {
+        "type": "24x7"
+      },
+      "timezone": "UTC",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-03 09:00",
+          "do": "start"
+        },
+        {
+          "at": "2026-09-03 10:00",
+          "do": "pause"
+        },
+        {
+          "at": "2026-09-03 12:00",
+          "do": "resume"
+        },
+        {
+          "at": "2026-09-03 13:00",
+          "do": "recompute",
+          "target_minutes": 240
+        }
+      ],
+      "expected": {
+        "state": "running",
+        "warning_at": "2026-09-03 14:00",
+        "due_at": "2026-09-03 15:00",
+        "warnings": 0,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L05",
+      "title": "Resolved at 16:00, reopened at 16:30: a new resolution timer",
+      "source": "worked example 5",
+      "calendar": {
+        "type": "24x7"
+      },
+      "timezone": "UTC",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-03 09:00",
+          "do": "start"
+        },
+        {
+          "at": "2026-09-03 16:00",
+          "do": "complete"
+        },
+        {
+          "at": "2026-09-03 16:30",
+          "do": "start"
+        }
+      ],
+      "expected": {
+        "state": "running",
+        "warning_at": "2026-09-03 22:30",
+        "due_at": "2026-09-04 00:30",
+        "warnings": 0,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L06",
+      "title": "Working hours: created Thursday 15:00, 8 h, checked Friday 14:30",
+      "source": "working-hours main example",
+      "calendar": {
+        "type": "working_hours",
+        "timezone": "Asia/Kathmandu",
+        "hours": {
+          "sun": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "mon": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "tue": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "wed": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "thu": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "fri": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ]
+        },
+        "holidays": []
+      },
+      "timezone": "Asia/Kathmandu",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-17 15:00",
+          "do": "start"
+        },
+        {
+          "at": "2026-09-18 14:30",
+          "do": "check"
+        }
+      ],
+      "expected": {
+        "state": "warning",
+        "warning_at": "2026-09-18 14:00",
+        "due_at": "2026-09-18 16:00",
+        "warnings": 1,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L07",
+      "title": "Working hours: created Friday 16:00, Saturday closed",
+      "source": "working-hours case 6",
+      "calendar": {
+        "type": "working_hours",
+        "timezone": "Asia/Kathmandu",
+        "hours": {
+          "sun": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "mon": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "tue": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "wed": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "thu": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "fri": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ]
+        },
+        "holidays": []
+      },
+      "timezone": "Asia/Kathmandu",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-18 16:00",
+          "do": "start"
+        }
+      ],
+      "expected": {
+        "state": "running",
+        "warning_at": "2026-09-20 15:00",
+        "due_at": "2026-09-20 17:00",
+        "warnings": 0,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L08",
+      "title": "Working hours: created Thursday 15:00, Friday is a holiday",
+      "source": "working-hours case 7",
+      "calendar": {
+        "type": "working_hours",
+        "timezone": "Asia/Kathmandu",
+        "hours": {
+          "sun": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "mon": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "tue": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "wed": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "thu": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "fri": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ]
+        },
+        "holidays": [
+          "2026-09-18"
+        ]
+      },
+      "timezone": "Asia/Kathmandu",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-17 15:00",
+          "do": "start"
+        }
+      ],
+      "expected": {
+        "state": "running",
+        "warning_at": "2026-09-20 14:00",
+        "due_at": "2026-09-20 16:00",
+        "warnings": 0,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L09",
+      "title": "Working hours: pending Thursday 16:00 to Sunday 11:00 (9 working hours)",
+      "source": "working-hours case 8",
+      "calendar": {
+        "type": "working_hours",
+        "timezone": "Asia/Kathmandu",
+        "hours": {
+          "sun": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "mon": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "tue": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "wed": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "thu": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "fri": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ]
+        },
+        "holidays": []
+      },
+      "timezone": "Asia/Kathmandu",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-17 15:00",
+          "do": "start"
+        },
+        {
+          "at": "2026-09-17 16:00",
+          "do": "pause"
+        },
+        {
+          "at": "2026-09-20 11:00",
+          "do": "resume"
+        }
+      ],
+      "expected": {
+        "state": "running",
+        "warning_at": "2026-09-20 16:00",
+        "due_at": "2026-09-21 11:00",
+        "warnings": 0,
+        "breaches": 0
+      }
+    },
+    {
+      "id": "L10",
+      "title": "As L09, then the target changes to 4 h on Sunday 11:30",
+      "source": "working-hours case 9",
+      "calendar": {
+        "type": "working_hours",
+        "timezone": "Asia/Kathmandu",
+        "hours": {
+          "sun": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "mon": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "tue": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "wed": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "thu": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ],
+          "fri": [
+            [
+              "10:00",
+              "17:00"
+            ]
+          ]
+        },
+        "holidays": []
+      },
+      "timezone": "Asia/Kathmandu",
+      "timer": "resolution",
+      "target_minutes": 480,
+      "steps": [
+        {
+          "at": "2026-09-17 15:00",
+          "do": "start"
+        },
+        {
+          "at": "2026-09-17 16:00",
+          "do": "pause"
+        },
+        {
+          "at": "2026-09-20 11:00",
+          "do": "resume"
+        },
+        {
+          "at": "2026-09-20 11:30",
+          "do": "recompute",
+          "target_minutes": 240
+        }
+      ],
+      "expected": {
+        "state": "running",
+        "warning_at": "2026-09-20 13:00",
+        "due_at": "2026-09-20 14:00",
+        "warnings": 0,
+        "breaches": 0
+      }
+    }
+  ]
+}

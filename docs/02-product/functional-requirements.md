@@ -139,6 +139,8 @@ Requirements are grouped by module. Each has an ID (stable for traceability in t
 | FR-ANL-04 | CSV/XLSX export of the filtered ticket list (shares the report export pipeline) | M | UC-41 |
 | FR-ANL-05 | Dashboard built from the report catalogue (see RPT) | M | UC-40 |
 
+As built (M3-01): FR-ANL-05, -03 and the created/resolved, workload and SLA trend parts of -01 and -02 are on the dashboard (tiles: created, resolved, open now, median first response and resolution, SLA compliance, breaches, reopen rate; charts: created vs resolved, backlog, response and resolution by priority, SLA compliance per week, agent workload, time in status). "Unassigned", "critical", "resolved today" and the by-status and by-category charts are the linked reports (T05 by priority or agent, T01 with `period=today` or by category) — [reporting.md §Dashboard](../04-domain/reporting.md). FR-ANL-04 (export) arrives with M3-09.
+
 ## Reporting (RPT)
 
 | ID | Requirement | Class | UC |

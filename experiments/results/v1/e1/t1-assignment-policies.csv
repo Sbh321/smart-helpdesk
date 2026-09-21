@@ -1,0 +1,4 @@
+policy,tickets,assigned,unassigned,capacity_overflows,final_std_open,final_max_open,final_min_open,final_jain_open,final_jain_utilisation,avg_std_open,avg_max_open,avg_min_open,avg_jain_open,avg_jain_utilisation,peak_utilisation
+random,500,500,0,74,3.586,14,3,0.7861,0.8068,3.0275,10.632,1.414,0.7577,0.7446,1.75
+round_robin,500,500,0,36,2.7128,13,4,0.8653,0.8104,2.5656,9.606,1.638,0.809,0.7995,1.4545
+least_loaded_agent,500,500,0,0,1.2686,9,5,0.9671,0.9772,0.9967,6.804,3.962,0.9547,0.9691,0.8333

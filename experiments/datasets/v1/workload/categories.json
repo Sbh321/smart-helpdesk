@@ -1,0 +1,42 @@
+[
+    {
+        "id": "billing",
+        "required_skills": [
+            "billing"
+        ],
+        "share": 0.2
+    },
+    {
+        "id": "technical",
+        "required_skills": [
+            "technical"
+        ],
+        "share": 0.25
+    },
+    {
+        "id": "account",
+        "required_skills": [
+            "account"
+        ],
+        "share": 0.15
+    },
+    {
+        "id": "network",
+        "required_skills": [
+            "network"
+        ],
+        "share": 0.15
+    },
+    {
+        "id": "hardware",
+        "required_skills": [
+            "hardware"
+        ],
+        "share": 0.1
+    },
+    {
+        "id": "general",
+        "required_skills": [],
+        "share": 0.15
+    }
+]

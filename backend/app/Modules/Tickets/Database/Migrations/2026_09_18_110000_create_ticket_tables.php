@@ -37,7 +37,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
             $table->string('name', 80);
-            // MVP-SHORTCUT: no foreign key until teams exist; V1: none (M2-02 adds the composite key).
+            // M2-02 adds the composite foreign key after the teams table exists.
             $table->uuid('default_team_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->smallInteger('sort_order')->default(0);
@@ -89,7 +89,7 @@ return new class extends Migration
             $table->timestampTz('pending_since')->nullable();
             $table->integer('paused_total_seconds')->default(0);
             $table->foreignUuid('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            // MVP-SHORTCUT: API clients are Sanctum tokens until M3-04; V1: none (M3-04 adds the key to oauth_clients).
+            // The API client that created the ticket; the Integrations migration adds the key to oauth_clients.
             $table->uuid('created_by_client_id')->nullable();
             $table->string('created_via', 8)->default('ui');
             $table->timestampsTz();

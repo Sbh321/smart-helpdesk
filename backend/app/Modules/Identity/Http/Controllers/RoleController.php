@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Http\Controllers;
 
+use App\Models\User;
 use App\Modules\Audit\Audit;
+use App\Modules\Identity\Exceptions\RoleInUse;
 use App\Modules\Identity\Http\Requests\RoleRequest;
 use App\Modules\Identity\Http\Resources\RoleResource;
 use App\Modules\Identity\Models\Role;
 use App\Modules\Identity\Support\PermissionCatalogue;
+use App\Modules\Identity\Support\RoleAssignmentGuard;
 use App\Support\Errors\DomainException;
 use App\Support\Errors\ErrorCode;
 use Dedoc\Scramble\Attributes\Group;
@@ -43,7 +46,8 @@ final class RoleController
         $roles = Role::query()
             ->with('permissions')
             ->where(fn ($query) => $query->whereNull('tenant_id')->orWhere('tenant_id', tenant()?->getTenantKey()))
-            ->orderBy('tenant_id')
+            // Global defaults (no tenant) first, then the custom roles.
+            ->orderByRaw('tenant_id IS NOT NULL')
             ->orderBy('name')
             ->get();
 
@@ -62,8 +66,12 @@ final class RoleController
      * Create a custom role.
      */
     #[Response(status: 201, type: RoleResource::class)]
-    public function store(RoleRequest $request): JsonResponse
+    public function store(RoleRequest $request, RoleAssignmentGuard $guard): JsonResponse
     {
+        /** @var User $actor */
+        $actor = $request->user();
+        $guard->ensureCanEditPermissions($actor, [], array_values((array) $request->validated('permissions')));
+
         $role = Role::query()->create([
             'name' => $request->validated('name'),
             'guard_name' => PermissionCatalogue::GUARD,
@@ -80,11 +88,16 @@ final class RoleController
     /**
      * Change a custom role's name or permissions.
      */
-    public function update(RoleRequest $request, Role $role): RoleResource
+    public function update(RoleRequest $request, Role $role, RoleAssignmentGuard $guard): RoleResource
     {
         $this->ensureCustom($role);
 
         $before = $role->permissions->pluck('name')->all();
+        if ($request->has('permissions')) {
+            /** @var User $actor */
+            $actor = $request->user();
+            $guard->ensureCanEditPermissions($actor, $before, array_values((array) $request->validated('permissions')));
+        }
 
         if ($request->has('name')) {
             $role->forceFill(['name' => $request->validated('name')])->save();
@@ -99,11 +112,17 @@ final class RoleController
     }
 
     /**
-     * Delete a custom role.
+     * Delete a custom role. 409 `in_use` (`meta.users`) while users hold it: deleting it would silently
+     * take their permissions away.
      */
     public function destroy(Role $role): JsonResponse
     {
         $this->ensureCustom($role);
+
+        $holders = User::role($role->name)->count();
+        if ($holders > 0) {
+            throw RoleInUse::held($holders);
+        }
 
         $role->delete();
         Audit::record('role.deleted', $role);

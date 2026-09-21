@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Media\Console;
 
+use App\Modules\Media\Support\MediaStorage;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Illuminate\Console\Command;
@@ -17,14 +18,14 @@ use Illuminate\Support\Facades\Storage;
 final class EnsureBucketCommand extends Command
 {
     protected $signature = 'storage:ensure-bucket
-        {--disk=s3 : Filesystem disk that points at the bucket}
+        {--disk= : Filesystem disk that points at the bucket (default: the Media storage disk)}
         {--check : Only report the bucket and CORS state, change nothing}';
 
     protected $description = 'Create the object-storage bucket and apply CORS for the app origins';
 
-    public function handle(): int
+    public function handle(MediaStorage $storage): int
     {
-        $disk = Storage::disk((string) $this->option('disk'));
+        $disk = Storage::disk((string) ($this->option('disk') ?: $storage->diskName()));
 
         if (! $disk instanceof AwsS3V3Adapter) {
             $this->error('The disk is not an S3 disk.');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Tenancy\Bootstrappers;
 
+use App\Support\Auth\ApiClientPrincipal;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
@@ -25,12 +26,18 @@ use Stancl\Tenancy\Contracts\Tenant;
  */
 final class RlsTenancyBootstrapper implements TenancyBootstrapper
 {
-    /** Guards consulted for the actor, in order; only an already-resolved user counts. */
-    private const GUARDS = ['sanctum', 'web'];
+    /**
+     * Guards consulted for the actor, in order, with the actor type each one records; only an
+     * already-resolved principal counts. The `api` guard only ever holds API clients.
+     */
+    private const GUARDS = ['api' => ApiClientPrincipal::ACTOR_TYPE, 'sanctum' => 'user', 'web' => 'user'];
 
     private const SETTINGS = ['app.current_tenant', 'app.request_id', 'app.actor_type', 'app.actor_id'];
 
     private ?string $tenantId = null;
+
+    /** @var array{string, string}|null the actor last written to the session */
+    private ?array $appliedActor = null;
 
     public function __construct(
         private readonly DatabaseManager $db,
@@ -68,12 +75,14 @@ final class RlsTenancyBootstrapper implements TenancyBootstrapper
 
     /**
      * Re-reads the actor, which authentication resolves after tenancy is initialised
-     * (the `tenant` middleware group runs `auth:sanctum` after `ResolveTenantFromPrincipal`).
-     * Called by the Reporting module on the `Authenticated` event.
+     * (the `tenant` middleware group runs `auth:sanctum,api` after `ResolveTenantFromPrincipal`).
+     * Called by `EnsureTenantMembership` for every authenticated tenant request, and by the
+     * Reporting module on the `Authenticated` event (login inside the pre-authentication group).
+     * Only writes when the actor changed.
      */
     public function refreshActor(): void
     {
-        if ($this->tenantId !== null) {
+        if ($this->tenantId !== null && $this->actor() !== $this->appliedActor) {
             $this->apply($this->db->connection());
         }
     }
@@ -90,6 +99,8 @@ final class RlsTenancyBootstrapper implements TenancyBootstrapper
         }
 
         if ($this->tenantId === null) {
+            $this->appliedActor = null;
+
             foreach (self::SETTINGS as $setting) {
                 $connection->statement("RESET {$setting}");
             }
@@ -97,7 +108,7 @@ final class RlsTenancyBootstrapper implements TenancyBootstrapper
             return;
         }
 
-        [$actorType, $actorId] = $this->actor();
+        [$actorType, $actorId] = $this->appliedActor = $this->actor();
 
         // set_config(..., false) = SET for the session; bound parameters instead of string SQL.
         $connection->select(
@@ -108,7 +119,8 @@ final class RlsTenancyBootstrapper implements TenancyBootstrapper
     }
 
     /**
-     * The actor for captured changes. Resolving a user here would run a query inside tenancy
+     * The actor for captured changes: `api_client` for API clients (docs/07-api/authentication.md
+     * §3), `user` for signed-in users, `system` otherwise. Resolving a user here would run a query inside tenancy
      * bootstrapping, so only a user the guard already holds counts; `refreshActor()` picks up the
      * one authentication resolves later.
      *
@@ -116,11 +128,11 @@ final class RlsTenancyBootstrapper implements TenancyBootstrapper
      */
     private function actor(): array
     {
-        foreach (self::GUARDS as $name) {
+        foreach (self::GUARDS as $name => $type) {
             $guard = $this->auth->guard($name);
 
             if ($guard->hasUser()) {
-                return ['user', (string) $guard->user()?->getAuthIdentifier()];
+                return [$type, (string) $guard->user()?->getAuthIdentifier()];
             }
         }
 

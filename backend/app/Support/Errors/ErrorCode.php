@@ -22,29 +22,43 @@ enum ErrorCode: string
     case MethodNotAllowed = 'method_not_allowed';
     case Conflict = 'conflict';
     case StaleUpdate = 'stale_update';
+    case AlreadyAssigned = 'already_assigned';
+    case InUse = 'in_use';
+    case AlreadyDecided = 'already_decided';
     case InvalidTransition = 'invalid_transition';
     case NoEligibleAgent = 'no_eligible_agent';
     case DuplicateTargetInvalid = 'duplicate_target_invalid';
     case LastOwner = 'last_owner';
+    case ResolutionCommentRequired = 'resolution_comment_required';
+    case SlaTargetMissing = 'sla_target_missing';
+    case SettingsInvalid = 'settings_invalid';
     case PayloadTooLarge = 'payload_too_large';
     case RateLimited = 'rate_limited';
     case InternalError = 'internal_error';
     case StorageUnavailable = 'storage_unavailable';
+    case QuotaExceeded = 'quota_exceeded';
     case ServiceUnavailable = 'service_unavailable';
+    case InvalidClient = 'invalid_client';
+    case InvalidScope = 'invalid_scope';
+    case UnsupportedGrantType = 'unsupported_grant_type';
+    case IdempotencyKeyReused = 'idempotency_key_reused';
+    case DeliveryNotRetryable = 'delivery_not_retryable';
 
     public function status(): int
     {
         return match ($this) {
-            self::BadRequest => 400,
-            self::InvalidCredentials, self::Unauthenticated => 401,
+            self::BadRequest, self::InvalidScope, self::UnsupportedGrantType => 400,
+            self::InvalidCredentials, self::Unauthenticated, self::InvalidClient => 401,
             self::Forbidden, self::TenantSuspended, self::AccountLocked => 403,
             self::NotFound => 404,
             self::MethodNotAllowed => 405,
-            self::Conflict, self::StaleUpdate => 409,
+            self::Conflict, self::StaleUpdate, self::AlreadyAssigned, self::InUse, self::AlreadyDecided,
+            self::DeliveryNotRetryable => 409,
             self::PayloadTooLarge => 413,
             self::SessionExpired => 419,
-            self::ValidationFailed, self::InvalidTransition, self::NoEligibleAgent,
-            self::DuplicateTargetInvalid, self::LastOwner => 422,
+            self::ValidationFailed, self::InvalidTransition, self::NoEligibleAgent, self::QuotaExceeded,
+            self::DuplicateTargetInvalid, self::LastOwner, self::ResolutionCommentRequired, self::SlaTargetMissing,
+            self::SettingsInvalid, self::IdempotencyKeyReused => 422,
             self::RateLimited => 429,
             self::InternalError => 500,
             self::StorageUnavailable => 502,
@@ -67,15 +81,27 @@ enum ErrorCode: string
             self::MethodNotAllowed => 'Method not allowed',
             self::Conflict => 'Conflict',
             self::StaleUpdate => 'The record was changed by someone else',
+            self::AlreadyAssigned => 'The ticket is already assigned',
+            self::InUse => 'The record is still in use',
+            self::AlreadyDecided => 'The suggestion was already decided',
             self::InvalidTransition => 'Invalid status transition',
             self::NoEligibleAgent => 'No eligible agent',
             self::DuplicateTargetInvalid => 'Invalid duplicate target',
             self::LastOwner => 'The last owner cannot be removed',
+            self::ResolutionCommentRequired => 'A resolution comment is required',
+            self::SlaTargetMissing => 'The SLA policy has no target for this priority',
+            self::SettingsInvalid => 'The settings are not valid',
             self::PayloadTooLarge => 'Payload too large',
             self::RateLimited => 'Too many requests',
             self::InternalError => 'Something went wrong',
             self::StorageUnavailable => 'File storage is unavailable',
+            self::QuotaExceeded => 'Storage quota exceeded',
             self::ServiceUnavailable => 'Service unavailable',
+            self::InvalidClient => 'Client authentication failed',
+            self::InvalidScope => 'The requested scope is not allowed',
+            self::UnsupportedGrantType => 'Unsupported grant type',
+            self::IdempotencyKeyReused => 'The idempotency key was used for a different request',
+            self::DeliveryNotRetryable => 'The delivery cannot be retried',
         };
     }
 

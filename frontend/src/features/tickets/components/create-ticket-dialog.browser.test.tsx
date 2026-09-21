@@ -118,3 +118,33 @@ test('without tickets.create there is no "New ticket" button', async () => {
   await expect.element(screen.getByRole('table', { name: copy.tickets.list.label })).toBeVisible()
   expect(screen.getByRole('button', { name: create.open }).query()).toBeNull()
 })
+
+test('the full create page offers inline contact creation and shows its organisation', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({
+          permissions: [
+            'tickets.view',
+            'tickets.create',
+            'contacts.view',
+            'contacts.manage',
+            'organizations.view',
+          ],
+        }),
+      }),
+    ),
+  )
+  const { screen } = await renderApp('/acme/tickets/new')
+  await expect.element(screen.getByRole('heading', { level: 1, name: 'New ticket' })).toBeVisible()
+  await screen.getByRole('button', { name: 'Create a contact' }).click()
+  const contact = screen.getByRole('dialog', { name: 'New contact' })
+  await contact.getByRole('textbox', { name: 'Name', exact: true }).fill('New Requester')
+  await contact.getByRole('textbox', { name: 'Email', exact: true }).fill('new.requester@example.test')
+  await contact.getByRole('button', { name: 'Create contact' }).click()
+  await expect.element(contact).not.toBeInTheDocument()
+  await expect
+    .element(screen.getByRole('combobox', { name: 'Contact', exact: true }))
+    .toHaveValue('New Requester')
+  await expect.element(screen.getByText('No organisation')).toBeVisible()
+})

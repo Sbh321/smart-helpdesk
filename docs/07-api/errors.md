@@ -36,25 +36,31 @@ All non-2xx responses are RFC 9457 problem details with `Content-Type: applicati
 |---|---|---|---|
 | `bad_request` | 400 | malformed JSON, invalid UTF-8 | fix request |
 | `unauthenticated` | 401 | no/invalid session or token, expired token | re-authenticate |
-| `invalid_client` | 401 | client unknown, revoked, or not in this tenant (`/oauth/token` and bearer requests) | check credentials/host |
-| `forbidden` | 403 | missing permission, policy denies, scope insufficient | do not retry |
+| `invalid_client` | 401 | `/oauth/token`: client unknown, wrong secret, revoked, or its workspace suspended. Also carries the RFC 6749 members `error: "invalid_client"` and `error_description`. A bearer request with a revoked or foreign token answers `unauthenticated` | check credentials |
+| `invalid_scope` | 400 | `/oauth/token`: a requested scope does not exist or was not granted to the client (never silently dropped); `error: "invalid_scope"` | request only granted scopes |
+| `unsupported_grant_type` | 400 | `/oauth/token`: any grant other than `client_credentials`; `error: "unsupported_grant_type"` | use client credentials |
+| `forbidden` | 403 | missing permission, policy denies, scope insufficient, or an API client calling a route not open to clients | do not retry |
 | `tenant_suspended` | 403 | tenant status ≠ active | contact platform |
 | `account_locked` | 403 | too many failed logins | wait `meta.retry_after` |
 | `not_found` | 404 | unknown route/resource, cross-tenant id | do not retry |
 | `not_acceptable` | 406 | `Accept` not JSON | set header |
 | `stale_update` | 409 | `version` mismatch (Should-have) | refetch and retry |
 | `already_assigned` | 409 | concurrent assignment won by another request | refetch |
+| `already_decided` | 409 | dismissing a duplicate suggestion that was already accepted | refetch |
+| `in_use` | 409 | deleting or changing a record that others still reference; `meta` names the users | remove the references first |
 | `last_owner` | 409 | removing/demoting the last Tenant Owner | assign another owner first |
 | `has_dependents` | 409 | deleting a contact/category/team/skill in use | archive instead |
 | `validation_failed` | 422 | FormRequest rules (see below) | fix fields |
-| `invalid_transition` | 422 | state machine rejects the move; `meta.allowed` lists targets | choose allowed target |
+| `invalid_transition` | 422 | state machine rejects the move; `meta.allowed` lists targets; `meta.reason` is `reopen_window_expired` or `closed_as_duplicate` when a reopen is refused | choose allowed target |
+| `resolution_comment_required` | 422 | resolving without a resolution comment; `meta.field` is `comment` | show the comment box |
+| `sla_target_missing` | 422 | the selected SLA policy has no target for the ticket's priority | fix the policy |
 | `resolution_comment_required` | 422 | `resolved` without a comment | add comment |
 | `no_eligible_agent` | 422 | auto-assign found nobody; `meta.exclusions` explains | assign manually |
 | `duplicate_target_invalid` | 422 | target is itself a duplicate, is the same ticket, or is closed as duplicate | pick another target |
 | `reopen_window_expired` | 422 | reopen after `reopen_window_days` | create a new ticket |
-| `idempotency_key_reused` | 422 | same key, different body | use a new key |
+| `idempotency_key_reused` | 422 | same `Idempotency-Key` (same client, within 24 h), different body | use a new key |
 | `attachment_invalid` | 422 | size/MIME mismatch at `complete` | re-upload |
-| `settings_invalid` | 422 | weights do not sum to 1, thresholds not decreasing | fix settings |
+| `settings_invalid` | 422 | weights do not sum to 1, thresholds not decreasing, unknown setting key; carries `errors` per field like `validation_failed` and `meta.section` | fix settings |
 | `webhook_url_rejected` | 422 | not https, private range, unresolvable | change URL |
 | `rate_limited` | 429 | throttle; `Retry-After` header and `meta.retry_after` | back off |
 | `internal_error` | 500 | unexpected exception; detail hidden | report `request_id` |

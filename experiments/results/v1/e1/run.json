@@ -1,0 +1,34 @@
+{
+    "experiment": "e1",
+    "title": "Assignment fairness",
+    "command": "php artisan experiment:run e1 --strategy=baseline --seed=42",
+    "seed": 42,
+    "dataset": "v1",
+    "strategy_selected": "baseline",
+    "strategy": {
+        "name": "least_loaded_agent",
+        "version": "1.0.0",
+        "class": "App\\Modules\\Automation\\Strategies\\Baseline\\LeastLoadedAgent"
+    },
+    "settings": {
+        "agents": 8,
+        "tickets": 500,
+        "comparison_policies": [
+            "random",
+            "round_robin"
+        ]
+    },
+    "outputs": [
+        "t1-assignment-policies.csv",
+        "t2-final-load-per-agent.csv",
+        "load-over-time.csv",
+        "summary.json"
+    ],
+    "environment": {
+        "git_commit": "0e8d3f8-dirty",
+        "php": "8.5.10",
+        "postgresql": "18.6 (Debian 18.6-1.pgdg13+2)",
+        "generated_at": "2026-09-21T06:14:21+00:00",
+        "duration_s": 0.1
+    }
+}

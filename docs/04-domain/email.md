@@ -73,6 +73,20 @@ If nothing is left above the first marker (a bottom-posted reply), the parser re
 
 All notification mail is queued and sent through the configured mailer: `smtp` to the bundled server (default) or a provider transport. Every outgoing ticket email sets `Message-ID: <ticket-<uuid>.<n>@PLATFORM_DOMAIN>`, `In-Reply-To`/`References` to the thread, `Reply-To` as above, and `List-Unsubscribe` for contact mail. The mail server signs with DKIM and relays through `MAIL_RELAY_HOST` when configured.
 
+### As built (M2-07)
+
+`Mail\Listeners\SendPublicReplyToContact` mails an agent's public reply to the requester after the comment commits. Internal notes, replies recorded on behalf of the requester, and archived contacts are never mailed. `Mail\Notifications\PublicReplyToContact` is queued on `notifications` and carries only primitives.
+
+| Header | Value |
+|---|---|
+| `Subject` | `[#<number>] <title>` |
+| `Reply-To` | `ticket+<ticket-uuid>@<mail domain>` |
+| `Message-ID` | `<ticket-<uuid>.<n>@<mail domain>>`, where `n` is the position among the ticket's public agent replies |
+| `In-Reply-To`, `References` | the previous reply and the thread root `…<uuid>.0@…` |
+| `List-Unsubscribe` | `<mailto:unsubscribe+<contact-uuid>@<mail domain>>` |
+
+The comment body is user input. It is mailed as escaped text with line breaks kept, in both the HTML and the text part; it is never rendered as Markdown or HTML, so a reply cannot inject links, images or markup. Sender name and branding come from configuration until the Settings service (M2-01) and the mail identity task (M3-18) exist.
+
 ## Settings → Email (tenant)
 
 Sender display name, intake address (read-only), DNS records to create with a check button (Could-have), toggle "create tickets from unknown senders", allowed domains for organisation matching.

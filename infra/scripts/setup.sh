@@ -19,6 +19,8 @@ fi
 
 docker compose --profile dev --profile storage up -d --wait --build
 grep -q '^APP_KEY=base64:' backend/.env || docker compose exec -T app php artisan key:generate --force --no-interaction
+# Passport signing keys for API client tokens (storage/oauth-*.key, git-ignored, 0600/0660).
+[ -f backend/storage/oauth-private.key ] || docker compose exec -T app php artisan passport:keys --no-interaction
 docker compose exec -T -e DB_CONNECTION=pgsql_owner app php artisan migrate --force
 docker compose exec -T app php artisan storage:ensure-bucket
 if [ -f backend/database/seeders/DemoSeeder.php ]; then

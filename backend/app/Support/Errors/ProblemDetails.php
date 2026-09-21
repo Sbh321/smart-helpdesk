@@ -28,7 +28,7 @@ final class ProblemDetails
 
     public static function appliesTo(Request $request): bool
     {
-        return $request->is('v1', 'v1/*', 'platform-api', 'platform-api/*') || $request->expectsJson();
+        return $request->is('v1', 'v1/*', 'platform-api', 'platform-api/*', 'oauth/*') || $request->expectsJson();
     }
 
     public static function render(Throwable $e, Request $request): ?JsonResponse
@@ -72,7 +72,17 @@ final class ProblemDetails
     private static function describe(Throwable $e): array
     {
         return match (true) {
-            $e instanceof DomainException => [$e->code(), $e->status(), $e->getMessage(), $e->meta() === [] ? [] : ['meta' => $e->meta()], []],
+            $e instanceof DomainException => [
+                $e->code(),
+                $e->status(),
+                $e->getMessage(),
+                [
+                    ...$e->extensions(),
+                    ...($e->meta() === [] ? [] : ['meta' => $e->meta()]),
+                    ...($e->errors() === [] ? [] : ['errors' => $e->errors()]),
+                ],
+                [],
+            ],
             $e instanceof ValidationException => [
                 ErrorCode::ValidationFailed,
                 $e->status,

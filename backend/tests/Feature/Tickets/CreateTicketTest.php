@@ -47,7 +47,9 @@ it('creates an open ticket with the next number, history and includes', function
     $response->assertCreated()
         ->assertJsonPath('data.number', 1)
         ->assertJsonPath('data.status', 'open')
-        ->assertJsonPath('data.priority_level', 'P4')
+        // impact 3, urgency 2, standard tier: 100 × (0.40 × 2/3 + 0.35 × 1/3) = 38.3, which is P3.
+        ->assertJsonPath('data.priority_level', 'P3')
+        ->assertJsonPath('data.priority_score', 38.3)
         ->assertJsonPath('data.organization_id', $organization->id)
         ->assertJsonPath('data.contact.id', $this->contact->id)
         ->assertJsonPath('data.category.name', $this->category->name)
@@ -56,7 +58,7 @@ it('creates an open ticket with the next number, history and includes', function
         ->assertJsonPath('data.created_at', '2026-09-18T09:00:00Z');
 
     $ticket = Ticket::query()->withoutTenancy()->findOrFail($response->json('data.id'));
-    $event = TicketEvent::query()->withoutTenancy()->where('ticket_id', $ticket->id)->sole();
+    $event = TicketEvent::query()->withoutTenancy()->where('ticket_id', $ticket->id)->where('type', 'created')->sole();
 
     expect($ticket->tenant_id)->toBe($this->acme->id)
         ->and($ticket->created_by_user_id)->toBe($this->user->id)
@@ -132,7 +134,11 @@ it('lets a developer read tickets but not create them', function (): void {
 it('records ticket changes for history and reporting', function (): void {
     $id = $this->postJson('/v1/tickets', newTicketPayload())->json('data.id');
 
-    expect(DB::table('entity_changes')->where('entity_type', 'tickets')->where('entity_id', $id)->value('operation'))->toBe('insert');
+    // Version 1 is the insert; scoring the priority in the same transaction is version 2.
+    $operations = DB::table('entity_changes')->where('entity_type', 'tickets')->where('entity_id', $id)
+        ->orderBy('version')->pluck('operation')->all();
+
+    expect($operations[0])->toBe('insert')->and(array_unique(array_slice($operations, 1)))->toBe(['update']);
 });
 
 it('keeps resolved_at consistent with the status in the database', function (): void {

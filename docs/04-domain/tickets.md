@@ -81,6 +81,8 @@ Related tables: `ticket_comments` (with `visibility` = `public` \| `internal`), 
 
 The first `public` comment by a `user` sets `first_responded_at` and satisfies the first-response SLA. A `contact`-authored comment sets `last_customer_reply_at` and, if the ticket is `pending`, moves it to `in_progress`.
 
+M2-07 implementation in progress: `AddComment` writes the comment, ticket timestamps, history and first-response SLA completion in one transaction. The guarded comments API hides internal notes from principals without `comments.internal`; the SPA composer toggles public reply/internal note. Public user replies enqueue a Contact email after commit. The frontend Markdown renderer constructs only paragraphs, unordered lists, bold, code and HTTPS links as React elements; raw HTML stays escaped text, so no HTML sanitiser dependency is added. This intentionally narrow allow-list must be security-tested at the Week 2 gate before M2-07 is Done.
+
 ## Invariants (tested)
 
 1. `number` unique per tenant and gapless under concurrency (test with parallel creation).
@@ -127,3 +129,35 @@ Measured on the development stack (10 000 tickets in one workspace, through Cadd
 | Default list, first page | ≈ 140 ms end to end; the database part uses `tickets_default_sort_idx` and runs in under 1 ms |
 | Filters, search, page 300 | 110–145 ms end to end |
 | 20 creations in parallel | numbers 10 001–10 020, no gaps, no duplicates |
+
+## M2-06 lifecycle progress
+
+`PATCH /v1/tickets/{ticket}` now updates the editable ticket fields and tags, while
+`POST /v1/tickets/{ticket}/transition` applies the lifecycle transitions owned by the ticket
+screen. Both actions lock the ticket row, write `ticket_events`, increment the ticket version and
+dispatch their domain event after commit. The transition response includes
+`allowed_transitions`, filtered by the signed-in user's permissions and the workspace reopen
+window, so the SPA does not duplicate those guards.
+
+The generic transition endpoint deliberately excludes assignment and unassignment (M2-05) and
+open-to-closed duplicate/spam handling (M2-10), because those operations have additional
+invariants and dedicated actions. Resolving requires either a public user-authored resolution
+comment in the request or a latest public user-authored ticket comment. The request comment is
+temporarily persisted by `TransitionTicket`; M2-07 replaces that shortcut with `AddComment` and
+its notification and SLA hooks.
+
+The SPA now exposes the safe transitions, editable fields, stored priority explanation and
+cursor-paginated history. SLA, priority override, assignment and the full comment composer remain
+owned by M2-03, M2-04, M2-05 and M2-07 respectively, so M2-06 remains in progress until those
+integrations can exercise the complete golden path.
+
+## As built (M2-06, M2-07)
+
+- `TransitionTicket` narrows the enum's table with `TicketTransitionRules` (dedicated actions, reopen window, duplicates) and then applies `TicketStatus::transitionTo()`. It maintains `resolved_at`, `closed_at`, `pending_since` and `reopen_count`.
+- Resolving without a resolution comment answers 422 `resolution_comment_required` with `meta.field = comment`, unless the last comment is already an agent's public reply.
+- Reopening a **closed** ticket needs `tickets.reopen`; reopening a resolved one does not. A refused reopen names its reason in `meta.reason`: `reopen_window_expired` or `closed_as_duplicate`.
+- A ticket closed as a duplicate cannot be reopened (V1: an explicit unmark action), so `duplicate_of_id` and the accepted suggestion never go stale.
+- A requester reply on a pending ticket moves it to `in_progress` and writes a `status_changed` history entry with actor `system` and the note "Requester replied".
+- The first public agent reply sets `first_responded_at` and fires `FirstPublicReplyRecorded`; Sla meets the timer in the same transaction.
+- Optimistic locking is not enforced: `version` is incremented on every write but not compared (Should-have, not built).
+- Not built: `client` author type, `Idempotency-Key`, comment edit and delete.

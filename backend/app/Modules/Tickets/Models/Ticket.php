@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Tickets\Models;
 
 use App\Models\User;
+use App\Modules\Agents\Models\AgentProfile;
+use App\Modules\Agents\Models\Team;
 use App\Modules\Contacts\Concerns\HasTags;
 use App\Modules\Contacts\Models\Contact;
 use App\Modules\Contacts\Models\Organization;
@@ -19,6 +21,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A support request (docs/04-domain/tickets.md). `number` is the gapless per-workspace sequence;
@@ -41,8 +44,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Priority $priority_level
  * @property Priority|null $priority_override_level
  * @property array<string, mixed> $priority_explanation
+ * @property string|null $priority_override_reason
  * @property string|null $duplicate_of_id
+ * @property int $reopen_count
+ * @property int $version
  * @property string $created_via
+ * @property CarbonImmutable|null $first_responded_at
+ * @property CarbonImmutable|null $last_agent_reply_at
+ * @property CarbonImmutable|null $last_customer_reply_at
+ * @property CarbonImmutable|null $pending_since
  * @property CarbonImmutable|null $resolved_at
  * @property CarbonImmutable|null $closed_at
  * @property CarbonImmutable $created_at
@@ -96,12 +106,36 @@ final class Ticket extends Model
         return $this->belongsTo(Category::class);
     }
 
+    /** @return BelongsTo<Team, $this> */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /** @return BelongsTo<AgentProfile, $this> */
+    public function assignedAgent(): BelongsTo
+    {
+        return $this->belongsTo(AgentProfile::class, 'assigned_agent_id');
+    }
+
     /**
      * @return BelongsTo<User, $this>
      */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    /**
+     * The newest assignment history row. A real relation, because AssignTicket attaches the row it
+     * just wrote under this name and `refresh()` reloads every loaded relation.
+     *
+     * @return HasOne<TicketAssignment, $this>
+     */
+    public function latestAssignment(): HasOne
+    {
+        // Not latestOfMany(): it aggregates max(id), and PostgreSQL has no max() for uuid.
+        return $this->hasOne(TicketAssignment::class)->orderByDesc('created_at')->orderByDesc('id');
     }
 
     /**
@@ -118,6 +152,12 @@ final class Ticket extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(TicketComment::class);
+    }
+
+    /** @return HasMany<TicketDuplicateSuggestion, $this> */
+    public function duplicateSuggestions(): HasMany
+    {
+        return $this->hasMany(TicketDuplicateSuggestion::class);
     }
 
     protected function casts(): array

@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { Building2Icon, GaugeIcon, SettingsIcon, TicketIcon, UsersIcon } from 'lucide-react'
+import { BarChart3Icon, Building2Icon, GaugeIcon, SettingsIcon, TicketIcon, UsersIcon } from 'lucide-react'
 import { copy } from '@/copy/en'
 import { hasPermission } from '@/lib/auth'
 
@@ -9,6 +9,7 @@ export type NavTo =
   | '/$workspace/tickets'
   | '/$workspace/contacts'
   | '/$workspace/organizations'
+  | '/$workspace/reports'
   | '/$workspace/settings'
 
 export interface NavItem {
@@ -17,8 +18,8 @@ export interface NavItem {
   icon: LucideIcon
   /** Typed route path; the workspace segment is filled in from the URL. */
   to: NavTo
-  /** Hidden unless the session holds this permission; `undefined` means always visible. */
-  permission?: string
+  /** Hidden unless the session holds this permission, or any one of a list; `undefined` means always visible. */
+  permission?: string | readonly string[]
 }
 
 /**
@@ -49,17 +50,37 @@ export const NAV_ITEMS: readonly NavItem[] = [
     permission: 'contacts.view',
   },
   {
+    key: 'reports',
+    label: copy.nav.reports,
+    icon: BarChart3Icon,
+    to: '/$workspace/reports',
+    permission: 'reports.view',
+  },
+  {
     key: 'settings',
     label: copy.nav.settings,
     icon: SettingsIcon,
     to: '/$workspace/settings',
-    permission: 'settings.manage',
+    // Settings holds pages for several kinds of administrator, not only workspace settings.
+    permission: [
+      'settings.manage',
+      'users.manage',
+      'roles.manage',
+      'agents.manage',
+      'teams.manage',
+      'shifts.manage',
+      'sla.manage',
+      'calendars.manage',
+      'media.manage',
+    ],
   },
 ]
 
 /** Items the session may see. Permissions, never roles (CLAUDE.md). */
 export function visibleNavItems(permissions: readonly string[]): NavItem[] {
-  return NAV_ITEMS.filter(
-    (item) => item.permission === undefined || hasPermission(permissions, item.permission),
-  )
+  return NAV_ITEMS.filter((item) => {
+    if (item.permission === undefined) return true
+    const needed = typeof item.permission === 'string' ? [item.permission] : item.permission
+    return needed.some((permission) => hasPermission(permissions, permission))
+  })
 }

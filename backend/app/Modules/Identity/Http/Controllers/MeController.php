@@ -18,7 +18,10 @@ final class MeController
      */
     public function show(Request $request): MeResource
     {
-        return new MeResource($request->user());
+        /** @var User $user */
+        $user = $request->user();
+
+        return new MeResource($user->load('agentProfile'));
     }
 
     /**
@@ -31,6 +34,6 @@ final class MeController
 
         $user->forceFill(['preferences' => [...$user->preferences ?? [], ...$request->validated()]])->save();
 
-        return new MeResource($user);
+        return new MeResource($user->load('agentProfile'));
     }
 }

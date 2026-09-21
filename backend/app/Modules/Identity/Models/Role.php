@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Spatie\Permission\Models\Role as SpatieRole;
 
@@ -23,6 +24,18 @@ final class Role extends SpatieRole
     protected $casts = [
         'is_system' => 'boolean',
     ];
+
+    /**
+     * The roles a user of the current workspace can hold: the global defaults and this workspace's
+     * custom roles. Roles are not tenant-scoped by a global scope (the defaults have no tenant), so
+     * every lookup by name goes through here.
+     *
+     * @return Builder<self>
+     */
+    public static function inWorkspace(): Builder
+    {
+        return self::query()->where(fn (Builder $query) => $query->whereNull('tenant_id')->orWhere('tenant_id', tenant()?->getTenantKey()));
+    }
 
     public function isGlobal(): bool
     {
