@@ -131,7 +131,9 @@ resource "cloudflare_dns_record" "stalwart_dkim" {
   zone_id = data.cloudflare_zone.mail.zone_id
   name    = "${var.stalwart_dkim_selector}._domainkey.${var.platform_domain}"
   type    = "TXT"
-  content = "\"v=DKIM1; k=rsa; h=sha256; p=${var.stalwart_dkim_public_key}\""
+  # A TXT string holds at most 255 characters: split the record into quoted strings, as Cloudflare
+  # stores it (receivers join them), so plans stay clean.
+  content = join(" ", [for part in regexall(".{1,255}", "v=DKIM1; k=rsa; h=sha256; p=${var.stalwart_dkim_public_key}") : "\"${part}\""])
   ttl     = 300
   proxied = false
   comment = "smart-helpdesk Stalwart DKIM (OpenTofu)"
