@@ -1,10 +1,12 @@
 # Smart Helpdesk
 
-[![backend](https://github.com/subham/smart-helpdesk/actions/workflows/backend.yml/badge.svg)](https://github.com/subham/smart-helpdesk/actions/workflows/backend.yml)
-[![frontend](https://github.com/subham/smart-helpdesk/actions/workflows/frontend.yml/badge.svg)](https://github.com/subham/smart-helpdesk/actions/workflows/frontend.yml)
-[![security](https://github.com/subham/smart-helpdesk/actions/workflows/security.yml/badge.svg)](https://github.com/subham/smart-helpdesk/actions/workflows/security.yml)
+[![backend](https://github.com/Sbh321/smart-helpdesk/actions/workflows/backend.yml/badge.svg)](https://github.com/Sbh321/smart-helpdesk/actions/workflows/backend.yml)
+[![frontend](https://github.com/Sbh321/smart-helpdesk/actions/workflows/frontend.yml/badge.svg)](https://github.com/Sbh321/smart-helpdesk/actions/workflows/frontend.yml)
+[![security](https://github.com/Sbh321/smart-helpdesk/actions/workflows/security.yml/badge.svg)](https://github.com/Sbh321/smart-helpdesk/actions/workflows/security.yml)
+[![build](https://github.com/Sbh321/smart-helpdesk/actions/workflows/build.yml/badge.svg)](https://github.com/Sbh321/smart-helpdesk/actions/workflows/build.yml)
+[![infra](https://github.com/Sbh321/smart-helpdesk/actions/workflows/infra.yml/badge.svg)](https://github.com/Sbh321/smart-helpdesk/actions/workflows/infra.yml)
+[![e2e](https://github.com/Sbh321/smart-helpdesk/actions/workflows/e2e.yml/badge.svg)](https://github.com/Sbh321/smart-helpdesk/actions/workflows/e2e.yml)
 
-<!-- The badges use the repository slug assumed by the documentation; update them when the remote is created. -->
 
 A multi-tenant support-ticket management system with automated prioritisation, agent assignment, duplicate detection, SLA monitoring, integrations and analytics. Final-year BCA project engineered as the foundation of a real SaaS/on-premise product.
 

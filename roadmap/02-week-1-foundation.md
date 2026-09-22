@@ -1,6 +1,6 @@
 # Milestone 1 — Foundation
 
-**Milestone status:** `[~]` In progress — 22 of 23 tasks done; M1-05 awaits its first green GitHub run after the owner adds a remote and pushes.
+**Milestone status:** `[x]` Done — 23 of 23 tasks done (M1-05 closed 2026-09-22 once every workflow ran green on GitHub).
 
 Goal: a running multi-tenant skeleton with authentication, permissions, design system, contacts and the ticket data model, all under CI. Exit criteria: [00-mvp-definition.md](00-mvp-definition.md). Status legend: `[ ]` todo · `[~]` doing · `[x]` done · `[-]` cut.
 
@@ -65,7 +65,8 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
   - Evidence: all eight services healthy; `infra/scripts/smoke.sh` passes 13 checks; `/acme` loads in Chromium and Firefox without console errors (the workspace route itself arrives in M1-12); a presigned PUT from `https://app.shp.localhost` in Chromium returned 200 and the object was readable from the app; 185 backend tests pass.
   - Not verified: a full `just setup` from a fresh clone and its timing. Each of its steps was run separately.
 
-### `[~]` M1-05 CI basics — M
+### `[x]` M1-05 CI basics — M
+- **Done (2026-09-22):** every workflow is green on GitHub Actions (backend, frontend, build, security, infra, e2e); README badges point at `Sbh321/smart-helpdesk`, with badges for build, infra and e2e added.
 - **Do:** `backend.yml` (setup-php 8.5, composer cache, postgres 18 + valkey services, pint, larastan, pest with coverage artifact, `migrate:fresh` + `migrate:rollback` + `migrate`), `frontend.yml` (pnpm cache, biome ci, tsc, vitest, build), `build.yml` (images to GHCR on main), path filters plus the required-check workaround, gitleaks, `composer audit`/`pnpm audit`.
 - **Acceptance:** both workflows green on the scaffold; badges in README.
 - **Depends:** M1-04
