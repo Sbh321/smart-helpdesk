@@ -12,3 +12,5 @@ ses_verified_recipients = ["you@example.com"]
 # After the first mail-init.sh run on the server: the selector and key it prints
 # stalwart_dkim_selector   = "v1-rsa-…"
 # stalwart_dkim_public_key = "MIIBIjANBg…"
+# Brevo as SMTP relay (optional): the value after "brevo-code:" in Brevo's domain records
+# brevo = { code = "…" }

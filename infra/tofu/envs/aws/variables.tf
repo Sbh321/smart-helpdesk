@@ -71,3 +71,11 @@ variable "stalwart_dkim_public_key" {
   type    = string
   default = ""
 }
+
+variable "brevo" {
+  type = object({
+    code = string
+  })
+  default     = null
+  description = "Brevo as SMTP relay: the brevo-code value Brevo shows (null: no Brevo records)."
+}

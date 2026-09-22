@@ -119,7 +119,7 @@ resource "cloudflare_dns_record" "dmarc" {
   zone_id = data.cloudflare_zone.mail.zone_id
   name    = "_dmarc.${var.platform_domain}"
   type    = "TXT"
-  content = "\"v=DMARC1; p=${var.mail_dmarc_policy}; rua=mailto:postmaster@${var.platform_domain}\""
+  content = "\"v=DMARC1; p=${var.mail_dmarc_policy}; rua=${join(",", concat(["mailto:postmaster@${var.platform_domain}"], var.brevo == null ? [] : ["mailto:rua@dmarc.brevo.com"]))}\""
   ttl     = 300
   proxied = false
   comment = "smart-helpdesk DMARC (OpenTofu)"
@@ -137,4 +137,29 @@ resource "cloudflare_dns_record" "stalwart_dkim" {
   ttl     = 300
   proxied = false
   comment = "smart-helpdesk Stalwart DKIM (OpenTofu)"
+}
+
+# ---- Brevo: an alternative SMTP relay while SES production access is pending (runbooks.md §Outbound
+# mail: relay). Set var.brevo from the records Brevo lists under Senders, Domains → Domains. ----
+
+resource "cloudflare_dns_record" "brevo_code" {
+  count   = var.brevo == null ? 0 : 1
+  zone_id = data.cloudflare_zone.mail.zone_id
+  name    = var.platform_domain
+  type    = "TXT"
+  content = "\"brevo-code:${var.brevo.code}\""
+  ttl     = 300
+  proxied = false
+  comment = "smart-helpdesk Brevo domain ownership (OpenTofu)"
+}
+
+resource "cloudflare_dns_record" "brevo_dkim" {
+  count   = var.brevo == null ? 0 : 2
+  zone_id = data.cloudflare_zone.mail.zone_id
+  name    = "brevo${count.index + 1}._domainkey.${var.platform_domain}"
+  type    = "CNAME"
+  content = "b${count.index + 1}.${replace(var.platform_domain, ".", "-")}.dkim.brevo.com"
+  ttl     = 300
+  proxied = false
+  comment = "smart-helpdesk Brevo DKIM (OpenTofu)"
 }
