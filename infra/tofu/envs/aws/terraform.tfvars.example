@@ -7,3 +7,8 @@ ssh_cidrs               = ["203.0.113.7/32"]
 region                  = "ap-south-1"
 size                    = "t3.medium"
 platform_domain         = "shp.subhambhandari.com.np"
+# SES sandbox: the addresses you may send to before production access (each gets a verification link)
+ses_verified_recipients = ["you@example.com"]
+# After the first mail-init.sh run on the server: the selector and key it prints
+# stalwart_dkim_selector   = "v1-rsa-…"
+# stalwart_dkim_public_key = "MIIBIjANBg…"

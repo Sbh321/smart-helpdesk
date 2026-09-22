@@ -114,7 +114,9 @@ Then `./infra/scripts/mail-init.sh` (it prints `remote route: 'relay'`), and tes
 
 ### Amazon SES for `shp.subhambhandari.com.np` (the AWS environment, ap-south-1)
 
-Owner steps; nothing here is automated, and nothing in the repository creates SES resources.
+**As built (2026-09-22): automated.** `infra/tofu/envs/aws/mail.tf` creates steps 1–3: the domain identity with Easy DKIM (RSA 2048) and the custom MAIL FROM `bounce.shp…`, every Cloudflare record below (DNS only), the sandbox recipients from `ses_verified_recipients`, and an IAM user limited to `ses:SendRawEmail` from `*@shp.subhambhandari.com.np` whose SMTP password OpenTofu derives (`tofu output -raw ses_smtp_username` / `ses_smtp_password`, kept in the encrypted state). Stalwart's own DKIM record follows once `stalwart_dkim_selector` and `stalwart_dkim_public_key` are set from the `mail-init.sh` output. Step 4 (production access) stays with the owner. Verified: identity `verified`, DKIM and MAIL FROM `SUCCESS`; `mail:send-test success@simulator.amazonses.com` → Stalwart logged `delivery.delivered` through the relay over STARTTLS; Stalwart uses about 160 MB on the t3.small. Two fixes found on the way: the relay secret's variant is `Value` in Stalwart 0.16 (`mail-init.sh` had `Text`, rejected as `invalidPatch`), and Debian's `exim4` held `127.0.0.1:25`, which stopped Docker publishing port 25 (the `common` role masks it when `mail_profile` is on).
+
+The manual steps below remain the reference for any other host.
 
 1. **Domain identity.** SES console, region *Asia Pacific (Mumbai) ap-south-1* (same as the VM) → *Configuration → Identities → Create identity* → *Domain* `shp.subhambhandari.com.np`, *Easy DKIM*, RSA 2048-bit, "Publish DNS records to Route 53" off. Optional but recommended: *Use a custom MAIL FROM domain* `bounce.shp.subhambhandari.com.np`, behaviour on MX failure "Use default MAIL FROM domain".
 2. **DNS in Cloudflare** (zone `subhambhandari.com.np`, every record **DNS only**, grey cloud; a proxied CNAME breaks DKIM):

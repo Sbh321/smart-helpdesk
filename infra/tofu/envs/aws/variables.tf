@@ -49,3 +49,25 @@ variable "ssh_cidrs" {
   type        = list(string)
   description = "Ranges allowed to reach SSH, e.g. [\"203.0.113.7/32\"]."
 }
+
+variable "ses_verified_recipients" {
+  type        = list(string)
+  default     = []
+  description = "Addresses SES may send to while the account is in the sandbox (each gets a verification link)."
+}
+
+variable "mail_dmarc_policy" {
+  type    = string
+  default = "none"
+}
+
+variable "stalwart_dkim_selector" {
+  type        = string
+  default     = ""
+  description = "Selector printed by infra/scripts/mail-init.sh; empty until the mail server has run once."
+}
+
+variable "stalwart_dkim_public_key" {
+  type    = string
+  default = ""
+}

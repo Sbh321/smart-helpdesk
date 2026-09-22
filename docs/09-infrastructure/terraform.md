@@ -283,3 +283,5 @@ ansible-playbook -i inventory/aws.ini deploy.yml -e @$HOME/.config/smart-helpdes
 cd ../tofu/envs/aws && tofu destroy                 # removes the VM, Elastic IP and DNS records
 ```
 
+**Mail** (`envs/aws/mail.tf`, 2026-09-22): SES domain identity with Easy DKIM and MAIL FROM `bounce.<platform domain>`, sandbox recipients (`ses_verified_recipients`), a send-only IAM user whose SES SMTP password OpenTofu derives, and the Cloudflare records MX (→ `mail.<platform domain>`), SPF `v=spf1 mx -all`, DMARC, the three SES DKIM CNAMEs, the MAIL FROM MX and SPF, and Stalwart's DKIM TXT once `stalwart_dkim_selector`/`stalwart_dkim_public_key` are set. Ansible then runs with `mail_profile: true` and `mail_relay_*` from `tofu output` (runbooks.md §Amazon SES).
+

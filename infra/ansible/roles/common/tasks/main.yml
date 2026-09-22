@@ -78,3 +78,17 @@
     value: "1"
     sysctl_file: /etc/sysctl.d/60-smart-helpdesk.conf
   when: kernel_tuning | bool
+
+# Debian pulls in exim4 (unattended-upgrades mail reports). It listens on 127.0.0.1:25, which stops
+# Docker from publishing 0.0.0.0:25 for the bundled mail server; the host needs no MTA of its own then.
+- name: Gather the installed services
+  ansible.builtin.service_facts:
+  when: mail_profile | bool
+
+- name: Stop and mask the host's own MTA when the bundled mail server owns port 25
+  ansible.builtin.systemd_service:
+    name: exim4
+    state: stopped
+    enabled: false
+    masked: true
+  when: mail_profile | bool and 'exim4.service' in ansible_facts.services

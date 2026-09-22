@@ -118,7 +118,7 @@ esac
 # MVP-SHORTCUT: IMAP on 143 accepts a password without TLS for mail:fetch-inbound, internal network only; V1: V1-ML-06.
 if [ -n "$RELAY_HOST" ]; then
   if [ -n "$RELAY_USERNAME" ]; then
-    relay_auth="\"authUsername\":\"$RELAY_USERNAME\",\"authSecret\":{\"@type\":\"Text\",\"secret\":\"$RELAY_PASSWORD\"}"
+    relay_auth="\"authUsername\":\"$RELAY_USERNAME\",\"authSecret\":{\"@type\":\"Value\",\"secret\":\"$RELAY_PASSWORD\"}"
   else
     relay_auth='"authUsername":null,"authSecret":{"@type":"None"}'
   fi
