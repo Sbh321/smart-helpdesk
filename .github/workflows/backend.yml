@@ -14,7 +14,7 @@ defaults:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30   # ~20 min with pcov coverage since M3 (1 965 tests incl. the demo replay)
 
     services:
       postgres:
