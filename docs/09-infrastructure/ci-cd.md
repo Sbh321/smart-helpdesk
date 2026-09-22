@@ -28,7 +28,7 @@ green, and the backend commands are the ones used in development.
 .github/workflows/
 ├── backend.yml      # paths: backend/**, .github/workflows/backend.yml
 ├── frontend.yml     # paths: frontend/**, backend/openapi.json (drift check), .github/workflows/frontend.yml
-├── e2e.yml          # every push to main + PRs touching backend/**, frontend/**, infra/**, compose.yaml
+├── e2e.yml          # every push to main, PRs to main, nightly (Playwright + axe against Compose)
 ├── build.yml        # on push to main and tags: build + push images to GHCR
 ├── infra.yml        # paths: infra/**: tofu fmt/validate, ansible-lint, syntax-check
 └── deploy.yml       # workflow_dispatch: environment + app_version → ansible deploy.yml
@@ -126,37 +126,19 @@ jobs:
 
 ### e2e.yml
 
-```yaml
-name: e2e
-on:
-  push: { branches: [main] }
-  pull_request: { paths: ['backend/**', 'frontend/**', 'infra/**', 'compose.yaml'] }
-jobs:
-  e2e:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-      - run: cp .env.ci .env && mkdir -p secrets && echo secret > secrets/db_owner_password && echo secret > secrets/db_app_password
-      - run: docker compose --profile storage --profile demo up -d --wait --build
-      - run: docker compose run --rm -e DB_USERNAME=helpdesk_owner app php artisan migrate --force
-      - run: docker compose exec -T app php artisan db:seed --class=DemoSeeder
-      - run: docker compose exec -T app php artisan storage:ensure-bucket
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 24, cache: pnpm, cache-dependency-path: frontend/pnpm-lock.yaml }
-      - run: pnpm -C frontend install --frozen-lockfile
-      - run: pnpm -C frontend exec playwright install --with-deps chromium
-      - run: pnpm -C frontend e2e
-        env: { BASE_URL: 'https://app.shp.localhost/acme', PLATFORM_DOMAIN: shp.localhost, CI: 'true' }
-      - if: failure()
-        run: docker compose logs --no-color > compose-logs.txt
-      - if: failure()
-        uses: actions/upload-artifact@v4
-        with: { name: e2e-artifacts, path: "frontend/playwright-report/\ncompose-logs.txt" }
-```
+As built (M3-12): [`.github/workflows/e2e.yml`](../../.github/workflows/e2e.yml), on pull requests to `main`, pushes to `main`, nightly at 20:30 UTC and by hand. It runs the stack exactly as on a workstation (the development override: backend `development` target with the checkout bind-mounted, Caddy `tls internal`, Mailpit, webhook-echo), because the demo reset refuses in production and the production image has no dev dependencies.
 
-`*.shp.localhost` resolves to loopback on the Ubuntu runner (systemd-resolved); Playwright runs with `ignoreHTTPSErrors` against Caddy's internal CA. Axe scans run inside the E2E suite (`@axe-core/playwright`) on login, ticket list, ticket detail, settings and dashboard; violations of impact `serious`/`critical` fail the job. Playwright config: `workers: 1`, `retries: 2` in CI, `trace: 'on-first-retry'`, reporters `html` + `github`.
+| Step | What |
+|---|---|
+| settings | `.env` and `backend/.env` from the examples; `PUID`/`PGID` set to the runner user (the bind mount belongs to it); random database secrets |
+| hosts | `*.shp.localhost` added to `/etc/hosts` for Node (Playwright's request contexts); Chromium resolves `*.localhost` to loopback itself |
+| images | `docker compose build app proxy` (the proxy image carries the built SPA) |
+| backend | `composer install` in a one-off `app` container (vendor cached on `composer.lock`), `key:generate`, `passport:keys` |
+| stack | `up -d --wait` with the `dev`, `storage` and `demo` profiles, `migrate` as the owner role, `storage:ensure-bucket` |
+| suite | `pnpm install`, `playwright install --with-deps chromium`, `node --test` in `tools/webhook-echo`, a curl smoke check, `pnpm e2e` (the global setup runs `demo:reset`) |
+| on failure | the HTML report, traces and screenshots (`frontend/playwright-report`, `frontend/test-results`) and `docker compose logs` as the `e2e-report` artefact; the JUnit file always |
+
+Playwright in CI: `workers: 2`, `retries: 1`, `trace: 'retain-on-failure'`, reporters `list` + `junit` + `html`; `ignoreHTTPSErrors` against Caddy's internal CA. The axe scans are part of the suite ([testing.md](../10-quality/testing.md) §End-to-end). Budget: about 5 min to build and start, 1 min for the suite; the job times out at 30 min.
 
 ### build.yml
 

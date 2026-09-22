@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Sla\Http\Controllers;
 
+use App\Modules\Audit\Audit;
 use App\Modules\Sla\Exceptions\RecordInUse;
 use App\Modules\Sla\Http\Requests\SavePolicyRequest;
 use App\Modules\Sla\Http\Resources\SlaPolicyResource;
@@ -45,6 +46,7 @@ final class SlaPolicyController
                     'resolution_minutes' => $minutes['resolution_minutes'],
                 ]);
             }
+            Audit::record('sla_policy.created', $policy, self::audited($policy->refresh()));
 
             return $policy;
         });
@@ -77,6 +79,7 @@ final class SlaPolicyController
                 $data['applies_to_tier'] = null;
                 SlaPolicy::query()->where('is_default', true)->whereKeyNot($policy->id)->update(['is_default' => false]);
             }
+            $before = self::audited($policy);
             $policy->fill($data);
             $policy->version++;
             $policy->save();
@@ -88,6 +91,14 @@ final class SlaPolicyController
                     ]);
                 }
             }
+            $after = self::audited($policy);
+            $changes = [];
+            foreach ($after as $field => $value) {
+                if ($field !== 'version' && $value !== ($before[$field] ?? null)) {
+                    $changes[$field] = ['old' => $before[$field] ?? null, 'new' => $value];
+                }
+            }
+            Audit::record('sla_policy.updated', $policy, [...$changes, 'version' => $after['version']]);
         });
 
         return new SlaPolicyResource($policy->refresh()->load('targets'));
@@ -103,8 +114,36 @@ final class SlaPolicyController
         if ($usedBy !== []) {
             throw RecordInUse::because('This SLA policy is still in use and cannot be deleted.', 'sla_policy', $usedBy);
         }
+        $snapshot = self::audited($policy);
         $policy->delete();
+        Audit::record('sla_policy.deleted', $policy, $snapshot);
 
         return response()->noContent();
+    }
+
+    /**
+     * The policy as its audit entries record it: settings and the minutes per priority.
+     *
+     * @return array<string, mixed>
+     */
+    private static function audited(SlaPolicy $policy): array
+    {
+        $targets = [];
+        foreach ($policy->targets()->orderBy('priority_level')->get() as $target) {
+            $targets[$target->priority_level->value] = [
+                'first_response_minutes' => $target->first_response_minutes,
+                'resolution_minutes' => $target->resolution_minutes,
+            ];
+        }
+
+        return [
+            'name' => $policy->name,
+            'is_default' => $policy->is_default,
+            'applies_to_tier' => $policy->applies_to_tier?->value,
+            'warning_fraction' => (string) $policy->warning_fraction,
+            'calendar_id' => $policy->calendar_id,
+            'targets' => $targets,
+            'version' => $policy->version,
+        ];
     }
 }

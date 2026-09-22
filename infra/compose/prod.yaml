@@ -14,7 +14,7 @@
 #   - `migrate`: one-shot service on the owner role (profile `ops`, run with `docker compose run --rm migrate`)
 #   - Passport signing keys and the customer certificate mounted read-only from the host
 #   - one `.env` for Compose interpolation and the backend (BACKEND_ENV_FILE=.env), secrets in ./secrets
-# Profiles: `storage` (RustFS on the host), `realtime` (Reverb), `ops` (migrate). COMPOSE_PROFILES in .env.
+# Profiles: `storage` (RustFS on the host), `realtime` (Reverb), `mail` (Stalwart), `ops` (migrate). COMPOSE_PROFILES in .env.
 
 x-logging: &logging
   driver: json-file
@@ -101,4 +101,14 @@ services:
       # a maintenance window, it is then reachable at monitor.<domain>/storage behind basic auth.
       RUSTFS_CONSOLE_ENABLE: ${RUSTFS_CONSOLE_ENABLE:-false}
     deploy: { resources: { limits: { memory: 384M, cpus: "0.5" } } }
+    logging: *logging
+
+  # Bundled mail server (profile `mail`, ADR-0018). Port 25 is published for inbound mail; submission (587),
+  # IMAP (143) and the admin/health HTTP port (8080) stay on the internal network. Outbound mail leaves
+  # directly (needs outbound port 25) or through MAIL_RELAY_HOST (production.md §Mail).
+  mail:
+    restart: unless-stopped
+    ports:
+      - "${MAIL_SMTP_PORT:-25}:25"
+    deploy: { resources: { limits: { memory: 512M, cpus: "0.5" } } }
     logging: *logging

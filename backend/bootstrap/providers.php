@@ -6,12 +6,14 @@ use App\Modules\Agents\AgentsServiceProvider;
 use App\Modules\Audit\AuditServiceProvider;
 use App\Modules\Automation\AutomationServiceProvider;
 use App\Modules\Contacts\ContactsServiceProvider;
+use App\Modules\Demo\DemoServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Integrations\IntegrationsServiceProvider;
 use App\Modules\Mail\MailServiceProvider;
 use App\Modules\Media\MediaServiceProvider;
 use App\Modules\Notifications\NotificationsServiceProvider;
 use App\Modules\Platform\PlatformServiceProvider;
+use App\Modules\Realtime\RealtimeServiceProvider;
 use App\Modules\Reporting\ReportingServiceProvider;
 use App\Modules\Sla\SlaServiceProvider;
 use App\Modules\Tenancy\TenancyServiceProvider;
@@ -25,12 +27,14 @@ return [
     AuditServiceProvider::class,
     AutomationServiceProvider::class,
     ContactsServiceProvider::class,
+    DemoServiceProvider::class,
     IdentityServiceProvider::class,
     IntegrationsServiceProvider::class,
     MailServiceProvider::class,
     MediaServiceProvider::class,
     NotificationsServiceProvider::class,
     PlatformServiceProvider::class,
+    RealtimeServiceProvider::class,
     ReportingServiceProvider::class,
     SlaServiceProvider::class,
     TenancyServiceProvider::class,

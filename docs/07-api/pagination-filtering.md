@@ -40,7 +40,7 @@ Ticket list filters:
 | `filter[has_duplicate_suggestion]` | `true` (a pending suggestion) | `EXISTS` |
 | `filter[number]` | integer | exact |
 
-Contacts: `filter[organization_id]`, `filter[tag]`, `filter[archived]`. Agents: `filter[team_id]`, `filter[skill_id]`, `filter[availability]`. Deliveries: `filter[state]`, `filter[event_type]`. Audit logs: `filter[action]`, `filter[actor_id]`, `filter[subject_type]`, `filter[created_between]`.
+Contacts: `filter[organization_id]`, `filter[tag]`, `filter[archived]`. Agents: `filter[team_id]`, `filter[skill_id]`, `filter[availability]`. Deliveries: `filter[state]`, `filter[event_type]`. Audit logs: `filter[action]` (exact or `user.*`), `filter[actor_type]`, `filter[actor_id]`, `filter[subject_type]`, `filter[subject_id]`, `filter[created_between]`.
 
 ## Search
 

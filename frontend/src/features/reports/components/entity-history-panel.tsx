@@ -11,10 +11,17 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { copy, fill } from '@/copy/en'
+import {
+  AUDIT_SUBJECT_TYPE,
+  type AuditEntry,
+  actionLabel,
+  auditChanges,
+  auditQueries,
+} from '@/features/audit'
 import { ticketQueries } from '@/features/tickets'
 import { isApiError } from '@/lib/api/errors'
 import type { components } from '@/lib/api/schema'
-import { useSession } from '@/lib/auth'
+import { useCan, useSession } from '@/lib/auth'
 import { formatInZone, isoToZonedInput, zonedInputToIso } from '@/lib/datetime/format'
 import { type EntityChange, entityQueries, HISTORY_TYPE, type OverviewEntity } from '../api/entity-queries'
 import { actorLabel, attributeLabel, formatAttributeValue, type NameLookup } from '../entity-history'
@@ -22,7 +29,7 @@ import { useRecordNames } from './use-record-names'
 
 const text = copy.entity360
 type TicketEvent = components['schemas']['TicketEventResource']
-type Source = 'all' | 'changes' | 'events'
+type Source = 'all' | 'changes' | 'events' | 'audit'
 
 interface FieldChange {
   attribute: string
@@ -35,10 +42,12 @@ interface FieldChange {
 interface TimelineItem {
   key: string
   at: string
-  source: 'changes' | 'events'
+  source: 'changes' | 'events' | 'audit'
   title: string
   actorType: string | null
   actorId: string | null
+  /** The actor's name when the API sends one (audit entries). */
+  actorName?: string | null
   fields: FieldChange[]
   note: string | null
 }
@@ -83,6 +92,26 @@ function fromEvent(event: TicketEvent): TimelineItem {
       kind: attribute in event.old_values ? 'change' : 'set',
     })),
     note: event.note,
+  }
+}
+
+/** An audit entry about this record (M3-03): its action and the recorded old → new values. */
+function fromAudit(entry: AuditEntry): TimelineItem {
+  return {
+    key: `audit-${entry.id}`,
+    at: entry.created_at,
+    source: 'audit',
+    title: fill(copy.audit.historyEntry, { action: actionLabel(entry.action) }),
+    actorType: entry.actor_type,
+    actorId: entry.actor_id,
+    actorName: entry.actor_name,
+    fields: auditChanges(entry.changes).map((line) => ({
+      attribute: line.field === '' ? 'value' : line.field,
+      from: line.old,
+      to: line.new,
+      kind: line.kind === 'change' ? 'change' : 'set',
+    })),
+    note: null,
   }
 }
 
@@ -296,8 +325,8 @@ export interface EntityHistoryPanelProps {
 /**
  * The History tab (roadmap M3-21): a unified timeline, newest first, of the record's recorded changes
  * and, for tickets, its domain events, each with the actor and old → new values in words; and the
- * as-of view with the differences from now. Emails and audit entries join when their endpoints exist
- * (M3-19, M3-03).
+ * as-of view with the differences from now. Audit entries about the record join for viewers with
+ * `audit.view` (M3-03); emails join with M3-19.
  */
 export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
   const { session } = useSession()
@@ -305,6 +334,8 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
   const timeZone = session?.tenant.timezone ?? 'UTC'
   const type = HISTORY_TYPE[entity]
   const withEvents = entity === 'tickets'
+  const auditType = AUDIT_SUBJECT_TYPE[entity]
+  const withAudit = useCan('audit.view') && auditType !== undefined
   const [source, setSource] = useState<Source>('all')
   const [at, setAt] = useState<string | undefined>(undefined)
   const names = useRecordNames()
@@ -312,6 +343,10 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
   const events = useInfiniteQuery({
     ...ticketQueries.history(tenantId, id),
     enabled: tenantId !== '' && withEvents,
+  })
+  const audit = useInfiniteQuery({
+    ...auditQueries.list(tenantId, { 'filter[subject_type]': auditType ?? '', 'filter[subject_id]': id }),
+    enabled: tenantId !== '' && withAudit,
   })
 
   if (changes.isError && forbidden(changes.error)) {
@@ -325,6 +360,9 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
     ...(withEvents
       ? [{ query: events, items: (events.data?.pages ?? []).flatMap((page) => page.data.map(fromEvent)) }]
       : []),
+    ...(withAudit
+      ? [{ query: audit, items: (audit.data?.pages ?? []).flatMap((page) => page.data.map(fromAudit)) }]
+      : []),
   ]
   const cutoff = Math.max(
     Number.NEGATIVE_INFINITY,
@@ -337,7 +375,7 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
     .filter((item) => Date.parse(item.at) >= cutoff)
     .filter((item) => source === 'all' || item.source === source)
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
-  const pending = changes.isPending || (withEvents && events.isPending)
+  const pending = changes.isPending || (withEvents && events.isPending) || (withAudit && audit.isPending)
   const failed = streams.find((stream) => stream.query.isError)?.query
   const more = streams.some((stream) => stream.query.hasNextPage)
   const fetchingMore = streams.some((stream) => stream.query.isFetchingNextPage)
@@ -353,7 +391,7 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
             </h2>
             <p className="text-sm text-muted-foreground">{text.timeline.description}</p>
           </div>
-          {withEvents ? (
+          {withEvents || withAudit ? (
             <SelectFilter
               label={text.timeline.sources}
               value={source}
@@ -362,7 +400,8 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
               options={[
                 { value: 'all', label: text.timeline.sourceAll },
                 { value: 'changes', label: text.timeline.sourceChanges },
-                { value: 'events', label: text.timeline.sourceEvents },
+                ...(withEvents ? [{ value: 'events', label: text.timeline.sourceEvents }] : []),
+                ...(withAudit ? [{ value: 'audit', label: text.timeline.sourceAudit }] : []),
               ]}
             />
           ) : null}
@@ -383,7 +422,10 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
                     <span className="font-medium">{item.title}</span>{' '}
                     <span className="text-muted-foreground">
                       {fill(text.timeline.by, {
-                        actor: actorLabel(item.actorType, item.actorId, session?.user.id, names),
+                        actor:
+                          item.actorName && item.actorId !== session?.user.id
+                            ? item.actorName
+                            : actorLabel(item.actorType, item.actorId, session?.user.id, names),
                       })}
                     </span>
                   </p>

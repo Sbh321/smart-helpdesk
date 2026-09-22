@@ -43,7 +43,7 @@ final readonly class SetUserActive
             }
         });
 
-        Audit::record($active ? 'user.enabled' : 'user.disabled', $user);
+        Audit::record($active ? 'user.enabled' : 'user.disabled', $user, ['is_active' => ['old' => ! $active, 'new' => $active]]);
 
         return $user;
     }

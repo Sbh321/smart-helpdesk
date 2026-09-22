@@ -50,13 +50,28 @@ s3_bucket: helpdesk
 s3_public_url: ""                  # presign endpoint; defaults to s3_endpoint
 # s3_key / s3_secret: from the OpenTofu inventory or vault (vault_s3_key / vault_s3_secret)
 
-# ---- Mail (production.md §Mail); log until a relay is configured ----
+# ---- Mail (production.md §Mail); log until a mail server or provider is configured ----
+# Bundled Stalwart (profile `mail`, M3-18): Laravel submits to mail:587 as app@<domain>; mail-init.sh
+# configures it and prints the DNS records. The mail_host/mail_username/mail_password below are then unused.
+mail_profile: false
+# External SMTP provider instead (mail_profile=false): MAIL_MAILER=smtp to this host.
 mail_host: ""
 mail_port: 587
 mail_username: ""
 mail_password: "{{ vault_mail_password | default('') }}"
 mail_from: "no-reply@{{ platform_domain }}"
-mail_relay_host: ""                # bundled mail server smart host (M3-18)
+# Smart host for the bundled server when outbound port 25 is blocked (AWS, GCP): e.g. Amazon SES
+# email-smtp.<region>.amazonaws.com:587 with the SES SMTP credentials (runbooks/mail-relay.md).
+mail_relay_host: ""
+mail_relay_port: 587
+mail_relay_username: ""
+mail_relay_password: "{{ vault_mail_relay_password | default('') }}"
+mail_relay_implicit_tls: false     # true for port 465
+mail_spf_include: ""               # e.g. amazonses.com with a custom MAIL FROM domain
+mail_dmarc_policy: none
+# Printed by mail-init.sh on the first run; shown in Settings → Email.
+mail_dkim_selector: ""
+mail_dkim_public_key: ""
 
 health_notify_mail: ""
 log_level: info

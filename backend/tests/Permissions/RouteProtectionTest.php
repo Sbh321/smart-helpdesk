@@ -30,6 +30,8 @@ const PERMISSION_ALLOW_LIST = [
     'notifications.index',
     'notifications.read',
     'notifications.read-all',
+    // WebSocket channel authorisation: each channel checks its own permission (Realtime\Support\Channels).
+    'realtime.auth',
 ];
 
 /** Routes that run before anyone is signed in. */

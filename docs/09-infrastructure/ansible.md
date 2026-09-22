@@ -41,7 +41,11 @@ The full list with defaults is `roles/helpdesk_defaults/defaults/main.yml`. The 
 | `platform_admin_email` | IT contact | operator |
 | `tls_mode` | `internal` or `files` (+ `tls_cert_file`, `tls_key_file` on the controller) | `acme` (or `on_demand`) |
 | `storage_profile` | `true` (RustFS on the host) | `true`, or `false` with `s3_endpoint`, `s3_bucket`, `s3_region`, `s3_key`, `s3_secret` |
-| `mail_host`, `mail_port`, `mail_username`, `mail_from` (+ `vault_mail_password`) | customer SMTP | relay; unset = `MAIL_MAILER=log` |
+| `realtime_profile` (M3-16) | optional: adds `realtime` to `COMPOSE_PROFILES` and sets `REALTIME_ENABLED=true`, `BROADCAST_CONNECTION=reverb` and the `REVERB_*` values | same; `false` on the live AWS host |
+| `mail_profile` (M3-18) | `true`: bundled Stalwart, Laravel on `mail:587`, `mail-init.sh` after the stack starts (prints the DNS records), ufw opens 25 | `true` with a relay on AWS/GCP |
+| `mail_relay_host`, `mail_relay_port`, `mail_relay_username`, `mail_relay_implicit_tls` (+ `vault_mail_relay_password`) | customer smart host if port 25 out is blocked | Amazon SES `email-smtp.ap-south-1.amazonaws.com:587` ([runbooks.md](../11-operations/runbooks.md#outbound-mail-relay-port-25-blocked)) |
+| `mail_dkim_selector`, `mail_dkim_public_key`, `mail_spf_include`, `mail_dmarc_policy` | from the first `mail-init.sh` output | same |
+| `mail_host`, `mail_port`, `mail_username`, `mail_from` (+ `vault_mail_password`) | customer SMTP when `mail_profile` is false | provider SMTP when `mail_profile` is false; unset = `MAIL_MAILER=log` |
 | `app_version`, `image_registry` or `backend_image`/`proxy_image` | release tag | release tag |
 | `image_archive` | `docker save` archive on the controller for air-gapped hosts | unset (pull from GHCR; `registry_username` + `vault_registry_password` if private) |
 | `ssh_cidrs`, `deploy_ssh_public_key` | office range | operator range |
@@ -62,7 +66,7 @@ The full list with defaults is `roles/helpdesk_defaults/defaults/main.yml`. The 
 
 `roles/app/tasks/secrets.yml` loads `host_vars/<host>.secrets.yml` next to the inventory if it exists, generates whatever is missing with `community.general.random_string`, and writes the file back (0600, controller only):
 
-`db_superuser_password`, `db_owner_password`, `db_app_password`, `db_backup_password`, `valkey_password`, `health_token`, `s3_key`, `s3_secret` (RustFS root keys), `app_key` (`base64:` + 32 random bytes), `monitor_password` and its bcrypt `monitor_password_hash`, `platform_admin_password`.
+`db_superuser_password`, `db_owner_password`, `db_app_password`, `db_backup_password`, `valkey_password`, `health_token`, `s3_key`, `s3_secret` (RustFS root keys), `app_key` (`base64:` + 32 random bytes), `monitor_password` and its bcrypt `monitor_password_hash`, `platform_admin_password`, `reverb_app_key` and `reverb_app_secret` (M3-16; generated on the next run for an existing host, used only when `realtime_profile` is true; the key is public because the SPA sends it).
 
 On the host, the four database passwords become Compose file secrets in `secrets/` (owner uid 33 = `www-data` in the backend image, group `deploy`, 0640; PostgreSQL reads them as root through `infra/postgres/entrypoint.sh`). The Passport signing key pair is generated on the host once (`openssl genrsa 4096`, same ownership) and mounted read-only into the backend containers; it is not in the secrets file, and losing it only forces API clients to request new tokens. The secrets file is the only copy of the passwords outside the host: keep it in the operator's password manager, never in git. Losing it matters most for `app_key`: a rebuilt host with a new key cannot decrypt the encrypted columns of a restored dump (webhook and API client secrets). Database passwords are recreated from the file on a fresh volume, so a dump restores under either set.
 

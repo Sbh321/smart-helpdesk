@@ -22,7 +22,11 @@ export const testConfig: RuntimeConfig = {
  * Renders the real application at a path, with the real router, query client and providers, so browser
  * tests exercise route guards and data fetching rather than a component in isolation.
  */
-export async function renderApp(path: string): Promise<{
+export async function renderApp(
+  path: string,
+  /** Runtime config overrides, e.g. `realtime` for the live-update tests (src/test/fake-echo.ts). */
+  options: { config?: Partial<RuntimeConfig> } = {},
+): Promise<{
   screen: RenderResult
   queryClient: QueryClient
   currentPath: () => string
@@ -30,12 +34,13 @@ export async function renderApp(path: string): Promise<{
   /** The router itself, for history navigation (`router.history.back()`). */
   router: ReturnType<typeof createAppRouter>
 }> {
-  initApiClient(testConfig)
+  const config: RuntimeConfig = { ...testConfig, ...options.config }
+  initApiClient(config)
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
   const router = createAppRouter(
-    { queryClient, config: testConfig },
+    { queryClient, config },
     { history: createMemoryHistory({ initialEntries: [path] }) },
   )
 

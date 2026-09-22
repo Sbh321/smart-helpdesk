@@ -15,13 +15,15 @@
         "laravel/framework": "^13.17",
         "laravel/horizon": "^5.49",
         "laravel/passport": "^13.8",
+        "laravel/reverb": "^1.11",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.35",
         "openspout/openspout": "^5.11",
         "spatie/laravel-health": "^1.40",
         "spatie/laravel-permission": "^8.3",
-        "stancl/tenancy": "^3.10"
+        "stancl/tenancy": "^3.10",
+        "webklex/laravel-imap": "^6.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

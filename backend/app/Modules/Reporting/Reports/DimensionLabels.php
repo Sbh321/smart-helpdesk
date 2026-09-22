@@ -39,6 +39,15 @@ final class DimensionLabels
         'duplicate_decision' => ['pending' => 'Pending', 'accepted' => 'Accepted', 'dismissed' => 'Dismissed'],
         'actor_type' => ['user' => 'User', 'api_client' => 'API client', 'system' => 'System', 'email' => 'Email', 'platform' => 'Platform'],
         'operation' => ['insert' => 'Created', 'update' => 'Changed', 'delete' => 'Deleted'],
+        // Inbound email (RPT-E01, M3-19).
+        'inbound_state' => ['comment' => 'Reply added', 'ticket' => 'Ticket created', 'ignored' => 'Ignored', 'unrouted' => 'Not routed', 'rejected' => 'Rejected'],
+        'inbound_route' => ['plus_address' => 'Reply address', 'thread' => 'Thread headers', 'intake' => 'Intake address'],
+        'inbound_reason' => [
+            'auto_reply' => 'Automatic reply', 'bounce' => 'Bounce', 'empty_reply' => 'Nothing new', 'sender_not_allowed' => 'Sender not allowed',
+            'tenant_mismatch' => 'Another workspace', 'unknown_sender' => 'Unknown sender', 'sender_archived' => 'Archived contact',
+            'no_category' => 'No category', 'too_large' => 'Too large', 'reopen_window_expired' => 'Follow-up (window over)',
+            'closed_as_duplicate' => 'Follow-up (duplicate)',
+        ],
         'entity_type' => [
             'sla_policies' => 'SLA policies', 'sla_targets' => 'SLA targets', 'business_calendars' => 'Business calendars',
             'calendar_holidays' => 'Calendar holidays', 'tenant_settings' => 'Workspace settings', 'categories' => 'Categories', 'skills' => 'Skills',

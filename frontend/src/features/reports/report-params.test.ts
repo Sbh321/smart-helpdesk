@@ -45,6 +45,15 @@ describe('report URL parameters', () => {
     })
   })
 
+  test('the clicked measure is kept with its drill-down and sent as the records measure', () => {
+    const params = parseReportSearch({ drill: 'P1', drill_measure: 'resolved' }, FILTERS)
+    expect(params.drillMeasure).toBe('resolved')
+    expect(toReportSearch(params, FILTERS)).toEqual({ drill: 'P1', drill_measure: 'resolved' })
+    expect(toRecordsQuery(params, 'P1', 1)).toMatchObject({ key: 'P1', measure: 'resolved' })
+    // Without a drill-down a stray measure is ignored.
+    expect(parseReportSearch({ drill_measure: 'resolved' }, FILTERS).drillMeasure).toBeUndefined()
+  })
+
   test('the records query carries the run parameters and the row key; the totals have none', () => {
     const params = parseReportSearch({ group: 'priority', team: 'a' }, FILTERS)
     expect(toRecordsQuery(params, 'P1', 2)).toEqual({

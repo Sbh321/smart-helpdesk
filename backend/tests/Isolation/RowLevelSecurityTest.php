@@ -224,6 +224,25 @@ describe('nullable tenant tables', function (): void {
         ])))->toThrow(QueryException::class, 'row-level security');
     });
 
+    it('shows unrouted inbound email only centrally and routed messages only inside their tenant', function (): void {
+        $row = fn (?string $tenantId, string $state, string $messageId): array => [
+            'id' => (string) Str::uuid7(), 'tenant_id' => $tenantId, 'message_id' => $messageId, 'state' => $state,
+            'processed_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+        ];
+        DB::table('inbound_emails')->insert($row(null, 'unrouted', 'lost@x.test'));
+        $this->acme->run(fn () => DB::table('inbound_emails')->insert($row($this->acme->id, 'ticket', 'new@x.test')));
+
+        expect(DB::table('inbound_emails')->pluck('message_id')->all())->toBe(['lost@x.test'])
+            ->and($this->acme->run(fn (): array => DB::table('inbound_emails')->pluck('message_id')->all()))->toBe(['new@x.test'])
+            ->and($this->globex->run(fn (): int => DB::table('inbound_emails')->count()))->toBe(0);
+
+        // A workspace can neither write a platform row nor claim one.
+        tenancy()->initialize($this->acme);
+        expect(fn () => DB::transaction(fn () => DB::table('inbound_emails')->insert($row(null, 'unrouted', 'forged@x.test'))))
+            ->toThrow(QueryException::class, 'row-level security')
+            ->and(DB::table('inbound_emails')->where('message_id', 'lost@x.test')->update(['state' => 'rejected']))->toBe(0);
+    });
+
     it('shows the global roles everywhere, custom roles only in their tenant, and lets no tenant change a global role', function (): void {
         $global = Role::query()->create(['name' => 'global-test-role', 'guard_name' => 'web', 'tenant_id' => null]);
         $this->acme->run(fn () => Role::query()->create(['name' => 'acme-only', 'guard_name' => 'web', 'tenant_id' => $this->acme->id]));

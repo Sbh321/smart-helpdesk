@@ -10,7 +10,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * An in-app notification of the signed-in user (bell menu). Ticket notifications name the ticket;
- * `export_ready` names the export and its file.
+ * `export_ready` names the export and its file; `inbound_email_rejected` the inbound log row (and
+ * the ticket, when the message was aimed at one).
  *
  * @mixin Notification
  */
@@ -21,7 +22,7 @@ final class NotificationResource extends JsonResource
         return [
             'id' => $this->id,
             /**
-             * @var 'ticket_assigned'|'ticket_unassignable'|'ticket_escalated'|'public_reply'|'internal_note'|'sla_warning'|'sla_breached'|'export_ready'
+             * @var 'ticket_assigned'|'ticket_unassignable'|'ticket_escalated'|'public_reply'|'internal_note'|'sla_warning'|'sla_breached'|'export_ready'|'inbound_email_rejected'
              *
              * What happened.
              */
@@ -33,6 +34,8 @@ final class NotificationResource extends JsonResource
             'export_id' => isset($this->data['export_id']) ? (string) $this->data['export_id'] : null,
             'media_id' => isset($this->data['media_id']) ? (string) $this->data['media_id'] : null,
             'file_name' => isset($this->data['file_name']) ? (string) $this->data['file_name'] : null,
+            // `inbound_email_rejected` names the log row (Settings → Email); null for every other kind.
+            'inbound_email_id' => isset($this->data['inbound_email_id']) ? (string) $this->data['inbound_email_id'] : null,
             /**
              * One line to show as is.
              *

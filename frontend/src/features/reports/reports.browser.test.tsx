@@ -82,23 +82,26 @@ test('a custom range in the URL replaces the period in the run request', async (
     .toMatchTextContent(/Custom range/)
 })
 
-test('a number in the data table drills down to the records behind it', async () => {
+test('a number in the data table drills down to the records that measure counts', async () => {
   signIn()
   const app = await renderApp('/acme/reports/rpt-t01?group=priority')
   const { screen } = app
   const table = screen.getByRole('table', { name: fill(copy.reports.tableLabel, { title: 'Ticket volume' }) })
   await expect.element(table.getByText('P1 Critical')).toBeVisible()
 
-  const drill = table.getByRole('button', { name: /: P1 Critical, / }).first()
+  const drill = table.getByRole('button', { name: /: P1 Critical, Resolved$/ })
   await drill.click()
 
   const dialog = screen.getByRole('dialog', {
-    name: fill(copy.reports.records.title, { label: 'P1 Critical' }),
+    name: fill(copy.reports.records.measureTitle, { label: 'P1 Critical', measure: 'Resolved' }),
   })
   await expect.element(dialog).toBeVisible()
-  await expect.poll(() => app.currentLocation().search).toMatchObject({ group: 'priority', drill: 'P1' })
+  await expect
+    .poll(() => app.currentLocation().search)
+    .toMatchObject({ group: 'priority', drill: 'P1', drill_measure: 'resolved' })
   const query = reportRequests.records.at(-1)
   expect(query?.get('key')).toBe('P1')
+  expect(query?.get('measure')).toBe('resolved')
   expect(query?.get('group')).toBe('priority')
   expect(query?.get('period')).toBe('last_30d')
 
@@ -111,6 +114,7 @@ test('a number in the data table drills down to the records behind it', async ()
 
   await dialog.getByRole('button', { name: 'Close' }).first().click()
   await expect.poll(() => app.currentLocation().search).not.toHaveProperty('drill')
+  expect(app.currentLocation().search).not.toHaveProperty('drill_measure')
 })
 
 test('the catalogue groups the reports and the navigation offers it with reports.view', async () => {

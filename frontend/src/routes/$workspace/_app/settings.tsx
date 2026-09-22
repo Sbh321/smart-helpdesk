@@ -17,12 +17,15 @@ type SectionPermission =
   | 'users.manage'
   | 'roles.manage'
   | 'integrations.manage'
+  | 'audit.view'
+  | 'mail.manage'
 
 const sections = [
   { slug: 'general', label: copy.workspaceSettings.general, permission: 'settings.manage' },
   { slug: 'branding', label: copy.workspaceSettings.branding, permission: 'settings.manage' },
   { slug: 'automation', label: copy.workspaceSettings.automation, permission: 'settings.manage' },
   { slug: 'tickets', label: copy.workspaceSettings.tickets, permission: 'settings.manage' },
+  { slug: 'email', label: copy.mailSettings.nav, permission: 'mail.manage' },
   { slug: 'users', label: copy.users.title, permission: 'users.manage' },
   { slug: 'roles', label: copy.roles.title, permission: 'roles.manage' },
   { slug: 'skills', label: copy.settings.skills, permission: 'agents.view' },
@@ -36,6 +39,7 @@ const sections = [
   { slug: 'media', label: copy.media.title, permission: 'media.view' },
   { slug: 'api-clients', label: copy.apiClients.nav, permission: 'integrations.manage' },
   { slug: 'webhooks', label: copy.webhooks.nav, permission: 'integrations.manage' },
+  { slug: 'audit', label: copy.audit.nav, permission: 'audit.view' },
 ] as const satisfies readonly { slug: string; label: string; permission: SectionPermission }[]
 
 function SettingsLayout() {
@@ -48,6 +52,8 @@ function SettingsLayout() {
     'users.manage': useCan('users.manage'),
     'roles.manage': useCan('roles.manage'),
     'integrations.manage': useCan('integrations.manage'),
+    'audit.view': useCan('audit.view'),
+    'mail.manage': useCan('mail.manage'),
   }
   const visible = sections.filter((section) => granted[section.permission])
 

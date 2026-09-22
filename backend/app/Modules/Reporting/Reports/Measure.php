@@ -6,7 +6,8 @@ namespace App\Modules\Reporting\Reports;
 
 /**
  * A number per group: an SQL aggregate over the report's source. `unit` tells the client how to show
- * it: count, seconds (a duration), percent (0–100), ratio or number.
+ * it: count, seconds (a duration), percent (0–100), ratio or number. A count keeps its row `condition`,
+ * so a drill-down lists only the records behind that number.
  */
 final readonly class Measure
 {
@@ -14,11 +15,12 @@ final readonly class Measure
         public string $label,
         public string $sql,
         public string $unit = 'count',
+        public ?string $condition = null,
     ) {}
 
     public static function count(string $label, ?string $condition = null): self
     {
-        return new self($label, $condition === null ? 'count(*)' : "count(*) FILTER (WHERE {$condition})");
+        return new self($label, $condition === null ? 'count(*)' : "count(*) FILTER (WHERE {$condition})", 'count', $condition);
     }
 
     public static function median(string $label, string $column, string $unit = 'seconds'): self

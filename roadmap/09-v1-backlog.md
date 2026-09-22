@@ -156,6 +156,12 @@ Items referenced by `MVP-SHORTCUT` markers written while building milestone 2.
 | V1-ML-01 | Verified tenant sending domains with per-tenant DKIM | DNS verification flow and key management | `Mail` sender identity | M |
 | V1-ML-02 | Instant inbound via Stalwart MTA hooks instead of IMAP polling | polling is simpler and adequate | inbound driver setting | S |
 | V1-ML-03 | Bounce/complaint processing and suppression list | needs DSN parsing | `inbound_emails` states | M |
+| V1-ML-04 | Process `unsubscribe+<contact>@` and one-click `List-Unsubscribe-Post` (RFC 8058) | M3-18 sends a `mailto:` header only; nothing acts on it yet | `TicketThread::applyConversation`, contact mail preferences | S |
+| V1-ML-05 | DKIM key rotation with DNS automation (Stalwart DNS provider or Cloudflare API) | `mail-init.sh` keeps one key because DNS is published by hand | Stalwart `Domain.dkimManagement`, `mail-init.sh` | S |
+| V1-ML-06 | TLS between the application and Stalwart on 587 (internal certificate) | submission stays on the Docker network; a certificate for `mail` needs an internal CA | `mail-init.sh` listener `submission`, `MAIL_SCHEME` | S |
+| V1-ML-07 | Platform-level ticket-id directory for inbound routing | `InboundRouter` asks every active workspace for a `ticket+<uuid>@` id (one indexed query each, under row-level security); fine for tens of workspaces | `Mail\Support\InboundRouter::workspaceOfTicket` | S |
+| V1-ML-08 | Read SPF/DKIM/DMARC verdicts (`Authentication-Results`) into inbound routing | M3-19 trusts the From address once the sender is a known contact; a forged From of a real contact passes | `ProcessInboundEmail`, `InboundRouter::author`, `inbound_emails.headers` | S |
+| V1-ML-09 | Retention and quota for stored inbound originals (`inbound/<id>.eml`) | M3-19 keeps every original for audit, outside the media quota, with no pruning | `ProcessInboundEmail::keepRaw`, a `mail:prune-inbound` command | S |
 | V1-MD-01 | Responsive images, image editing, video transcoding, CDN | not needed for helpdesk MVP | `variants` JSONB | L |
 | V1-MD-02 | Malware scanning of uploads (ClamAV job) | extra service | media `state` | M |
 | V1-SL-02 | Rotating rosters, leave, on-call escalation chains | workforce management | `agent_shifts` | L |

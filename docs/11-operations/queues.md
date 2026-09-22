@@ -8,7 +8,7 @@ Valkey + Horizon ([ADR-0014](../adr/0014-cache-queue-infrastructure.md)). Rule N
 |---|---|---|---|
 | `sla` | `EvaluateSlaTimers` (dispatched by `sla:evaluate`), `RunEscalationActions` | highest | must never wait behind mail |
 | `notifications` | queued Notification classes (database, mail, broadcast) | high | fan-out per recipient |
-| `broadcasts` | `BroadcastEvent` when `BROADCAST_CONNECTION=reverb` | high | tiny payloads |
+| `broadcasts` | `Realtime\Listeners\BroadcastTicketActivity` (queued after commit) when `BROADCAST_CONNECTION=reverb` and the workspace has `features.realtime` | high | connection `redis-broadcasts` (`block_for` 5 s) and its own supervisor `supervisor-broadcasts` (1 process), so a broadcast is picked up at once; `tries` 1, a failed publish is logged, not retried (M3-16) |
 | `webhooks` | `DeliverWebhook` (one per subscription × event), `RetryWebhookDeliveries` | normal | external HTTP, timeouts 10 s |
 | `default` | `RecomputeTicketPriority` batches, `ReindexDuplicateFeatures`, `SyncAgentWorkload`, `ProvisionTenant` steps, cleanup jobs | normal | |
 | `media` | `GenerateImageVariants`, `PurgeMediaItem` | normal | image processing is CPU-heavy; 1–2 processes |

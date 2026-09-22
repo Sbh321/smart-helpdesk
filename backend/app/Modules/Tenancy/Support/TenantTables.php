@@ -69,6 +69,8 @@ final class TenantTables
     /** Tables with a nullable tenant_id (platform-level rows have none). */
     public const NULLABLE = [
         'audit_logs',
+        // Inbound email log (M3-19): unrouted messages name no workspace and stay with the platform.
+        'inbound_emails',
         // Global default roles have no tenant; custom roles belong to one workspace.
         'roles',
     ];
@@ -113,7 +115,7 @@ final class TenantTables
      * too, so no connection of the application, not even `pgsql_owner`, reads across tenants.
      *
      * NOT NULL tables: rows of the session tenant only; with no tenant set, nothing.
-     * Nullable tables (`audit_logs`, `roles`): `IS NOT DISTINCT FROM`, so a tenant sees its rows and
+     * Nullable tables (`audit_logs`, `inbound_emails`, `roles`): `IS NOT DISTINCT FROM`, so a tenant sees its rows and
      * the central context (no tenant) sees and writes only the platform rows with a NULL tenant.
      * `roles` adds a read-only policy for the global default roles.
      */

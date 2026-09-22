@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Health;
 
 use App\Modules\Media\Health\StorageCheck;
+use App\Modules\Realtime\Health\ReverbCheck;
 use App\Modules\Sla\Health\SlaSweepCheck;
 use Spatie\Health\Checks\Checks\CacheCheck;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
@@ -19,7 +20,7 @@ use Spatie\Health\Facades\Health;
 
 /**
  * The dependency checks behind /v1/health (docs/11-operations/observability.md §Health checks).
- * Checks for backups, Reverb and the SLA sweep are added by the tasks that build those parts.
+ * The Reverb check runs only when Reverb is the broadcaster (M3-16).
  */
 final class HealthChecks
 {
@@ -35,6 +36,7 @@ final class HealthChecks
             QueueCheck::new()->onQueue(config('helpdesk.health.queues'))->failWhenHealthJobTakesLongerThanMinutes(5),
             ScheduleCheck::new()->heartbeatMaxAgeInMinutes(2),
             SlaSweepCheck::new(),
+            ReverbCheck::new()->if(config('broadcasting.default') === 'reverb'),
             HorizonCheck::new(),
             UsedDiskSpaceCheck::new()->warnWhenUsedSpaceIsAbovePercentage(70)->failWhenUsedSpaceIsAbovePercentage(90),
             DebugModeCheck::new()->if($production),

@@ -3,5 +3,5 @@
   "appMode": "${APP_MODE}",
   "platformDomain": "${PLATFORM_DOMAIN}",
   "storagePublicEndpoint": "${STORAGE_PUBLIC_ENDPOINT}",
-  "realtime": { "enabled": ${REALTIME_ENABLED} }
+  "realtime": { "enabled": ${REALTIME_ENABLED}, "key": "${REVERB_APP_KEY}", "host": "${REALTIME_HOST}", "path": "${REALTIME_PATH}" }
 }

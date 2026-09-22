@@ -449,6 +449,7 @@ export const NOTIFICATION_FIXTURES: NotificationResource[] = [
     export_id: null,
     media_id: null,
     file_name: null,
+    inbound_email_id: null,
     summary: 'Summary from the API',
     read_at: readAt === null ? null : String(readAt),
     created_at: String(createdAt),

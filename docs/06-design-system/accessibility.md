@@ -76,10 +76,28 @@ Shortcuts are registered in one `useShortcuts` hook from a table in `copy/shortc
 
 | Level | What |
 |---|---|
-| Automated E2E | `@axe-core/playwright` on: login, dashboard, ticket list (with data), ticket page, settings/automation, developer settings — in light and dark; CI fails on `serious`/`critical` violations |
+| Automated E2E | `@axe-core/playwright` (`frontend/e2e/accessibility.spec.ts`) on the screens in §Results — in light and dark; CI fails on `serious`/`critical` violations |
 | Component (Vitest browser) | `DataTable` sort header `aria-sort`; dialog focus return; combobox keyboard selection; `SlaBadge` live region only on state change |
 | Manual checklist (release) | keyboard-only golden path (login → create ticket → assign → reply → resolve); screen reader pass (NVDA + Firefox, VoiceOver + Safari) over the same path; 200 % zoom without horizontal scroll at 1280px; Windows High Contrast (forced-colors) sanity |
 | Lint | Biome a11y rules enabled (`useKeyWithClickEvents`, `useButtonType`, `noSvgWithoutTitle` off for decorative icons) |
+
+## Results (M3-12, 2026-09-22)
+
+axe-core 4.13 through `@axe-core/playwright` 4.13, rule tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`, on the demo dataset as Meera (Owner), each screen in the light and the dark theme after data, skeletons and animations have settled. **32 scans, 0 violations of any impact** (24–31 rules pass per screen).
+
+| Screen | Light | Dark |
+|---|---|---|
+| Sign-in | 0 | 0 |
+| Dashboard (KPI tiles, six charts) | 0 | 0 |
+| Ticket list (with data) | 0 | 0 |
+| New ticket dialog | 0 | 0 |
+| Ticket page (#1031: comments, SLA timers, attachments) | 0 | 0 |
+| Priority explanation popover | 0 | 0 |
+| Reports catalogue | 0 | 0 |
+| Settings → General, Automation, Users, Webhooks, API clients, Audit log, Email | 0 | 0 |
+| Invite user dialog, Add webhook dialog | 0 | 0 |
+
+Found and fixed by the scan: in the dark theme the placeholder of a Select inside a dialog had 4.15:1 (the control fill `bg-input/30` over `--surface-elevated`, with `--input` raised to neutral-500 for the 3:1 boundary). The dark fills of Input, Textarea, InputGroup, Select and Combobox are now `bg-input/10` (Select hover `/20`), which keeps muted text at ≥ 4.69:1 on every surface; the boundary contrast still comes from the border. Hover states other than this one, focus rings and forced-colors mode are not scanned automatically (manual checklist above).
 
 ## Known gaps (MVP)
 

@@ -98,7 +98,9 @@ app.{$PLATFORM_DOMAIN} {
 
 api.{$PLATFORM_DOMAIN} {
 	import common
-	@realtime path /app/* /apps/*
+	# Reverb WebSocket (profile `realtime`, M3-16). Only /app (the socket): the app publishes to Reverb's
+	# /apps HTTP API on the internal network, so that API is never exposed.
+	@realtime path /app/*
 	handle @realtime {
 		reverse_proxy reverb:8080
 	}

@@ -1,21 +1,16 @@
-import { expect, type Page, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { mailpitUrl as mailpit, stateFor, users } from './support/env'
 
 /**
  * M2-12 through the UI against the Compose stack: an invited user stays pending until they accept the
- * mailed link, then signs in with the role they were given. Needs the dev seed and Mailpit on the
+ * mailed link, then signs in with the role they were given. Needs the demo dataset and Mailpit on the
  * `mail` host.
  */
 
-const workspace = process.env.E2E_WORKSPACE ?? 'acme'
-const mailpit = process.env.E2E_MAILPIT ?? 'https://mail.shp.localhost'
+const workspace = users.meera.workspace
 
-async function signIn(page: Page, email: string, password: string) {
-  await page.goto(`/${workspace}/login`)
-  await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Sign in' }).click()
-  await expect(page).toHaveURL(new RegExp(`/${workspace}/?$`))
-}
+// Inviting needs users.manage: in the demo dataset that is Meera (Owner); Priya is a Manager.
+test.use({ storageState: stateFor('meera') })
 
 test('an invited user is pending until they accept, then works with the invited role', async ({
   page,
@@ -23,8 +18,6 @@ test('an invited user is pending until they accept, then works with the invited 
 }) => {
   const stamp = Date.now().toString(36)
   const email = `e2e-${stamp}@acme.test`
-  await signIn(page, process.env.E2E_EMAIL ?? 'priya@acme.test', process.env.E2E_PASSWORD ?? 'password')
-
   await page.goto(`/${workspace}/settings/users`)
   await page.getByRole('button', { name: 'Invite user' }).click()
   const dialog = page.getByRole('dialog', { name: 'Invite a user' })
@@ -53,7 +46,11 @@ test('an invited user is pending until they accept, then works with the invited 
     expect(link).toBeTruthy()
   }).toPass({ timeout: 20_000 })
 
-  const invited = await page.context().browser()?.newContext({ ignoreHTTPSErrors: true })
+  // A clean context: contexts made in a test inherit the file's storage state (Meera) otherwise.
+  const invited = await page
+    .context()
+    .browser()
+    ?.newContext({ ignoreHTTPSErrors: true, storageState: { cookies: [], origins: [] } })
   const guest = await invited?.newPage()
   if (!guest || !link) throw new Error('no browser context')
   await guest.goto(link)

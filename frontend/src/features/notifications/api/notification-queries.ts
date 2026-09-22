@@ -7,7 +7,8 @@ export type NotificationItem = components['schemas']['NotificationResource']
 
 /**
  * How often the bell asks for the unread count (roadmap M2-09: "bell count updates within 30 s").
- * MVP-SHORTCUT: polling; V1: M3-16 Reverb realtime on `tenants.{tenant}.users.{user}` (docs/03-architecture/realtime.md).
+ * Also the fallback of live updates (M3-16): `notification.created` on `tenants.{tenant}.users.{user}`
+ * refetches at once while the socket is up (docs/03-architecture/realtime.md).
  */
 export const NOTIFICATION_POLL_MS = 30_000
 

@@ -53,6 +53,20 @@ final class Recipients
     }
 
     /**
+     * Active users holding a permission, for example `mail.manage` for the workspace's mail admins.
+     *
+     * @return Collection<int, User>
+     */
+    public function withPermission(string $permission): Collection
+    {
+        try {
+            return User::permission($permission)->where('is_active', true)->get();
+        } catch (PermissionDoesNotExist) {
+            return new Collection;
+        }
+    }
+
+    /**
      * @param  Collection<int, User>  ...$groups
      * @return Collection<int, User>
      */

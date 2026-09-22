@@ -1,4 +1,4 @@
-{{ $workspaceName }} support replied to ticket #{{ $ticketNumber }}: {{ $title }}
+{{ $senderName }} replied to ticket #{{ $ticketNumber }}: {{ $title }}
 
 {!! $body !!}
 

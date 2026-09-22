@@ -52,7 +52,7 @@ Health::checks([
     ScheduleCheck::new()->heartbeatMaxAgeInMinutes(2),
     HorizonCheck::new(),
     StorageCheck::new(),            // custom: HEAD a known key on the s3 disk
-    ReverbCheck::new(),             // custom, only when REALTIME_ENABLED
+    ReverbCheck::new(),             // Realtime\Health\ReverbCheck (M3-16), only when BROADCAST_CONNECTION=reverb
     BackupsCheck::new()->onDisk('backups')->youngestBackupShouldHaveBeenMadeBefore(now()->subDay()),
     DebugModeCheck::new(),
     EnvironmentCheck::new(),

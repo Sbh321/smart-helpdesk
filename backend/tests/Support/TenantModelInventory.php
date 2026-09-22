@@ -24,6 +24,7 @@ use App\Modules\Integrations\Models\ApiClient;
 use App\Modules\Integrations\Models\IdempotencyKey;
 use App\Modules\Integrations\Models\WebhookDelivery;
 use App\Modules\Integrations\Models\WebhookSubscription;
+use App\Modules\Mail\Models\InboundEmail;
 use App\Modules\Media\Models\Mediable;
 use App\Modules\Media\Models\MediaFolder;
 use App\Modules\Media\Models\MediaItem;
@@ -126,6 +127,8 @@ final class TenantModelInventory
      */
     public const NULLABLE = [
         AuditLog::class,
+        // Unrouted inbound email names no workspace (M3-19).
+        InboundEmail::class,
         Role::class,
     ];
 

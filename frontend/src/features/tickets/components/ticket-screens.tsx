@@ -1,5 +1,17 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
+import {
+  ArrowRightLeftIcon,
+  CopyIcon,
+  FlagIcon,
+  type LucideIcon,
+  MessageSquareIcon,
+  PaperclipIcon,
+  PencilIcon,
+  PlusCircleIcon,
+  TimerIcon,
+  UserRoundIcon,
+} from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
 import { BackLink } from '@/components/shared/back-link'
 import type { DetailTab } from '@/components/shared/detail-tabs'
@@ -20,12 +32,14 @@ import { isApiError } from '@/lib/api/errors'
 import { useCan, useSession } from '@/lib/auth'
 import { formatInZone } from '@/lib/datetime/format'
 import { type Ticket, type TicketEvent, ticketQueries } from '../api/ticket-queries'
+import { groupTicketEvents, type TicketEventKind, ticketEventKind } from '../ticket-timeline'
 import { CommentsPanel } from './comments-panel'
 import { CreateTicketDialog } from './create-ticket-dialog'
 import { TicketActions } from './ticket-actions'
 import { TicketAttachmentsPanel } from './ticket-attachments-panel'
 import { TicketDuplicatesPanel } from './ticket-duplicates-panel'
 import { TicketList } from './ticket-list'
+import { TicketDetailRealtime } from './ticket-realtime'
 
 /** `/$workspace/tickets`: the list, with "New ticket" for `tickets.create`. */
 export function TicketsScreen({ workspace }: { workspace: string }) {
@@ -124,15 +138,39 @@ function TicketFacts({ ticket, timeZone }: { ticket: Ticket; timeZone: string })
   )
 }
 
+/** Own keys only (a value map is never indexed through its prototype), nested values as JSON. */
 function changes(event: TicketEvent): string[] {
-  const keys = new Set([...Object.keys(event.old_values), ...Object.keys(event.new_values)])
+  const oldValues: Record<string, unknown> = event.old_values ?? {}
+  const newValues: Record<string, unknown> = event.new_values ?? {}
+  const show = (value: unknown) =>
+    value !== null && typeof value === 'object' ? JSON.stringify(value) : String(value)
+  const keys = new Set([...Object.keys(oldValues), ...Object.keys(newValues)])
   return [...keys].map((key) => {
-    const before = event.old_values[key]
-    const after = event.new_values[key]
-    return before === undefined ? `${key}: ${String(after)}` : `${key}: ${String(before)} → ${String(after)}`
+    const after = Object.hasOwn(newValues, key) ? show(newValues[key]) : ''
+    return Object.hasOwn(oldValues, key) ? `${key}: ${show(oldValues[key])} → ${after}` : `${key}: ${after}`
   })
 }
 
+const EVENT_ICONS: Record<TicketEventKind, LucideIcon> = {
+  created: PlusCircleIcon,
+  status: ArrowRightLeftIcon,
+  priority: FlagIcon,
+  assignment: UserRoundIcon,
+  comment: MessageSquareIcon,
+  attachment: PaperclipIcon,
+  sla: TimerIcon,
+  duplicate: CopyIcon,
+  edit: PencilIcon,
+}
+
+function eventType(event: TicketEvent): string {
+  return event.type.replace(/_/g, ' ')
+}
+
+/**
+ * The ticket timeline, newest first: consecutive events by the same actor within a few minutes form one
+ * step (a creation with its priority and assignment), each event with an icon for its kind (M3-03).
+ */
 function TicketHistory({
   tenantId,
   ticketId,
@@ -156,27 +194,45 @@ function TicketHistory({
   return (
     <div className="flex flex-col gap-3">
       <ol className="flex flex-col gap-3">
-        {events.map((event) => (
-          <li key={event.id} className="rounded-lg border border-border p-3 text-sm">
-            <p className="font-medium">
-              {fill(copy.tickets.detail.event, {
-                type: event.type.replace(/_/g, ' '),
-                actor: event.actor_type === 'system' ? copy.tickets.detail.system : copy.tickets.detail.user,
-              })}
-              <span className="ml-2 font-normal text-muted-foreground">
-                {formatInZone(event.created_at, timeZone)}
-              </span>
-            </p>
-            {changes(event).length > 0 ? (
-              <ul className="mt-1 text-muted-foreground">
-                {changes(event).map((change) => (
-                  <li key={change}>{change}</li>
-                ))}
+        {groupTicketEvents(events).map((group) => {
+          const actor = group.actorType === 'system' ? copy.tickets.detail.system : copy.tickets.detail.user
+          const [newest] = group.events
+          const oldest = group.events.at(-1) ?? newest
+          const single = group.events.length === 1
+          return (
+            <li key={group.key} className="rounded-lg border border-border p-3 text-sm">
+              <p className="font-medium">
+                {single && newest
+                  ? fill(copy.tickets.detail.event, { type: eventType(newest), actor })
+                  : fill(copy.tickets.detail.eventGroup, { count: group.events.length, actor })}
+                <span className="ml-2 font-normal text-muted-foreground">
+                  {oldest ? formatInZone(oldest.created_at, timeZone) : null}
+                </span>
+              </p>
+              <ul className="mt-1 flex flex-col gap-1">
+                {group.events.map((event) => {
+                  const Icon = EVENT_ICONS[ticketEventKind(event.type)]
+                  return (
+                    <li key={event.id} className="flex gap-2">
+                      <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0">
+                        {single ? null : <p>{eventType(event)}</p>}
+                        {changes(event).length > 0 ? (
+                          <ul className="text-muted-foreground">
+                            {changes(event).map((change) => (
+                              <li key={change}>{change}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                        {event.note ? <p>{event.note}</p> : null}
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
-            ) : null}
-            {event.note ? <p className="mt-1">{event.note}</p> : null}
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ol>
       {history.isError ? (
         <ErrorState error={history.error} onRetry={() => void history.fetchNextPage()} />
@@ -278,6 +334,7 @@ export function TicketScreen({
   const current = ticket.data
   return (
     <>
+      <TicketDetailRealtime tenantId={tenantId} ticketId={current.id} />
       <PageHeader
         eyebrow={back}
         title={`${fill(copy.tickets.number, { number: current.number })} ${current.title}`}

@@ -6,7 +6,7 @@ Applies to every endpoint under `/v1`. Decisions: [ADR-0004](../adr/0004-modular
 
 | Host | Purpose | Routes |
 |---|---|---|
-| `api.{PLATFORM_DOMAIN}` (single-host mode: `/api` on the one host) | tenant API | `/v1/*`, `/oauth/token`, `/sanctum/csrf-cookie`, `/broadcasting/auth` |
+| `api.{PLATFORM_DOMAIN}` (single-host mode: `/api` on the one host) | tenant API | `/v1/*` (including `POST /v1/broadcasting/auth`, M3-16), `/oauth/token`, `/sanctum/csrf-cookie`, the Reverb socket `/app/*` |
 | `docs.{PLATFORM_DOMAIN}` | API reference | `/` (OpenAPI UI), `/openapi.json` |
 | `admin.{PLATFORM_DOMAIN}` | platform (central) API | `/platform-api/*` |
 | `monitor.{PLATFORM_DOMAIN}` | operations | `/horizon`, `/health`, `/log-viewer` |
@@ -231,8 +231,9 @@ Agent PATCH accepts partial fields, including availability alone. A manager can 
 | GET/POST/PATCH/DELETE | `/v1/calendars[/{calendar}]` (+ `/holidays`) | S | `calendars.manage` (GET: `tickets.view`) | Business calendars; active timer edits return 409 |
 | GET | `/v1/tickets/{ticket}/sla` | S | `tickets.view` | persisted timer states and deadlines |
 | GET/PUT | `/v1/agents/{agent}/shifts` | S | `shifts.manage` (own: `agents.view`) | weekly template + exceptions |
-| GET/PATCH | `/v1/settings/email` | S | `mail.manage` | sender identity, intake address, DNS records |
-| GET | `/v1/inbound-emails` | S | `mail.manage` | inbound log, cursor pagination |
+| GET/PATCH | `/v1/settings/email` | S | `mail.manage` | sender identity, intake address, DNS records; inbound switches `create_contacts`, `match_organisation_domain` (M3-19) |
+| GET | `/v1/inbound-emails` | S | `mail.manage` | inbound log, newest first, cursor pagination; `filter[state]`, `filter[ticket_id]` (M3-19) |
+| GET | `/v1/inbound-emails/{id}` | S | `mail.manage` | one message with the parsed reply, the text part and the raw headers (M3-19) |
 | POST | `/v1/tickets/bulk/assign`, `/bulk/transition` | S | `tickets.assign` / `tickets.update` | ≤ 100 distinct ids; see §Bulk actions |
 
 ### SLA and automation settings
@@ -257,7 +258,7 @@ Agent PATCH accepts partial fields, including availability alone. A manager can 
 | GET | `/v1/reports` | S | `reports.view` — catalogue filtered by the caller's permissions |
 | GET | `/v1/reports/{report}` | S | `reports.view` — definition: dimensions, measures, filters, chart |
 | POST | `/v1/reports/{report}/run` | S | `reports.view` — parameters → rows, totals, comparison |
-| GET | `/v1/reports/{report}/records` | S | `reports.view` + entity view permission — drill-down, paginated |
+| GET | `/v1/reports/{report}/records` | S | `reports.view` + entity view permission — drill-down, paginated; `measure` narrows to one count measure |
 | POST | `/v1/reports/{report}/exports` | S | `reports.export` + the report's permissions — 202 `ReportExportResource`, body `{format: csv\|xlsx, parameters}` (parameters as for the run); 10 requests/min per user |
 | POST | `/v1/exports/tickets` | S | `reports.export` + `tickets.view` — 202, body = the `GET /v1/tickets` query (`filter`, `search`, `sort`) + `format`; more than 50 000 tickets → 422 on `filter`; 10/min per user |
 | GET | `/v1/exports/{export}` | S | `reports.export`; own exports only (anyone else: 404) — `state` (`queued, running, ready, failed`), `row_count`, `error`, and when ready `media_id`, `file_name`, `download_url` (the Media download route, which signs a five-minute URL per request) |
@@ -281,7 +282,7 @@ Agent PATCH accepts partial fields, including availability alone. A manager can 
 | GET | `/v1/webhooks/{webhook}/deliveries` | S, C | `integrations.manage` — cursor feed, newest first; `filter[state]` |
 | GET | `/v1/webhook-deliveries/{delivery}` | S, C | `integrations.manage` |
 | POST | `/v1/webhook-deliveries/{delivery}/retry` | S, C | `integrations.manage` — 202; 409 `delivery_not_retryable` |
-| GET | `/v1/audit-logs` | S | `audit.view` — cursor feed |
+| GET | `/v1/audit-logs` | S | `audit.view` — cursor feed, newest first; `filter[action]` (exact or `user.*`), `filter[actor_type]`, `filter[actor_id]`, `filter[subject_type]`, `filter[subject_id]`, `filter[created_between]`; `page`, `sort`, `search` → 422; `actor_name` and `subject_name` resolved in the workspace ([audit.md](../04-domain/audit.md) §As built (M3-03)) |
 | GET | `/docs/api`, `/docs/api.json` (docs host) | S | `integrations.manage` — the API reference and its OpenAPI document ([documentation.md](documentation.md) §Access) |
 
 A route-list test asserts that every route above carries `auth` and a `can:` (or an explicit public allow-list entry) and that C-guard routes are limited to the ones marked C.

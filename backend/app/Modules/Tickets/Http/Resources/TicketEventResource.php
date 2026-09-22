@@ -23,8 +23,11 @@ final class TicketEventResource extends JsonResource
             'type' => $this->type,
             'actor_type' => $this->actor_type,
             'actor_id' => $this->actor_id,
-            'old_values' => $this->old_values,
-            'new_values' => $this->new_values,
+            // Cast to object: an empty PHP array would encode as [] and break key lookups in clients.
+            /** @var array<string, mixed> */
+            'old_values' => (object) $this->old_values,
+            /** @var array<string, mixed> */
+            'new_values' => (object) $this->new_values,
             'note' => $this->note,
             'created_at' => $this->created_at->toIso8601ZuluString('microsecond'),
         ];

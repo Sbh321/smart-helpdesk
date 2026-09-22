@@ -1,0 +1,120 @@
+name: e2e
+
+# Playwright suite and axe scans against the Compose stack (roadmap M3-12, docs/10-quality/testing.md
+# §End-to-end). The development override (compose.override.yaml) is used as on a workstation: the
+# backend image's development target with the checkout bind-mounted, Caddy's internal CA, Mailpit and
+# webhook-echo. Playwright runs on the runner; the suite's global setup replays the demo dataset.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '30 20 * * *'   # nightly, 02:15 in Kathmandu
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Workspace settings and secrets for CI
+        run: |
+          cp .env.example .env
+          # The bind-mounted checkout belongs to the runner user; the container user must match it.
+          sed -i "s/^PUID=.*/PUID=$(id -u)/; s/^PGID=.*/PGID=$(id -g)/" .env
+          cp backend/.env.example backend/.env
+          mkdir -p secrets
+          for name in db_superuser_password db_owner_password db_app_password db_backup_password; do
+            openssl rand -hex 24 > "secrets/$name"
+            chmod 600 "secrets/$name"
+          done
+
+      - name: Hosts for the Node side of Playwright (Chromium resolves *.localhost itself)
+        run: |
+          echo "127.0.0.1 shp.localhost app.shp.localhost api.shp.localhost admin.shp.localhost files.shp.localhost mail.shp.localhost monitor.shp.localhost docs.shp.localhost" | sudo tee -a /etc/hosts
+
+      - name: Build images
+        run: docker compose --profile dev --profile storage --profile demo build app proxy
+
+      - id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: vendor-dev-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+
+      - name: Backend dependencies, application key and Passport keys
+        run: |
+          run="docker compose run --rm --no-deps -T app"
+          [ "${{ steps.composer-cache.outputs.cache-hit }}" = true ] || $run composer install --no-interaction --prefer-dist --no-progress
+          $run php artisan key:generate --force --no-interaction
+          $run php artisan passport:keys --force --no-interaction
+
+      - name: Start the stack
+        run: docker compose --profile dev --profile storage --profile demo up -d --wait --wait-timeout 300
+
+      - name: Migrate and create the bucket
+        run: |
+          docker compose exec -T -e DB_CONNECTION=pgsql_owner app php artisan migrate --force --no-interaction
+          docker compose exec -T app php artisan storage:ensure-bucket
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Frontend dependencies and Chromium
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+
+      - name: webhook-echo self-test
+        working-directory: tools/webhook-echo
+        run: node --test
+
+      - name: Smoke check through the proxy
+        run: |
+          curl -fsSk -o /dev/null https://app.shp.localhost/acme/login
+          curl -fsSk https://api.shp.localhost/up > /dev/null
+
+      - name: Playwright (demo:reset in global setup)
+        working-directory: frontend
+        run: pnpm e2e
+
+      - name: Compose logs
+        if: failure()
+        run: docker compose --profile dev --profile storage --profile demo logs --no-color --timestamps > compose-logs.txt 2>&1 || true
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+            compose-logs.txt
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-junit
+          path: frontend/test-results/e2e.xml
+          if-no-files-found: ignore

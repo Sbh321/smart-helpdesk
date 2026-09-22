@@ -264,6 +264,8 @@ For AWS, GCP or Hetzner, copy `envs/reference` to `envs/<provider>`, change the 
 | DNS | Cloudflare A records, **DNS only**, TTL 300 | Cloudflare's free certificate covers one label below the zone (`*.subhambhandari.com.np`), not `app.shp.…`; Caddy on the VM obtains Let's Encrypt certificates itself (`tls_mode=acme`) |
 | Images | `ghcr.io/sbh321/smart-helpdesk-{backend,proxy}:sha-<commit>` (public packages) | the build workflow pushes `main` and `sha-<commit>` on every push to `main`; a deploy pins the commit |
 
+Mail: EC2 blocks outbound port 25, so the bundled mail server relays through Amazon SES (`mail_profile: true` plus the `mail_relay_*` variables); the SES identity, its DKIM CNAMEs in Cloudflare, SMTP credentials and the sandbox exit are owner steps in [runbooks.md §Outbound mail](../11-operations/runbooks.md#outbound-mail-relay-port-25-blocked). Nothing in `envs/aws` creates SES resources.
+
 Credentials: AWS from the CLI session (`aws login`), Cloudflare from `CLOUDFLARE_API_TOKEN` (a token limited to Zone → DNS → Edit on the parent zone), the state passphrase from `TF_VAR_state_passphrase`. Personal deploy settings (image tag, platform admin e-mail, swap) live in an extra-vars file outside the repository.
 
 ```sh

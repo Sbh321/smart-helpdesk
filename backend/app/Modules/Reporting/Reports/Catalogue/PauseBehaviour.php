@@ -111,6 +111,7 @@ final class PauseBehaviour extends SqlReport
             'pending_long' => new Measure(
                 'Tickets pending more than '.self::PENDING_HOURS.' h',
                 'count(DISTINCT p.ticket_id) FILTER (WHERE p.pending_s > '.(self::PENDING_HOURS * 3600).')',
+                condition: 'p.pending_s > '.(self::PENDING_HOURS * 3600),
             ),
         ];
     }

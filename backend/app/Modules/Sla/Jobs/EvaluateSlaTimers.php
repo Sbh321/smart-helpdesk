@@ -56,6 +56,14 @@ final class EvaluateSlaTimers implements ShouldBeUnique, ShouldQueue
     public int $uniqueFor = 90;
 
     /**
+     * @param  string|null  $tenantId  only this workspace, whatever its status, and no heartbeat: the demo
+     *                                 replay (M3-13) sweeps its own workspace, suspended while it is built so
+     *                                 the scheduler leaves it alone, under a frozen past clock; it must
+     *                                 neither visit other workspaces nor tell /health that the scheduler ran
+     */
+    public function __construct(public readonly ?string $tenantId = null) {}
+
+    /**
      * @return list<string>
      */
     public function tags(): array
@@ -73,7 +81,8 @@ final class EvaluateSlaTimers implements ShouldBeUnique, ShouldQueue
             // Row-level security shows a connection one workspace at a time, so the sweep visits every
             // active workspace rather than reading due tenant ids across all of them (M3-07). A
             // workspace with nothing due costs one query on the partial due indexes.
-            foreach (Tenant::active()->cursor() as $tenant) {
+            $tenants = $this->tenantId === null ? Tenant::active() : Tenant::query()->whereKey($this->tenantId);
+            foreach ($tenants->cursor() as $tenant) {
                 if (hrtime(true) >= $deadline) {
                     Log::warning('SLA sweep used its time budget; the next sweep continues the backlog.');
                     break;
@@ -96,7 +105,9 @@ final class EvaluateSlaTimers implements ShouldBeUnique, ShouldQueue
             // recording afterwards.
             class_exists(Telescope::class) ? Telescope::withoutRecording($sweep) : $sweep();
         } finally {
-            Cache::put(self::HEARTBEAT_KEY, $now->timestamp, 600);
+            if ($this->tenantId === null) {
+                Cache::put(self::HEARTBEAT_KEY, $now->timestamp, 600);
+            }
         }
     }
 

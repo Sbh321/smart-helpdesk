@@ -250,7 +250,8 @@ final class ApiDocsServiceProvider extends ServiceProvider
 
             if (str_ends_with($property, '_at')) {
                 $schema->format('date-time');
-            } elseif ($property === 'id' || str_ends_with($property, '_id')) {
+            } elseif ($property === 'id' || (str_ends_with($property, '_id') && $property !== 'request_id')) {
+                // `request_id` is the X-Request-Id header value, not a record key.
                 $schema->format('uuid');
             }
         }

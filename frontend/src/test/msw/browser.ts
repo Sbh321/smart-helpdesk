@@ -2,11 +2,13 @@ import { setupWorker } from 'msw/browser'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { agentHandlers } from './agents'
 import { apiClientHandlers } from './api-clients'
+import { auditHandlers, resetAudit } from './audit'
 import { contactHandlers } from './contacts'
 import { resetMockData } from './data'
 import { exportHandlers, resetExports } from './exports'
 import { handlers, TEST_API_ORIGIN } from './handlers'
 import { historyHandlers, resetHistory } from './history'
+import { mailHandlers, resetMail } from './mail'
 import { mediaHandlers, TEST_STORAGE_ORIGIN } from './media'
 import { notificationHandlers } from './notifications'
 import { reportHandlers, resetReportRequests } from './reports'
@@ -32,6 +34,8 @@ export const worker = setupWorker(
   ...agentHandlers,
   ...slaHandlers,
   ...mediaHandlers,
+  // Before settingsHandlers: /settings/email is its own endpoint, not a /settings/{section}.
+  ...mailHandlers,
   ...settingsHandlers,
   ...notificationHandlers,
   ...userHandlers,
@@ -40,6 +44,7 @@ export const worker = setupWorker(
   ...reportHandlers,
   ...historyHandlers,
   ...exportHandlers,
+  ...auditHandlers,
 )
 
 const unhandled: string[] = []
@@ -62,6 +67,8 @@ export function setupMswWorker(): typeof worker {
     resetReportRequests()
     resetHistory()
     resetExports()
+    resetAudit()
+    resetMail()
     const missed = unhandled.splice(0)
     if (missed.length > 0) throw new Error(`Requests without an MSW handler:\n${missed.join('\n')}`)
   })

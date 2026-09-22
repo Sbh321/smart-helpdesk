@@ -102,7 +102,7 @@ export const ticketQueries = {
 }
 ```
 
-Routes call `queryClient.ensureQueryData(ticketQueries.list(...))` in `loader` using validated search params; mutations invalidate by prefix `[tenantId, 'tickets']`. When Reverb is enabled, `useEcho` listeners call the same invalidations.
+Routes call `queryClient.ensureQueryData(ticketQueries.list(...))` in `loader` using validated search params; mutations invalidate by prefix `[tenantId, 'tickets']`. When Reverb is enabled, `useEcho` listeners call the same invalidations (M3-16, below).
 
 ## Tables
 
@@ -167,7 +167,23 @@ M2-09 adds `features/notifications`: `NotificationBell` (unread count polled eve
 all read, "View all") and the `/$workspace/notifications` page (unread filter, pages of 25). The shell
 may not import features, so the route passes the bell into `Topbar` through the `notifications` slot,
 as it passes the availability control through `actions`. A rise of the count after the first reading
-is announced in a polite live region. MVP-SHORTCUT: polling; V1: realtime on the user's private channel.
+is announced in a polite live region. Polling stays as the fallback of live updates (M3-16).
+
+M3-16 adds live updates ([realtime.md](realtime.md)). `lib/realtime` holds `RealtimeProvider`,
+`RealtimeSubscription`, `useRealtime` and the channel names. The provider wraps the authenticated shell in
+`routes/$workspace/_app.tsx`. It configures `@laravel/echo-react` (the Reverb connector from `pusher-js`)
+only when `config.json` has `realtime.enabled` with a key and host and the session's workspace has
+`features.realtime`; otherwise nothing connects. Features subscribe with `<RealtimeSubscription channel
+events invalidate>`, which renders nothing, joins the private channel through `useEcho` while live
+updates are on, and invalidates query-key prefixes. Events arriving within 150 ms become one refetch,
+and it refetches once more after a reconnect, because missed events are not replayed. The ticket list,
+the ticket detail (the internal-note channel only with `comments.internal`) and the bell subscribe;
+their polling intervals are unchanged. Channel authorisation posts to `/v1/broadcasting/auth` with
+the session cookie and the XSRF header. The topbar's `ConnectionIndicator` (a shell component reading
+`useRealtime`, hidden while off) shows *Live updates on*, *Connecting…*, *Reconnecting…* or *offline*
+as an icon with an accessible name and a tooltip. It announces only settled changes (2 s), so a
+flapping socket stays quiet. Browser tests swap the connector for `src/test/fake-echo.ts` through
+`overrideEchoOptionsForTests` and `renderApp(path, { config })`.
 
 M2-11 completes the ticket list. `ticketListSchema` now carries every API filter the list offers —
 status, priority, `assignee_id` (Agent ids, `unassigned`, `me`), `team_id` (ids, `none`), category, tag
@@ -252,13 +268,31 @@ short id; API client, system) and the old → new values in words (`entity-histo
 The as-of view reads a `datetime-local` value as a wall time in the workspace zone (`zonedInputToIso` in
 `lib/datetime/format.ts`), calls `/as-of`, and shows "did not exist", or the differences from now and all
 recorded fields then; each change offers "See the record just before this change". A 403 shows a
-sentence instead of an error. Emails and audit entries are not in the timeline yet: their endpoints arrive
-with M3-19 and M3-03. MSW: `src/test/msw/history.ts` (overviews for all six entities, a contact that moved
-organisation twice, an organisation with 60 changes, the as-of view as the real backward replay).
+sentence instead of an error. Emails are not in the timeline yet (M3-19). MSW: `src/test/msw/history.ts`
+(overviews for all six entities, a contact that moved organisation twice, an organisation with 60 changes,
+the as-of view as the real backward replay).
+
+M3-03 adds `features/audit`: Settings → Audit log (`AuditSettings`, route `settings/audit`, nav entry for
+`audit.view`) is the shared `DataTable` over the `GET /v1/audit-logs` cursor feed (`useInfiniteQuery`; no
+page footer, a "Load older entries" button instead; the table state is fixed at page 1 and `-created_at`).
+The filters are the URL through `useListParams(auditListSchema)` (`action`, `actor_type`, `actor_id`,
+`subject_type`, `subject_id`, `created_between`), sent as `filter[...]` without `page`, `sort` or `search`,
+which the feed refuses (`auditApiQuery`). Rows name the actor ("You", the API's `actor_name`, otherwise
+the kind and a short id), the action (`copy.audit.actions`, unknown actions humanised), the record
+(`subject_name`, otherwise its type and a short id) and the time in the workspace zone; the changes are a
+`<details>` per row whose lines come from `auditChanges` (`audit-format.ts`), which reads the three shapes
+producers record (`{field: {old, new}}`, `{old, new}` / `{before, after}` beside context, free-form
+context). `?subject_type=…&subject_id=…` shows one record's entries, with a chip to drop it. For viewers
+with `audit.view`, the History tab adds a third cursor stream, the audit entries whose subject is the record
+(`AUDIT_SUBJECT_TYPE`: tickets → `ticket`, agents → `agent_profile`, …), merged like the ticket events and
+selectable as "Audit entries only". The ticket page's own timeline (`TicketHistory`) groups consecutive
+events by the same actor within five minutes into one step and marks each event with an icon for its kind
+(`ticket-timeline.ts`: `groupTicketEvents`, `ticketEventKind`). MSW: `src/test/msw/audit.ts` (filters and
+an offset cursor like `IndexAuditLogsRequest`).
 
 ## Runtime configuration
 
-The SPA reads `/config.json` (served by Caddy from an env-templated file) at boot: `apiBaseUrl` (`https://api.shp.subhambhandari.com.np`; `/api` in single-host mode), `appMode` (`tenant` on `app`, `platform` on `admin`), `platformDomain`, `storagePublicEndpoint`, `realtime` (enabled, host, key). Nothing environment-specific is baked at build time, so one image serves every deployment.
+The SPA reads `/config.json` (served by Caddy from an env-templated file) at boot: `apiBaseUrl` (`https://api.shp.subhambhandari.com.np`; `/api` in single-host mode), `appMode` (`tenant` on `app`, `platform` on `admin`), `platformDomain`, `storagePublicEndpoint`, `realtime` (`enabled`, `key` = the public Reverb app key, `host` = `api.<domain>` or the domain, `path` = `''` or `/api` in single-host mode; M3-16). Nothing environment-specific is baked at build time, so one image serves every deployment.
 
 ## Error handling
 

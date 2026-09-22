@@ -144,11 +144,12 @@ abstract class SqlReport implements ReportDefinition
     }
 
     /**
-     * The ids behind one number (drill-down), in the report's period and filters.
+     * The ids behind one number (drill-down), in the report's period and filters; with a count measure,
+     * only the rows that measure counts (the caller checks the measure is a count of this report).
      *
      * @return array{ids: list<string>, total: int}
      */
-    public function records(ReportParameters $parameters, ?string $dimensionKey, int $page, int $perPage): array
+    public function records(ReportParameters $parameters, ?string $dimensionKey, int $page, int $perPage, ?string $measureKey = null): array
     {
         $key = $this->recordKey();
         if ($key === null) {
@@ -156,6 +157,10 @@ abstract class SqlReport implements ReportDefinition
         }
 
         [$where, $bindings] = $this->where($parameters, $parameters->from, $parameters->to);
+        $condition = $measureKey === null ? null : ($this->measures()[$measureKey]->condition ?? null);
+        if ($condition !== null) {
+            $where .= " AND ({$condition})";
+        }
         if ($dimensionKey !== null) {
             $expression = $this->dimensions()[$parameters->dimension]->sql;
             if ($dimensionKey === '-') {

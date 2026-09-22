@@ -9,7 +9,6 @@ use App\Modules\Notifications\Channels\TenantDatabaseChannel;
 use App\Modules\Notifications\Contracts\StorableNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /**
@@ -43,7 +42,8 @@ final class ExportReady extends Notification implements ShouldQueue, StorableNot
     /** @return list<string> */
     public function via(User $notifiable): array
     {
-        return [TenantDatabaseChannel::class, 'broadcast'];
+        // The bell hears about it from Realtime's NotificationSent listener (M3-16).
+        return [TenantDatabaseChannel::class];
     }
 
     /**
@@ -59,15 +59,5 @@ final class ExportReady extends Notification implements ShouldQueue, StorableNot
             'row_count' => $this->rowCount,
             'summary' => 'Your export is ready',
         ];
-    }
-
-    public function toBroadcast(User $notifiable): BroadcastMessage
-    {
-        return new BroadcastMessage($this->toArray($notifiable));
-    }
-
-    public function broadcastType(): string
-    {
-        return $this->kind();
     }
 }

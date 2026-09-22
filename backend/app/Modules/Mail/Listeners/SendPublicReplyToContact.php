@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Mail\Listeners;
 
 use App\Modules\Mail\Notifications\PublicReplyToContact;
+use App\Modules\Mail\Support\WorkspaceMailIdentity;
 use App\Modules\Tickets\Events\CommentAdded;
 use App\Modules\Tickets\Models\Ticket;
 use App\Modules\Tickets\Models\TicketComment;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Notification;
  */
 final class SendPublicReplyToContact
 {
+    public function __construct(private readonly WorkspaceMailIdentity $identity) {}
+
     public function handle(CommentAdded $event): void
     {
         if ($event->visibility !== 'public' || $event->authorType !== 'user') {
@@ -37,9 +40,13 @@ final class SendPublicReplyToContact
             ->where('created_at', '<=', $comment->created_at)
             ->count();
 
-        // MVP-SHORTCUT: the sender is the platform address with the workspace name; V1: M3-18 sender identity (/v1/settings/email).
+        // The sender is the workspace's identity (Settings → Email), resolved here where the tenant is known.
+        $identity = $this->identity->current();
+
         Notification::route('mail', [$ticket->contact->email => $ticket->contact->name])->notify(new PublicReplyToContact(
-            (string) tenant('name'),
+            $identity->workspaceName,
+            $identity->senderName(),
+            $identity->senderAddress(),
             $ticket->id,
             $ticket->number,
             $ticket->title,

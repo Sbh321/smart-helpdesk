@@ -39,6 +39,7 @@ final class ReportCatalogue
         Catalogue\BreachAnalysis::class,
         Catalogue\PauseBehaviour::class,
         Catalogue\AtRisk::class,
+        Catalogue\EmailChannel::class,
         Catalogue\MediaUsage::class,
         Catalogue\AdministrativeActivity::class,
         Catalogue\ConfigurationHistory::class,

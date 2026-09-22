@@ -6,10 +6,12 @@ export const runtimeConfigSchema = z.object({
   appMode: z.enum(['tenant', 'platform']),
   platformDomain: z.string().min(1),
   storagePublicEndpoint: z.url(),
+  /** Reverb (M3-16): the public app key, the WebSocket host and a path prefix (`/api` in single-host mode). */
   realtime: z.object({
     enabled: z.boolean(),
     host: z.string().optional(),
     key: z.string().optional(),
+    path: z.string().optional(),
   }),
 })
 

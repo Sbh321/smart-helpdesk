@@ -97,6 +97,41 @@ Only available when `APP_ENV != production`. Takes under a minute; rehearse befo
 - **Fix**: correct DNS/firewall; Caddy retries automatically; for customer-provided certificates replace files in `certs/` and `docker compose exec proxy caddy reload --config /etc/caddy/Caddyfile`; for `tls internal` roots that expired (10 years, unlikely) re-trust the new root.
 - **Prevention**: `caddy-data` volume persisted and backed up, uptime monitor with TLS expiry check for all eight hosts.
 
+## Outbound mail: relay (port 25 blocked)
+
+Cloud providers block **outbound** port 25 (AWS EC2 by default, GCP always, many VPS hosts): Stalwart then cannot reach the recipients' MX hosts, messages stay in its queue and its log shows `delivery.connect` timeouts to port 25. The fix is a smart host on 587. The application does not change: Laravel still submits to `mail:587`, Stalwart still signs with the platform's DKIM key and then hands every remote message to the relay ([production.md §Mail](../09-infrastructure/production.md#mail)).
+
+```ini
+# .env on the server (Ansible: mail_relay_host, mail_relay_port, mail_relay_username, vault_mail_relay_password)
+MAIL_RELAY_HOST=email-smtp.ap-south-1.amazonaws.com
+MAIL_RELAY_PORT=587
+MAIL_RELAY_USERNAME=AKIA…                 # SES SMTP user name (not the IAM access key of a person)
+MAIL_RELAY_PASSWORD=…                     # SES SMTP password
+MAIL_RELAY_IMPLICIT_TLS=false             # STARTTLS on 587; true only for port 465
+```
+
+Then `./infra/scripts/mail-init.sh` (it prints `remote route: 'relay'`), and test with `docker compose exec app php artisan mail:send-test you@gmail.com --workspace=Demo`. Any SMTP relay works the same way (Postmark, Brevo, Mailgun, the customer's Exchange); Mailpit is the development relay.
+
+### Amazon SES for `shp.subhambhandari.com.np` (the AWS environment, ap-south-1)
+
+Owner steps; nothing here is automated, and nothing in the repository creates SES resources.
+
+1. **Domain identity.** SES console, region *Asia Pacific (Mumbai) ap-south-1* (same as the VM) → *Configuration → Identities → Create identity* → *Domain* `shp.subhambhandari.com.np`, *Easy DKIM*, RSA 2048-bit, "Publish DNS records to Route 53" off. Optional but recommended: *Use a custom MAIL FROM domain* `bounce.shp.subhambhandari.com.np`, behaviour on MX failure "Use default MAIL FROM domain".
+2. **DNS in Cloudflare** (zone `subhambhandari.com.np`, every record **DNS only**, grey cloud; a proxied CNAME breaks DKIM):
+   - the three CNAMEs SES shows: `<token>._domainkey.shp` → `<token>.dkim.amazonses.com` (×3);
+   - custom MAIL FROM: MX `bounce.shp` → `10 feedback-smtp.ap-south-1.amazonses.com`, TXT `bounce.shp` → `v=spf1 include:amazonses.com ~all`;
+   - the platform's own records from `mail-init.sh` (production.md §DNS): MX `shp` → `10 mail.shp.subhambhandari.com.np`, TXT `shp` → `v=spf1 mx -all`, TXT `<selector>._domainkey.shp` → Stalwart's DKIM key, TXT `_dmarc.shp` → `v=DMARC1; p=none; rua=mailto:postmaster@shp.subhambhandari.com.np`.
+   Wait until the identity shows *Verified* and *DKIM: Successful* (minutes to an hour).
+3. **SMTP credentials.** *SMTP settings → Create SMTP credentials*: SES creates an IAM user limited to `ses:SendRawEmail` and shows the SMTP user name and password once. Put them in the vault (`vault_mail_relay_password`) and the inventory (`mail_relay_username`). The password may contain `+`, `/` and `=`; `mail-init.sh` accepts those.
+4. **Sandbox.** A new SES account can send only to verified addresses (200 a day). For the first test, verify your own mailbox (*Create identity → Email address*) and send to it. Then *Account dashboard → Request production access*: mail type *Transactional*, website `https://shp.subhambhandari.com.np`, use case "helpdesk notifications and replies to support requests of workspaces on this platform; recipients are users and the contacts who opened a request; bounces and complaints are monitored in SES and the platform's inbound mailbox", and confirm you only send to addresses that asked for a reply. AWS answers within about a day.
+5. **Apply.** `ansible-playbook -i inventory/aws.ini site.yml -e @…/aws-vars.yml` with `mail_profile: true` and the relay variables (or edit `.env` and run `./infra/scripts/mail-init.sh` on the server), then add the two `MAIL_DKIM_*` lines it prints (`mail_dkim_selector`, `mail_dkim_public_key` in Ansible).
+6. **Verify at Gmail.** `docker compose exec app php artisan mail:send-test you@gmail.com --workspace=Demo`; in Gmail *⋮ → Show original*: `SPF: PASS` (for `bounce.shp…` with a custom MAIL FROM, otherwise for `amazonses.com`), `DKIM: 'PASS' with domain shp.subhambhandari.com.np` (Stalwart's signature and SES's Easy DKIM signature both carry `d=shp.subhambhandari.com.np`), `DMARC: 'PASS'`. Reply to the message: it goes to `ticket+…@shp.subhambhandari.com.np`, arrives on port 25 of the VM and lands in the `inbound` mailbox (Stalwart logs `queue.message-queued … to = ["inbound@…"]`, then a `local` delivery).
+
+The alternative to a relay on AWS is the *Request to remove email sending limitations* form (EC2 port 25, together with a reverse DNS record `mail.shp.subhambhandari.com.np` for the Elastic IP); then leave `MAIL_RELAY_HOST` empty and add a PTR. A relay is simpler and gives better deliverability from a fresh IP.
+
+- **Diagnosis**: `docker compose logs mail | grep -E 'delivery\.|queue\.'`; queued messages: `docker compose run --rm -T mail-cli query QueuedMessage` (with `MAIL_ADMIN_PASSWORD` in `.env`); a relay that refuses the credentials shows up as an authentication error on the `delivery.*` lines; SES in the sandbox answers `554 Message rejected: Email address is not verified`.
+- **Prevention**: SES reputation dashboard and bounce/complaint notifications (V1-ML-03 processes them in the application); keep `MAIL_DMARC_POLICY=none` until the DMARC reports look clean, then `quarantine`.
+
 ## Drill log
 
 | Date | Drill | Duration | Outcome / issues |

@@ -83,10 +83,4 @@ class User extends Authenticatable
             'preferences' => 'array',
         ];
     }
-
-    /** Private realtime channel of this user (docs/03-architecture/realtime.md). */
-    public function receivesBroadcastNotificationsOn(): string
-    {
-        return "tenants.{$this->tenant_id}.users.{$this->id}";
-    }
 }

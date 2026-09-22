@@ -20,6 +20,8 @@ export interface RecordsDialogProps {
   rowKey: string | undefined
   /** The row's label, when the run is loaded. */
   rowLabel: string | undefined
+  /** The clicked count measure's label; `undefined` for the whole row. */
+  measureLabel?: string | undefined
   onPage: (page: number) => void
   onClose: () => void
 }
@@ -99,6 +101,7 @@ export function RecordsDialog({
   params,
   rowKey,
   rowLabel,
+  measureLabel,
   onPage,
   onClose,
 }: RecordsDialogProps) {
@@ -114,7 +117,9 @@ export function RecordsDialog({
   const title =
     rowKey === ALL_RECORDS || rowKey === undefined
       ? text.totalTitle
-      : fill(text.title, { label: rowLabel ?? rowKey })
+      : measureLabel !== undefined
+        ? fill(text.measureTitle, { label: rowLabel ?? rowKey, measure: measureLabel })
+        : fill(text.title, { label: rowLabel ?? rowKey })
 
   return (
     <Dialog

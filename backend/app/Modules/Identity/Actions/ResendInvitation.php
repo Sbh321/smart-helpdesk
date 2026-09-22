@@ -33,7 +33,7 @@ final readonly class ResendInvitation
             return $this->invite->issue($user, $actor, $latest === null ? [] : $latest->role_names);
         });
 
-        Audit::record('user.invitation_resent', $user);
+        Audit::record('user.invitation_resent', $user, ['email' => $user->email, 'roles' => $invitation->role_names]);
 
         return $invitation;
     }

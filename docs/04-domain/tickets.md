@@ -65,7 +65,7 @@ Transition rules are encoded in one place, `Modules/Tickets/Domain/TicketStatus.
 | `duplicate_of_id` | FK self, nullable | |
 | `first_responded_at`, `resolved_at`, `closed_at`, `last_customer_reply_at`, `last_agent_reply_at` | timestamptz | metrics + SLA |
 | `search_vector` | tsvector generated | title + description ([08-database/indexing.md](../08-database/indexing.md)) |
-| `created_by_user_id`, `created_via` | | `ui`, `api`, `seed` |
+| `created_by_user_id`, `created_via` | | `ui`, `api`, `email` (inbound email, M3-19), `seed` |
 | `created_at`, `updated_at` | | |
 
 Related tables: `ticket_comments` (with `visibility` = `public` \| `internal`), media items linked through `mediables` ([media.md](media.md)), `ticket_tags` (pivot), `ticket_assignments` (history of assignments with reason and explanation JSONB), `ticket_events` (history: type, actor, old/new values JSONB), `ticket_duplicate_suggestions` (ticket_id, candidate_id, score, breakdown, decision), `ticket_sla_timers` ([sla.md](sla.md)).

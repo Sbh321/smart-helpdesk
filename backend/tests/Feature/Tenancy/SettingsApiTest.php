@@ -21,7 +21,7 @@ it('lists every section with code defaults and version 0 before any write', func
 
     expect(array_column($sections, 'section'))->toBe([
         'automation.assignment', 'automation.duplicates', 'automation.priority',
-        'branding', 'features', 'general', 'shifts', 'sla', 'tickets',
+        'branding', 'email', 'features', 'general', 'shifts', 'sla', 'tickets',
     ])->and(array_unique(array_column($sections, 'version')))->toBe([0]);
 
     $this->getJson('/v1/settings/automation.priority')->assertOk()

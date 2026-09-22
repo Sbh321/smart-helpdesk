@@ -60,6 +60,18 @@ dataset('role matrix', [
     'agent cannot list webhooks' => [PermissionCatalogue::AGENT, 'get', '/v1/webhooks', 403],
     'agent cannot create webhooks' => [PermissionCatalogue::AGENT, 'post', '/v1/webhooks', 403],
     'agent cannot read the webhook events' => [PermissionCatalogue::AGENT, 'get', '/v1/webhooks/events', 403],
+    // Audit log (M3-03): audit.view for owner and admin only.
+    'owner reads the audit log' => [PermissionCatalogue::OWNER, 'get', '/v1/audit-logs', 200],
+    'admin reads the audit log' => [PermissionCatalogue::ADMIN, 'get', '/v1/audit-logs', 200],
+    'manager cannot read the audit log' => [PermissionCatalogue::MANAGER, 'get', '/v1/audit-logs', 403],
+    'agent cannot read the audit log' => [PermissionCatalogue::AGENT, 'get', '/v1/audit-logs', 403],
+    'developer cannot read the audit log' => [PermissionCatalogue::DEVELOPER, 'get', '/v1/audit-logs', 403],
+    // Inbound email log (M3-19): mail.manage for owner and admin only.
+    'owner reads the inbound email log' => [PermissionCatalogue::OWNER, 'get', '/v1/inbound-emails', 200],
+    'admin reads the inbound email log' => [PermissionCatalogue::ADMIN, 'get', '/v1/inbound-emails', 200],
+    'manager cannot read the inbound email log' => [PermissionCatalogue::MANAGER, 'get', '/v1/inbound-emails', 403],
+    'agent cannot read the inbound email log' => [PermissionCatalogue::AGENT, 'get', '/v1/inbound-emails', 403],
+    'developer cannot read the inbound email log' => [PermissionCatalogue::DEVELOPER, 'get', '/v1/inbound-emails', 403],
 ]);
 
 it('answers each role and route with the expected status', function (string $role, string $method, string $path, int $expected): void {

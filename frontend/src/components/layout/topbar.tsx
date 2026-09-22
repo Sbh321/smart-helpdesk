@@ -16,6 +16,7 @@ import { copy } from '@/copy/en'
 import { useSession } from '@/lib/auth'
 import { Breadcrumbs } from './breadcrumbs'
 import { CommandPalette } from './command-palette'
+import { ConnectionIndicator } from './connection-indicator'
 
 function initials(name: string): string {
   return (
@@ -29,7 +30,8 @@ function initials(name: string): string {
 }
 
 /**
- * The `header` landmark: breadcrumbs on the left, palette, bell, theme and account menu on the right.
+ * The `header` landmark: breadcrumbs on the left, palette, live-update status, bell, theme and account
+ * menu on the right.
  * `actions` and `notifications` are slots the route fills with feature-owned controls (the Agent
  * availability control, the notification bell): the shell may not import features.
  */
@@ -50,6 +52,7 @@ export function Topbar({
       <div className="flex items-center gap-2">
         {actions}
         <CommandPalette workspace={workspace} />
+        <ConnectionIndicator />
         {notifications}
         <ThemeToggle />
         <DropdownMenu>

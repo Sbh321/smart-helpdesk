@@ -63,12 +63,14 @@ final readonly class RecordAuditLog
      */
     private function currentActor(): array
     {
-        // Platform admins pass their actor explicitly; API clients are the `api` guard's principal.
+        // API clients are the `api` guard's principal; on platform routes `auth:platform` makes the
+        // platform guard the default, so its user is a Platform Super Admin, not a workspace user.
         $user = $this->auth->guard()->user();
 
         return match (true) {
             $user === null => [ActorType::System, null],
             $user instanceof ApiClientPrincipal => [ActorType::ApiClient, $user->clientId()],
+            config('auth.defaults.guard') === 'platform' => [ActorType::PlatformUser, (string) $user->getAuthIdentifier()],
             default => [ActorType::User, (string) $user->getAuthIdentifier()],
         };
     }

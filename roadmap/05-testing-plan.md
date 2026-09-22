@@ -61,7 +61,7 @@ Tests are written inside the task that adds the behaviour, never as a separate "
 
 ## End-to-end scenarios (Playwright)
 
-Run against the `demo` profile after `just demo-reset`; each scenario is independent and logs in fresh.
+Run against the `demo` profile after `just demo-reset`; each scenario is independent and logs in fresh. As built (M3-12): the suite's global setup runs the reset and signs each user in once (storage state, because of the login throttle); the spec-to-scenario map, timings and what was not automated are in [testing.md](../docs/10-quality/testing.md) §End-to-end.
 
 | # | Scenario | Steps | Asserts |
 |---|---|---|---|

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Notifications;
 
 use App\Modules\Automation\Events\NoEligibleAgent;
+use App\Modules\Mail\Events\InboundEmailProcessed;
 use App\Modules\Notifications\Listeners\SendExportNotifications;
+use App\Modules\Notifications\Listeners\SendInboundEmailNotifications;
 use App\Modules\Notifications\Listeners\SendTicketNotifications;
 use App\Modules\Reporting\Events\ReportExportReady;
 use App\Modules\Sla\Events\SlaBreached;
@@ -31,5 +33,6 @@ final class NotificationsServiceProvider extends ModuleServiceProvider
         Event::listen(PriorityChanged::class, [SendTicketNotifications::class, 'priorityChanged']);
         Event::listen(NoEligibleAgent::class, [SendTicketNotifications::class, 'unassignable']);
         Event::listen(ReportExportReady::class, [SendExportNotifications::class, 'ready']);
+        Event::listen(InboundEmailProcessed::class, [SendInboundEmailNotifications::class, 'processed']);
     }
 }

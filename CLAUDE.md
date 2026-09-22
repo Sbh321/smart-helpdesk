@@ -31,3 +31,22 @@ One developer steering coding agents on four parallel tracks, one-week sprint MV
 ## Vocabulary (never substitute)
 
 Tenant · Workspace (UI name of a tenant) · Platform Super Admin · Media item · Business calendar · Shift · Inbound email · User · Role · Permission · Agent · Contact · Organisation · Ticket · Status (`open, assigned, in_progress, pending, resolved, closed`) · Priority (P1–P4) · Category · Skill · Team · Assignment · Comment (public reply / internal note) · SLA policy / timer · Webhook subscription / delivery · API client · MVP (never "prototype").
+
+## Agent execution policy
+
+Do not delegate work to subagents.
+
+Perform all investigation, planning, implementation, testing, debugging,
+and verification directly in the main conversation.
+
+Work sequentially when necessary. Prefer slower completion and lower total
+token usage over parallel execution.
+
+Do not attempt to spawn background agents or use the Agent/Task tool.
+
+For large tasks:
+1. Break the task into internal sequential steps.
+2. Work through those steps in the main agent.
+3. Preserve context between steps.
+4. Run tests and verification directly.
+5. Continue until the requested task is complete.

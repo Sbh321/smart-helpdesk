@@ -144,3 +144,31 @@ it('keeps other workspaces out of the ticket reports', function (): void {
         ->where('created_at', '>=', $this->from)->where('created_at', '<', $this->to)
         ->whereRaw("old_values ->> 'status' <> new_values ->> 'status'")->count());
 });
+
+it('drills into the records one count measure counts, not the whole row (RPT-T01)', function (): void {
+    $data = $this->postJson('/v1/reports/rpt-t01/run', [...$this->period, 'group' => 'priority'])->assertOk()->json('data');
+    $row = collect($data['rows'])->first(fn (array $r): bool => $r['values']['resolved'] > 0 && $r['values']['created'] !== $r['values']['resolved']);
+    expect($row)->not->toBeNull();
+
+    $records = fn (array $query): array => $this->getJson('/v1/reports/rpt-t01/records?'.http_build_query([...$this->period, 'group' => 'priority', 'key' => $row['key'], ...$query]))
+        ->assertOk()->json();
+
+    // Each ticket is created once, so the created drill-down matches the number exactly.
+    expect($records(['measure' => 'created'])['meta']['total'])->toBe($row['values']['created']);
+
+    $resolvedIds = DB::table('ticket_events')->where('ticket_events.tenant_id', $this->tenant->id)
+        ->where('ticket_events.created_at', '>=', $this->from)->where('ticket_events.created_at', '<', $this->to)
+        ->where('ticket_events.type', 'status_changed')->whereRaw("ticket_events.new_values ->> 'status' = 'resolved'")
+        ->join('report_ticket_facts as f', fn ($join) => $join->on('f.ticket_id', '=', 'ticket_events.ticket_id')->on('f.tenant_id', '=', 'ticket_events.tenant_id'))
+        ->where('f.priority_level', $row['key'])->distinct()->pluck('ticket_events.ticket_id')->sort()->values()->all();
+    $resolved = $records(['measure' => 'resolved']);
+
+    expect($resolved['meta']['total'])->toBe(count($resolvedIds))
+        ->and(collect($resolved['data'])->pluck('id')->sort()->values()->all())->toBe($resolvedIds)
+        ->and($records([])['meta']['total'])->toBeGreaterThan($resolved['meta']['total']);
+});
+
+it('refuses a drill-down measure that is not a count of the report', function (string $measure): void {
+    $this->getJson('/v1/reports/rpt-t01/records?'.http_build_query([...$this->period, 'measure' => $measure]))
+        ->assertUnprocessable()->assertJsonPath('code', 'validation_failed');
+})->with(['number measure' => 'net_change', 'unknown measure' => 'nope']);

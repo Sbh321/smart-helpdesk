@@ -29,5 +29,59 @@ A small, purpose-built `AuditLogger` action plus one table is preferred over `sp
 | Writing | `Audit::record($action, $subject, $changes, $tenantId, $actorType, $actorId)` calls the `RecordAuditLog` action |
 | Defaults | actor from the current guard (`user`), otherwise `system`; tenant from tenancy when initialised; IP, user agent and `request_id` from the request; time from `Clock` |
 | Subject type | snake-case class name, for example `ticket` or `role` |
-| Not yet | the tenant foreign key and tenant scoping (M1-06), `platform_user` and `client` actors from their guards (M1-07, M3), the viewer API |
+| Not yet | the tenant foreign key and tenant scoping (M1-06), `platform_user` and `client` actors from their guards (M1-07, M3), the viewer API — all done by M3-03, see below |
 
+
+## As built (M3-03)
+
+**Viewer API.** `GET /v1/audit-logs` (`can:audit.view`: owner and admin; SPA session only, no API client
+scope reaches it). A cursor feed, newest first on `(created_at, id)`, `per_page` 1–100 (default 25);
+`page`, `sort` and `search` answer 422. Filters (comma lists, OR within a filter, AND across):
+`filter[action]` (exact, or `user.*` for every action of a subject), `filter[actor_type]`
+(`user, api_client, system, platform_user`), `filter[actor_id]`, `filter[subject_type]`,
+`filter[subject_id]`, `filter[created_between]` (`YYYY-MM-DD,YYYY-MM-DD` in the workspace zone,
+inclusive). The query names the workspace (`tenant_id = current`), and the nullable-tenant row-level
+security policy hides platform entries as well, so another workspace's rows and platform rows (NULL
+tenant) never appear. `AuditLogResource` over the typed view `AuditEntryView` (entry, `actor_name`,
+`subject_name`): names come from one query per record type on the page (`Audit\Queries\AuditNames`,
+users, API clients, roles, webhooks, SLA policies, tickets as `#number`, contacts, organisations, teams,
+categories, skills, Agents), inside the workspace; a deleted record has no name.
+
+**Actor types.** `user` (web or Sanctum guard), `api_client` (`api` guard), `platform_user` (any write on a
+platform route: `auth:platform` makes the platform guard the default; before M3-03 these were recorded as
+`user`), `system` (no authenticated actor, or passed explicitly by jobs such as the webhook auto-disable).
+
+**Changes.** Three shapes, which the SPA reads alike (`features/audit/audit-format.ts`): `{field: {old, new}}`
+for a state change, `{old: …, new: …}` or `{before: …, after: …}` beside context (a settings section, a
+version), and free-form context (`{email, roles}`). Every audited action records something.
+
+**Coverage.** `tests/Feature/Audit/AuditCoverageTest.php` performs each action below through its API (the
+automatic webhook disable through the action the delivery job calls) and asserts one row with the actor
+type, the subject and non-empty changes; platform actions also assert a NULL tenant.
+
+| Action | Written by | Actor in the test | Changed in M3-03 |
+|---|---|---|---|
+| `user.invited` | `InviteUser` | user | — |
+| `user.invitation_resent` | `ResendInvitation` | user | changes were empty; now `{email, roles}` |
+| `user.role_changed` | `ChangeUserRoles` | user | — |
+| `user.disabled`, `user.enabled` | `SetUserActive` | user | changes were empty; now `{is_active: {old, new}}` |
+| `settings.updated` (any section, incl. priority, assignment and duplicate weights) | `Settings::update` | user | — |
+| `role.created`, `role.permissions_changed` | `RoleController` | user | — |
+| `role.deleted` | `RoleController` | user | changes were empty; now `{name, permissions}` |
+| `api_client.created`, `api_client.revoked` | `CreateApiClient`, `RevokeApiClient` | user | — |
+| `webhook.created`, `webhook.updated`, `webhook.disabled` | `SaveWebhookSubscription`, `SetWebhookActive` | user; api_client; system (auto-disable) | — |
+| `sla_policy.updated` | `SlaPolicyController` | user | **was not written**; now `sla_policy.created`, `.updated` (`{field: {old, new}}` + `version`) and `.deleted` (a snapshot) |
+| `tenant.created` | `ProvisionTenant` | platform_user | actor was recorded as `user` |
+| `tenant.suspended`, `tenant.reactivated` | `ChangeTenantStatus` | platform_user | actor was `user`; changes now `{status: {old, new}}` (+ `reason`) |
+| `ticket.priority_overridden` | `OverrideTicketPriority` | user | — |
+| `attachment.downloaded` | — | — | not written (Could; volume concern), unchanged |
+
+Also written, outside the list above: `user.invitation_accepted`, `user.logged_in`, `user.login_failed`,
+`user.logged_out`, `user.password_reset` (security.md §Audit), `webhook.enabled`, `webhook.secret_rotated`,
+`webhook.deleted`, `contact.created`, `contact.archived`, `contact.unarchived`, `agent.created`,
+`agent.profile_changed`, `agent.shifts_changed`, `team.members_changed`, `tenant.updated`,
+`platform_user.created`, `platform_user.logged_in`.
+
+**Viewer.** Settings → Audit log in the SPA (`features/audit`), and audit entries in the History tab of a
+record for viewers with `audit.view` ([frontend.md](../03-architecture/frontend.md) §M3-03). Platform
+entries have no viewer in the SPA yet (`/platform-api/audit-logs` stays planned).

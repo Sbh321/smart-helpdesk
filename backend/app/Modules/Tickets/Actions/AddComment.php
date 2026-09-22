@@ -17,6 +17,7 @@ use App\Modules\Tickets\Models\TicketComment;
 use App\Modules\Tickets\Models\TicketEvent;
 use App\Support\Time\Clock;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 final readonly class AddComment
 {
@@ -25,16 +26,27 @@ final readonly class AddComment
         private AttachMedia $attachMedia,
     ) {}
 
-    /** @param list<string> $mediaIds */
-    public function __invoke(Ticket $ticket, string $body, string $visibility, string $authorType, User $actor, array $mediaIds = []): TicketComment
+    /**
+     * `$actor` is null only for a requester's reply that arrived by email (`authorType` contact,
+     * M3-19): the history then names the system as the actor and the comment names the contact.
+     * `$authorContactId` names that contact when it is not the requester (a colleague in the same
+     * organisation); by default a contact comment is the requester's.
+     *
+     * @param  list<string>  $mediaIds
+     */
+    public function __invoke(Ticket $ticket, string $body, string $visibility, string $authorType, ?User $actor, array $mediaIds = [], ?string $authorContactId = null): TicketComment
     {
-        return DB::transaction(function () use ($ticket, $body, $visibility, $authorType, $actor, $mediaIds): TicketComment {
+        if ($actor === null && $authorType !== 'contact') {
+            throw new LogicException('Only a requester\'s comment may be recorded without a user.');
+        }
+
+        return DB::transaction(function () use ($ticket, $body, $visibility, $authorType, $actor, $mediaIds, $authorContactId): TicketComment {
             $locked = Ticket::query()->whereKey($ticket->id)->lockForUpdate()->firstOrFail();
             $now = $this->clock->now();
             $comment = $locked->comments()->create([
                 'visibility' => $visibility,
                 'author_type' => $authorType,
-                'author_id' => $authorType === 'contact' ? $locked->contact_id : $actor->id,
+                'author_id' => $authorType === 'contact' ? ($authorContactId ?? $locked->contact_id) : $actor?->id,
                 'body' => $body,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -81,14 +93,14 @@ final readonly class AddComment
                     'created_at' => $now,
                 ]);
                 event(new TicketLifecycleChanged($locked->tenant_id, $locked->id, TicketStatus::Pending->value, TicketStatus::InProgress->value));
-                event(new TicketStatusChanged($locked->tenant_id, $locked->id, $actor->id, TicketStatus::Pending->value, TicketStatus::InProgress->value));
+                event(new TicketStatusChanged($locked->tenant_id, $locked->id, $actor?->id, TicketStatus::Pending->value, TicketStatus::InProgress->value));
             }
 
             TicketEvent::query()->create([
                 'ticket_id' => $locked->id,
                 'type' => 'comment_added',
-                'actor_type' => 'user',
-                'actor_id' => $actor->id,
+                'actor_type' => $actor === null ? 'system' : 'user',
+                'actor_id' => $actor?->id,
                 'old_values' => [],
                 'new_values' => ['comment_id' => $comment->id, 'visibility' => $visibility, 'author_type' => $authorType],
                 'note' => null,

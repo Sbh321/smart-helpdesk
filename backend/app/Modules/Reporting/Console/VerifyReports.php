@@ -106,8 +106,9 @@ final class VerifyReports extends Command
         if (is_bool($value)) {
             return $value ? 1 : 0;
         }
+        // As floats: a stored agent load of 0 reads back as int 0, the fresh one is round(0 / capacity, 4) = 0.0.
         if (is_numeric($value)) {
-            return $value + 0;
+            return (float) $value;
         }
 
         return $value;

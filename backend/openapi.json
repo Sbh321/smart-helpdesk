@@ -16,6 +16,9 @@
             "name": "Agents"
         },
         {
+            "name": "Audit"
+        },
+        {
             "name": "Tickets"
         },
         {
@@ -43,6 +46,9 @@
             "name": "Webhooks"
         },
         {
+            "name": "Settings"
+        },
+        {
             "name": "Media"
         },
         {
@@ -56,9 +62,6 @@
         },
         {
             "name": "SLA"
-        },
-        {
-            "name": "Settings"
         }
     ],
     "security": [
@@ -1927,6 +1930,214 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
+        "/audit-logs": {
+            "get": {
+                "operationId": "audit-logs.index",
+                "description": "Newest first, cursor-paginated (default 25, at most 100 a page).\n\nRequires permission `audit.view`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "List audit entries",
+                "tags": [
+                    "Audit"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "filter[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 500
+                        }
+                    },
+                    {
+                        "name": "filter[action]",
+                        "in": "query",
+                        "description": "Actions, comma-separated: exact (`user.invited`) or every action of a subject (`user.*`).",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[actor_type]",
+                        "in": "query",
+                        "description": "Actor types, comma-separated: user, api_client, system, platform_user.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[actor_id]",
+                        "in": "query",
+                        "description": "Actor ids (user or API client), comma-separated.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[subject_type]",
+                        "in": "query",
+                        "description": "Subject types, comma-separated, for example `user`, `role`, `webhook_subscription`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[subject_id]",
+                        "in": "query",
+                        "description": "Subject ids, comma-separated.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[created_between]",
+                        "in": "query",
+                        "description": "`YYYY-MM-DD,YYYY-MM-DD` in the workspace time zone, inclusive.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `AuditLogResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AuditLogResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "The \"cursor\" that points to the next set of items."
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "The \"cursor\" that points to the previous set of items."
+                                                }
+                                            },
+                                            "required": [
+                                                "path",
+                                                "per_page",
+                                                "next_cursor",
+                                                "prev_cursor"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "403": {
                         "$ref": "#/components/responses/AuthorizationException"
@@ -5982,6 +6193,14 @@
                         }
                     },
                     {
+                        "name": "measure",
+                        "in": "query",
+                        "description": "A count measure of the report: only the records it counts (omitted: every record of the row).",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "page",
                         "in": "query",
                         "description": "One-based page number.",
@@ -7768,6 +7987,355 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
+        "/settings/email": {
+            "get": {
+                "operationId": "settings.email.show",
+                "description": "The workspace's sender identity, intake address and the DNS records of the mail domain.\n\nRequires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Email settings",
+                "tags": [
+                    "Settings"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`EmailSettingsResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EmailSettingsResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            },
+            "patch": {
+                "operationId": "settings.email.update",
+                "description": "Changes the display name on mail to contacts and the inbound rules for unknown senders; send only\nthe fields to change. Stored in the `email` settings section: the write bumps the settings\nversion and is audited as `settings.updated`.\n\nRequires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Update email settings",
+                "tags": [
+                    "Settings"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateEmailSettingsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`EmailSettingsResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EmailSettingsResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
+        "/inbound-emails": {
+            "get": {
+                "operationId": "inbound-emails.index",
+                "description": "Newest first, cursor-paginated (default 25, at most 100 a page).\n\nRequires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "List inbound email",
+                "tags": [
+                    "Settings"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "filter[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 500
+                        }
+                    },
+                    {
+                        "name": "filter[state]",
+                        "in": "query",
+                        "description": "States, comma-separated: comment, ticket, ignored, unrouted, rejected.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[ticket_id]",
+                        "in": "query",
+                        "description": "Messages routed to these tickets, comma-separated ids.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `InboundEmailResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/InboundEmailResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "The \"cursor\" that points to the next set of items."
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "The \"cursor\" that points to the previous set of items."
+                                                }
+                                            },
+                                            "required": [
+                                                "path",
+                                                "per_page",
+                                                "next_cursor",
+                                                "prev_cursor"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
+        "/inbound-emails/{inboundEmail}": {
+            "get": {
+                "operationId": "inbound-emails.show",
+                "description": "The log row with the parsed reply, the text part and the raw headers.\n\nRequires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Show an inbound email",
+                "tags": [
+                    "Settings"
+                ],
+                "parameters": [
+                    {
+                        "name": "inboundEmail",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`InboundEmailDetailResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/InboundEmailDetailResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "403": {
                         "$ref": "#/components/responses/AuthorizationException"
@@ -11950,6 +12518,62 @@
                 "security": []
             }
         },
+        "/broadcasting/auth": {
+            "post": {
+                "operationId": "realtime.auth",
+                "description": "Called by the SPA's WebSocket client (Echo) before it joins a private channel. The channel's\nworkspace must be the session's; the ticket channels need `tickets.view` and a ticket of the\nworkspace, the internal-note channel also `comments.internal`, a user channel is its owner's\nonly. 404 when this installation runs without Reverb (the SPA then polls).\n\nSPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Authorise a live-update channel",
+                "tags": [
+                    "ChannelAuthorization"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthorizeChannelRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`ChannelAuthorizationResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChannelAuthorizationResource"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
         "/oauth/token": {
             "post": {
                 "operationId": "oauth.token",
@@ -12125,6 +12749,16 @@
                     "password_confirmation"
                 ],
                 "title": "AcceptInvitationRequest"
+            },
+            "ActorType": {
+                "type": "string",
+                "enum": [
+                    "user",
+                    "platform_user",
+                    "api_client",
+                    "system"
+                ],
+                "title": "ActorType"
             },
             "AddCommentRequest": {
                 "type": "object",
@@ -12731,6 +13365,7 @@
                         "enum": [
                             "ui",
                             "api",
+                            "email",
                             "seed"
                         ]
                     },
@@ -12939,6 +13574,117 @@
                     "excluded"
                 ],
                 "title": "AssignmentPreviewResource"
+            },
+            "AuditLogResource": {
+                "type": "object",
+                "description": "One audit entry (docs/04-domain/audit.md): who (`actor_type`, `actor_id`, and `actor_name` when the actor is a user or API client of this workspace), did what (`action`) to which record (`subject_type`, `subject_id`, `subject_name` when it still exists), and the recorded `changes`: `{field: {old, new}}`, `{old: {\u2026}, new: {\u2026}}`, `{before: \u2026, after: \u2026}` or free-form context.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "action": {
+                        "type": "string"
+                    },
+                    "actor_type": {
+                        "$ref": "#/components/schemas/ActorType"
+                    },
+                    "actor_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "actor_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "subject_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "subject_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "subject_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "changes": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    },
+                    "ip_address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "user_agent": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "request_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "action",
+                    "actor_type",
+                    "actor_id",
+                    "actor_name",
+                    "subject_type",
+                    "subject_id",
+                    "subject_name",
+                    "changes",
+                    "ip_address",
+                    "user_agent",
+                    "request_id",
+                    "created_at"
+                ],
+                "title": "AuditLogResource"
+            },
+            "AuthorizeChannelRequest": {
+                "type": "object",
+                "description": "What Echo (pusher-js) sends to authorise a private channel.",
+                "properties": {
+                    "socket_id": {
+                        "type": "string",
+                        "description": "The Pusher socket id of this browser connection, e.g. `123456.7890123`.",
+                        "pattern": "^\\d+\\.\\d+$"
+                    },
+                    "channel_name": {
+                        "type": "string",
+                        "description": "`private-tenants.{tenant}.tickets`, `\u2026tickets.{ticket}`, `\u2026tickets.{ticket}.internal`, `\u2026users.{user}`.",
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "socket_id",
+                    "channel_name"
+                ],
+                "title": "AuthorizeChannelRequest"
             },
             "AvailableUserResource": {
                 "type": "object",
@@ -13210,6 +13956,20 @@
                     "sort_order"
                 ],
                 "title": "CategoryResource"
+            },
+            "ChannelAuthorizationResource": {
+                "type": "object",
+                "description": "The Pusher-protocol signature for one private channel, unwrapped because pusher-js reads `auth` at the top level. Wraps no model.",
+                "properties": {
+                    "auth": {
+                        "type": "string",
+                        "description": "`<app key>:<HMAC-SHA256 of \"socket_id:channel_name\">`."
+                    }
+                },
+                "required": [
+                    "auth"
+                ],
+                "title": "ChannelAuthorizationResource"
             },
             "ContactRequest": {
                 "type": "object",
@@ -13565,6 +14325,40 @@
                 ],
                 "title": "DeliveryState"
             },
+            "DnsRecordResource": {
+                "type": "object",
+                "description": "A DNS record the operator publishes for the mail domain.",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "MX",
+                            "TXT"
+                        ]
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "purpose": {
+                        "type": "string"
+                    },
+                    "ready": {
+                        "type": "boolean",
+                        "description": "False while a value is unknown (the DKIM key before mail-init.sh has run)."
+                    }
+                },
+                "required": [
+                    "type",
+                    "name",
+                    "value",
+                    "purpose",
+                    "ready"
+                ],
+                "title": "DnsRecordResource"
+            },
             "DuplicatePreviewMatchResource": {
                 "type": "object",
                 "description": "One possible duplicate found while a ticket is being written.",
@@ -13713,6 +14507,96 @@
                     "created_at"
                 ],
                 "title": "DuplicateSuggestionResource"
+            },
+            "EmailSettingsResource": {
+                "type": "object",
+                "description": "Settings \u2192 Email: the workspace's sender identity, intake address and the mail domain's DNS records.",
+                "properties": {
+                    "sender_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The stored display name; null uses `default_sender_name`."
+                    },
+                    "default_sender_name": {
+                        "type": "string"
+                    },
+                    "create_contacts": {
+                        "type": "boolean",
+                        "description": "Mail from an unknown sender to the intake address creates a contact; false rejects it."
+                    },
+                    "match_organisation_domain": {
+                        "type": "boolean",
+                        "description": "A contact created from email joins the organisation whose domain matches its address."
+                    },
+                    "from": {
+                        "type": "object",
+                        "description": "The From of mail to contacts.",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "address": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "address"
+                        ]
+                    },
+                    "platform_from": {
+                        "type": "object",
+                        "description": "The From of invitations and notifications to agents.",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "address": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "address"
+                        ]
+                    },
+                    "intake_address": {
+                        "type": "string",
+                        "description": "Mail to this address becomes a ticket (inbound email)."
+                    },
+                    "reply_to_pattern": {
+                        "type": "string",
+                        "description": "Reply-To of ticket mail; a reply lands on the ticket."
+                    },
+                    "mail_domain": {
+                        "type": "string"
+                    },
+                    "dns_records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DnsRecordResource"
+                        }
+                    },
+                    "version": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "sender_name",
+                    "default_sender_name",
+                    "create_contacts",
+                    "match_organisation_domain",
+                    "from",
+                    "platform_from",
+                    "intake_address",
+                    "reply_to_pattern",
+                    "mail_domain",
+                    "dns_records",
+                    "version"
+                ],
+                "title": "EmailSettingsResource"
             },
             "EntityChangeResource": {
                 "type": "object",
@@ -13891,6 +14775,394 @@
                     "email"
                 ],
                 "title": "ForgotPasswordRequest"
+            },
+            "InboundEmailDetailResource": {
+                "type": "object",
+                "description": "One inbound message with its text: the parsed reply, the full text part and the raw headers. The HTML part is not returned; the text is what the helpdesk used.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "state": {
+                        "type": "string",
+                        "description": "What became of the message.",
+                        "enum": [
+                            "comment",
+                            "ticket",
+                            "ignored",
+                            "unrouted",
+                            "rejected"
+                        ]
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Why: `auto_reply`, `bounce`, `empty_reply`, `sender_not_allowed`, `tenant_mismatch`,\n`unknown_sender`, `sender_archived`, `no_category`, `too_large`, `reopen_window_expired`,\n`closed_as_duplicate`; null when nothing needs explaining."
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The rule that found the target.",
+                        "enum": [
+                            "plus_address",
+                            "thread",
+                            "intake",
+                            null
+                        ]
+                    },
+                    "from": {
+                        "type": "object",
+                        "properties": {
+                            "address": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "address",
+                            "name"
+                        ]
+                    },
+                    "to": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "cc": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "subject": {
+                        "type": "string"
+                    },
+                    "message_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "ticket": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "number": {
+                                "type": "integer"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "number",
+                            "title"
+                        ]
+                    },
+                    "comment_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "contact_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "description": "Files the message carried; `skipped` says why one was not stored (`type_not_allowed`,\n`too_large`, `empty`, `quota_exceeded`, `storage_failed`, `limit`, `inline`, `not_stored`).",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "size": {
+                                    "type": "integer"
+                                },
+                                "media_id": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "skipped": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "size",
+                                "media_id",
+                                "skipped"
+                            ]
+                        }
+                    },
+                    "sent_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "processed_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "reply_text": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The new text of the reply after quotes and signature were cut (ReplyParser)."
+                    },
+                    "text_body": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "headers": {
+                        "type": "object",
+                        "description": "Raw header values by lower-case name, as received.",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "raw_size": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "state",
+                    "reason",
+                    "route",
+                    "from",
+                    "to",
+                    "cc",
+                    "subject",
+                    "message_id",
+                    "ticket",
+                    "comment_id",
+                    "contact_id",
+                    "attachments",
+                    "sent_at",
+                    "processed_at",
+                    "reply_text",
+                    "text_body",
+                    "headers",
+                    "raw_size"
+                ],
+                "title": "InboundEmailDetailResource"
+            },
+            "InboundEmailResource": {
+                "type": "object",
+                "description": "One row of the inbound log (Settings \u2192 Email): who wrote, to which address, and what became of it.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "state": {
+                        "type": "string",
+                        "description": "What became of the message.",
+                        "enum": [
+                            "comment",
+                            "ticket",
+                            "ignored",
+                            "unrouted",
+                            "rejected"
+                        ]
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Why: `auto_reply`, `bounce`, `empty_reply`, `sender_not_allowed`, `tenant_mismatch`,\n`unknown_sender`, `sender_archived`, `no_category`, `too_large`, `reopen_window_expired`,\n`closed_as_duplicate`; null when nothing needs explaining."
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The rule that found the target.",
+                        "enum": [
+                            "plus_address",
+                            "thread",
+                            "intake",
+                            null
+                        ]
+                    },
+                    "from": {
+                        "type": "object",
+                        "properties": {
+                            "address": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "address",
+                            "name"
+                        ]
+                    },
+                    "to": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "cc": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "subject": {
+                        "type": "string"
+                    },
+                    "message_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "ticket": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "number": {
+                                "type": "integer"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "number",
+                            "title"
+                        ]
+                    },
+                    "comment_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "contact_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "description": "Files the message carried; `skipped` says why one was not stored (`type_not_allowed`,\n`too_large`, `empty`, `quota_exceeded`, `storage_failed`, `limit`, `inline`, `not_stored`).",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "size": {
+                                    "type": "integer"
+                                },
+                                "media_id": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "skipped": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "size",
+                                "media_id",
+                                "skipped"
+                            ]
+                        }
+                    },
+                    "sent_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "processed_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "state",
+                    "reason",
+                    "route",
+                    "from",
+                    "to",
+                    "cc",
+                    "subject",
+                    "message_id",
+                    "ticket",
+                    "comment_id",
+                    "contact_id",
+                    "attachments",
+                    "sent_at",
+                    "processed_at"
+                ],
+                "title": "InboundEmailResource"
             },
             "InviteUserRequest": {
                 "type": "object",
@@ -14326,7 +15598,7 @@
             },
             "NotificationResource": {
                 "type": "object",
-                "description": "An in-app notification of the signed-in user (bell menu). Ticket notifications name the ticket; `export_ready` names the export and its file.",
+                "description": "An in-app notification of the signed-in user (bell menu). Ticket notifications name the ticket; `export_ready` names the export and its file; `inbound_email_rejected` the inbound log row (and the ticket, when the message was aimed at one).",
                 "properties": {
                     "id": {
                         "type": "string",
@@ -14343,7 +15615,8 @@
                             "internal_note",
                             "sla_warning",
                             "sla_breached",
-                            "export_ready"
+                            "export_ready",
+                            "inbound_email_rejected"
                         ]
                     },
                     "ticket_id": {
@@ -14386,6 +15659,14 @@
                             "null"
                         ]
                     },
+                    "inbound_email_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid",
+                        "description": "`inbound_email_rejected` names the log row (Settings \u2192 Email); null for every other kind."
+                    },
                     "summary": {
                         "type": "string",
                         "description": "One line to show as is.",
@@ -14414,6 +15695,7 @@
                     "export_id",
                     "media_id",
                     "file_name",
+                    "inbound_email_id",
                     "summary",
                     "read_at",
                     "created_at"
@@ -16513,6 +17795,7 @@
                         "enum": [
                             "ui",
                             "api",
+                            "email",
                             "seed"
                         ]
                     },
@@ -16871,6 +18154,28 @@
                     }
                 },
                 "title": "UpdateAgentRequest"
+            },
+            "UpdateEmailSettingsRequest": {
+                "type": "object",
+                "properties": {
+                    "sender_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Display name on mail to contacts; null or empty restores \"<Workspace> Support\".",
+                        "maxLength": 80
+                    },
+                    "create_contacts": {
+                        "type": "boolean",
+                        "description": "Mail from an unknown sender to the intake address creates a contact (false: it is rejected)."
+                    },
+                    "match_organisation_domain": {
+                        "type": "boolean",
+                        "description": "A contact created from email joins the organisation whose domain matches its address."
+                    }
+                },
+                "title": "UpdateEmailSettingsRequest"
             },
             "UpdateMediaFolderRequest": {
                 "type": "object",

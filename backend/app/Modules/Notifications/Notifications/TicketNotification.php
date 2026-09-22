@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Modules\Notifications\Notifications;
 
 use App\Models\User;
+use App\Modules\Mail\Support\TicketThread;
 use App\Modules\Notifications\Channels\TenantDatabaseChannel;
 use App\Modules\Notifications\Contracts\StorableNotification;
+use App\Support\Mail\PlatformSender;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Symfony\Component\Mime\Email;
 
 /**
  * Base of the notifications about a ticket (docs/04-domain/notifications.md). A subclass names its
@@ -54,7 +56,8 @@ abstract class TicketNotification extends Notification implements ShouldQueue, S
     /** @return list<string> */
     final public function via(User $notifiable): array
     {
-        return [TenantDatabaseChannel::class, 'broadcast', ...($this->mailed() ? ['mail'] : [])];
+        // No `broadcast` channel: Realtime announces the stored row on the user's channel (M3-16).
+        return [TenantDatabaseChannel::class, ...($this->mailed() ? ['mail'] : [])];
     }
 
     /**
@@ -71,23 +74,17 @@ abstract class TicketNotification extends Notification implements ShouldQueue, S
         ];
     }
 
-    final public function toBroadcast(User $notifiable): BroadcastMessage
-    {
-        return new BroadcastMessage($this->toArray($notifiable));
-    }
-
-    /** `ticket_assigned` on the wire instead of the class name. */
-    final public function broadcastType(): string
-    {
-        return $this->kind();
-    }
-
     final public function toMail(User $notifiable): MailMessage
     {
         $url = sprintf('https://%s/%s/tickets/%s', config('helpdesk.hosts.app'), $this->workspaceSlug, $this->ticketId);
 
+        $sender = PlatformSender::onBehalfOf($this->workspaceName);
+        $thread = TicketThread::for($this->ticketId);
+
         // MVP-SHORTCUT: workspace name only; the logo needs a public URL; V1: V1-NT-02.
         return (new MailMessage)
+            ->from($sender->address, $sender->name)
+            ->withSymfonyMessage(fn (Email $message) => $thread->applyNotification($message->getHeaders()))
             ->subject(sprintf('[%s] #%d %s', $this->workspaceName, $this->ticketNumber, $this->summary()))
             ->greeting($this->summary())
             ->line(sprintf('#%d %s', $this->ticketNumber, $this->ticketTitle))

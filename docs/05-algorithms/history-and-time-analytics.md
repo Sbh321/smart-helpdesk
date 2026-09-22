@@ -85,7 +85,10 @@ registering the table — fails. Decisions:
   going away in the same statement.
 - **Precision and order.** `occurred_at` is `timestamptz(6)` from `clock_timestamp()` (the real clock,
   so changes inside one transaction keep their order); `version` comes from `max(version) + 1` per
-  `(entity_type, entity_id)` and the unique index turns a concurrent race into a retry.
+  `(entity_type, entity_id)` and the unique index turns a concurrent race into a retry. Since M3-13 a
+  session that sets `app.occurred_at` gets that instant instead (migration
+  `2026_09_21_190000_change_capture_replay_time`): only the demo replay does, moving it forward with its
+  frozen clock so the seeded history has past instants; it clears the setting when it ends.
 - **Append-only.** The runtime role keeps `INSERT` (through the trigger) and `SELECT`; `UPDATE`,
   `DELETE` and `TRUNCATE` are revoked. Reads go through `App\Modules\Reporting\Models\EntityChange`
   (tenant-scoped, `changedAttributes()` because Eloquent already has a `$changes` property) and

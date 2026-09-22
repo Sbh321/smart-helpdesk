@@ -1,4 +1,5 @@
-# Optional tools selected by profile (included from compose.yaml).
+# Optional tools selected by profile (included from compose.yaml). The E2E suite runs Playwright on the
+# host or CI runner (pnpm -C frontend e2e), so there is no playwright service.
 services:
   mailpit:
     image: ${MAILPIT_IMAGE:-ghcr.io/axllent/mailpit:v1.31.1}
@@ -17,15 +18,18 @@ services:
   # Development receiver for outbound webhooks (docs/07-api/webhooks.md, tools/webhook-echo):
   # verifies the signature and the 5-minute window with the documented snippet and prints each
   # delivery (`docker compose logs -f webhook-echo`). Subscribe to http://webhook-echo:9100/hook;
-  # `webhook-echo` must be in WEBHOOK_DEV_ALLOWED_HOSTS (backend/.env). Set WEBHOOK_ECHO_SECRET
-  # to the secret shown when the subscription was created, then `docker compose up -d webhook-echo`.
+  # `webhook-echo` must be in WEBHOOK_DEV_ALLOWED_HOSTS (backend/.env). The default secret is the one
+  # the demo seed gives its subscriptions (DEMO_WEBHOOK_SECRET, M3-13); for a subscription made by hand
+  # set WEBHOOK_ECHO_SECRET to the secret shown at creation, then `docker compose up -d webhook-echo`, or
+  # give its path its own secret: PUT http://127.0.0.1:9100/_echo/receivers/<name> {"secret": "…"} for
+  # deliveries to /hook/<name> (tools/webhook-echo/echo.mjs; the E2E suite does this).
   webhook-echo:
     image: ${NODE_IMAGE:-node:24-alpine}
     profiles: [dev, demo]
     working_dir: /srv/webhook-echo
     command: ["node", "server.mjs"]
     environment:
-      WEBHOOK_ECHO_SECRET: ${WEBHOOK_ECHO_SECRET:-}
+      WEBHOOK_ECHO_SECRET: ${WEBHOOK_ECHO_SECRET:-ZGVtby13ZWJob29rLXNlY3JldC1kZXYtb25seS0wMDE=}
       WEBHOOK_ECHO_STATUS: ${WEBHOOK_ECHO_STATUS:-}
       WEBHOOK_ECHO_PORT: "9100"
     volumes:

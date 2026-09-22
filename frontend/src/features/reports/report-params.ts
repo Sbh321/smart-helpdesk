@@ -7,7 +7,8 @@ import { z } from 'zod'
  *
  * Reserved keys: `period`, `from` + `to` (a custom range, `YYYY-MM-DD`, inclusive; it wins over
  * `period`), `compare=previous`, `group`, `chart` (the measure the chart shows), `drill` (the row key whose
- * records are open; `*` for the whole period) and `drill_page`. Any other key is a report filter, a comma
+ * records are open; `*` for the whole period), `drill_measure` (the count measure clicked; absent: the whole row)
+ * and `drill_page`. Any other key is a report filter, a comma
  * list as on the API (`filter[team]=a,b`).
  */
 export const PERIODS = [
@@ -26,7 +27,17 @@ export const DEFAULT_PERIOD: Period = 'last_30d'
 /** The drill-down key of "the whole period" (the API's records endpoint without `key`). */
 export const ALL_RECORDS = '*'
 
-const RESERVED = ['period', 'from', 'to', 'compare', 'group', 'chart', 'drill', 'drill_page'] as const
+const RESERVED = [
+  'period',
+  'from',
+  'to',
+  'compare',
+  'group',
+  'chart',
+  'drill',
+  'drill_measure',
+  'drill_page',
+] as const
 
 export interface ReportParams {
   period: Period
@@ -39,6 +50,8 @@ export interface ReportParams {
   chart: string | undefined
   filters: Record<string, string[]>
   drill: string | undefined
+  /** The count measure whose records are open; `undefined`: every record of the row. */
+  drillMeasure?: string | undefined
   drillPage: number
 }
 
@@ -84,6 +97,7 @@ export const reportSearchSchema = z.looseObject({
   group: z.preprocess(toText, z.string().min(1).max(50)).optional().catch(undefined),
   chart: z.preprocess(toText, z.string().min(1).max(50)).optional().catch(undefined),
   drill: z.preprocess(toText, z.string().min(1).max(200)).optional().catch(undefined),
+  drill_measure: z.preprocess(toText, z.string().min(1).max(50)).optional().catch(undefined),
   drill_page: z.coerce.number().int().min(1).max(10_000).optional().catch(undefined),
 })
 
@@ -110,6 +124,7 @@ export function parseReportSearch(raw: Record<string, unknown>, filterKeys: read
     chart: search.chart,
     filters,
     drill: search.drill,
+    drillMeasure: search.drill !== undefined ? search.drill_measure : undefined,
     drillPage: search.drill_page ?? 1,
   }
 }
@@ -142,6 +157,7 @@ export function toReportSearch(
   }
   if (params.drill !== undefined) {
     next.drill = params.drill
+    if (params.drillMeasure !== undefined) next.drill_measure = params.drillMeasure
     if (params.drillPage > 1) next.drill_page = params.drillPage
   }
   return next
@@ -182,6 +198,7 @@ export function toRecordsQuery(
   group?: string
   filter?: Record<string, string>
   key?: string
+  measure?: string
   page: number
 } {
   const filter = filterInput(params)
@@ -190,6 +207,7 @@ export function toRecordsQuery(
     ...(params.group !== undefined ? { group: params.group } : {}),
     ...(filter ? { filter } : {}),
     ...(rowKey !== ALL_RECORDS ? { key: rowKey } : {}),
+    ...(params.drillMeasure !== undefined ? { measure: params.drillMeasure } : {}),
     page,
   }
 }

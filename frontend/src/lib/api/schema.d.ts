@@ -304,6 +304,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List audit entries
+         * @description Newest first, cursor-paginated (default 25, at most 100 a page).
+         *
+         *     Requires permission `audit.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["audit-logs.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/logout": {
         parameters: {
             query?: never;
@@ -1599,6 +1621,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Email settings
+         * @description The workspace's sender identity, intake address and the DNS records of the mail domain.
+         *
+         *     Requires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["settings.email.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update email settings
+         * @description Changes the display name on mail to contacts and the inbound rules for unknown senders; send only
+         *     the fields to change. Stored in the `email` settings section: the write bumps the settings
+         *     version and is audited as `settings.updated`.
+         *
+         *     Requires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        patch: operations["settings.email.update"];
+        trace?: never;
+    };
+    "/inbound-emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List inbound email
+         * @description Newest first, cursor-paginated (default 25, at most 100 a page).
+         *
+         *     Requires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["inbound-emails.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/inbound-emails/{inboundEmail}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Show an inbound email
+         * @description The log row with the parsed reply, the text part and the raw headers.
+         *
+         *     Requires permission `mail.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["inbound-emails.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/settings": {
         parameters: {
             query?: never;
@@ -2406,6 +2502,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/broadcasting/auth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Authorise a live-update channel
+         * @description Called by the SPA's WebSocket client (Echo) before it joins a private channel. The channel's
+         *     workspace must be the session's; the ticket channels need `tickets.view` and a ticket of the
+         *     workspace, the internal-note channel also `comments.internal`, a user channel is its owner's
+         *     only. 404 when this installation runs without Reverb (the SPA then polls).
+         *
+         *     SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        post: operations["realtime.auth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/oauth/token": {
         parameters: {
             query?: never;
@@ -2437,6 +2558,11 @@ export interface components {
             name?: string;
             password_confirmation: string;
         };
+        /**
+         * ActorType
+         * @enum {string}
+         */
+        ActorType: "user" | "platform_user" | "api_client" | "system";
         /** AddCommentRequest */
         AddCommentRequest: {
             body: string;
@@ -2665,7 +2791,7 @@ export interface components {
              * @description Channel that created the ticket.
              * @enum {string}
              */
-            created_via: "ui" | "api" | "seed";
+            created_via: "ui" | "api" | "email" | "seed";
             /** @enum {string|null} */
             sla_state?: "running" | "warning" | "breached" | "paused" | "met" | "cancelled" | null;
             /** Format: date-time */
@@ -2713,6 +2839,41 @@ export interface components {
                 reason: string;
                 missing_skills?: string[];
             }[];
+        };
+        /**
+         * AuditLogResource
+         * @description One audit entry (docs/04-domain/audit.md): who (`actor_type`, `actor_id`, and `actor_name` when the actor is a user or API client of this workspace), did what (`action`) to which record (`subject_type`, `subject_id`, `subject_name` when it still exists), and the recorded `changes`: `{field: {old, new}}`, `{old: {…}, new: {…}}`, `{before: …, after: …}` or free-form context.
+         */
+        AuditLogResource: {
+            /** Format: uuid */
+            id: string;
+            action: string;
+            actor_type: components["schemas"]["ActorType"];
+            /** Format: uuid */
+            actor_id: string | null;
+            actor_name: string | null;
+            subject_type: string | null;
+            /** Format: uuid */
+            subject_id: string | null;
+            subject_name: string | null;
+            changes: {
+                [key: string]: unknown;
+            };
+            ip_address: string | null;
+            user_agent: string | null;
+            request_id: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * AuthorizeChannelRequest
+         * @description What Echo (pusher-js) sends to authorise a private channel.
+         */
+        AuthorizeChannelRequest: {
+            /** @description The Pusher socket id of this browser connection, e.g. `123456.7890123`. */
+            socket_id: string;
+            /** @description `private-tenants.{tenant}.tickets`, `…tickets.{ticket}`, `…tickets.{ticket}.internal`, `…users.{user}`. */
+            channel_name: string;
         };
         /**
          * AvailableUserResource
@@ -2817,6 +2978,14 @@ export interface components {
             required_skills: components["schemas"]["SkillResource"][];
             is_active: boolean;
             sort_order: number;
+        };
+        /**
+         * ChannelAuthorizationResource
+         * @description The Pusher-protocol signature for one private channel, unwrapped because pusher-js reads `auth` at the top level. Wraps no model.
+         */
+        ChannelAuthorizationResource: {
+            /** @description `<app key>:<HMAC-SHA256 of "socket_id:channel_name">`. */
+            auth: string;
         };
         /**
          * ContactRequest
@@ -2930,6 +3099,19 @@ export interface components {
          */
         DeliveryState: "pending" | "succeeded" | "failed" | "dead";
         /**
+         * DnsRecordResource
+         * @description A DNS record the operator publishes for the mail domain.
+         */
+        DnsRecordResource: {
+            /** @enum {string} */
+            type: "MX" | "TXT";
+            name: string;
+            value: string;
+            purpose: string;
+            /** @description False while a value is unknown (the DKIM key before mail-init.sh has run). */
+            ready: boolean;
+        };
+        /**
          * DuplicatePreviewMatchResource
          * @description One possible duplicate found while a ticket is being written.
          */
@@ -2981,6 +3163,36 @@ export interface components {
             decided_at: string | null;
             /** Format: date-time */
             created_at: string;
+        };
+        /**
+         * EmailSettingsResource
+         * @description Settings → Email: the workspace's sender identity, intake address and the mail domain's DNS records.
+         */
+        EmailSettingsResource: {
+            /** @description The stored display name; null uses `default_sender_name`. */
+            sender_name: string | null;
+            default_sender_name: string;
+            /** @description Mail from an unknown sender to the intake address creates a contact; false rejects it. */
+            create_contacts: boolean;
+            /** @description A contact created from email joins the organisation whose domain matches its address. */
+            match_organisation_domain: boolean;
+            /** @description The From of mail to contacts. */
+            from: {
+                name: string;
+                address: string;
+            };
+            /** @description The From of invitations and notifications to agents. */
+            platform_from: {
+                name: string;
+                address: string;
+            };
+            /** @description Mail to this address becomes a ticket (inbound email). */
+            intake_address: string;
+            /** @description Reply-To of ticket mail; a reply lands on the ticket. */
+            reply_to_pattern: string;
+            mail_domain: string;
+            dns_records: components["schemas"]["DnsRecordResource"][];
+            version: number;
         };
         /**
          * EntityChangeResource
@@ -3051,6 +3263,126 @@ export interface components {
             workspace: string;
             /** Format: email */
             email: string;
+        };
+        /**
+         * InboundEmailDetailResource
+         * @description One inbound message with its text: the parsed reply, the full text part and the raw headers. The HTML part is not returned; the text is what the helpdesk used.
+         */
+        InboundEmailDetailResource: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description What became of the message.
+             * @enum {string}
+             */
+            state: "comment" | "ticket" | "ignored" | "unrouted" | "rejected";
+            /**
+             * @description Why: `auto_reply`, `bounce`, `empty_reply`, `sender_not_allowed`, `tenant_mismatch`,
+             *     `unknown_sender`, `sender_archived`, `no_category`, `too_large`, `reopen_window_expired`,
+             *     `closed_as_duplicate`; null when nothing needs explaining.
+             */
+            reason: string | null;
+            /**
+             * @description The rule that found the target.
+             * @enum {string|null}
+             */
+            route: "plus_address" | "thread" | "intake" | null;
+            from: {
+                address: string | null;
+                name: string | null;
+            };
+            to: string[];
+            cc: string[];
+            subject: string;
+            /** Format: uuid */
+            message_id: string;
+            ticket: {
+                id: string;
+                number: number;
+                title: string;
+            } | null;
+            /** Format: uuid */
+            comment_id: string | null;
+            /** Format: uuid */
+            contact_id: string | null;
+            /**
+             * @description Files the message carried; `skipped` says why one was not stored (`type_not_allowed`,
+             *     `too_large`, `empty`, `quota_exceeded`, `storage_failed`, `limit`, `inline`, `not_stored`).
+             */
+            attachments: {
+                name: string;
+                size: number;
+                media_id: string | null;
+                skipped: string | null;
+            }[];
+            /** Format: date-time */
+            sent_at: string | null;
+            /** Format: date-time */
+            processed_at: string;
+            /** @description The new text of the reply after quotes and signature were cut (ReplyParser). */
+            reply_text: string | null;
+            text_body: string | null;
+            /** @description Raw header values by lower-case name, as received. */
+            headers: {
+                [key: string]: string[];
+            };
+            raw_size: number;
+        };
+        /**
+         * InboundEmailResource
+         * @description One row of the inbound log (Settings → Email): who wrote, to which address, and what became of it.
+         */
+        InboundEmailResource: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description What became of the message.
+             * @enum {string}
+             */
+            state: "comment" | "ticket" | "ignored" | "unrouted" | "rejected";
+            /**
+             * @description Why: `auto_reply`, `bounce`, `empty_reply`, `sender_not_allowed`, `tenant_mismatch`,
+             *     `unknown_sender`, `sender_archived`, `no_category`, `too_large`, `reopen_window_expired`,
+             *     `closed_as_duplicate`; null when nothing needs explaining.
+             */
+            reason: string | null;
+            /**
+             * @description The rule that found the target.
+             * @enum {string|null}
+             */
+            route: "plus_address" | "thread" | "intake" | null;
+            from: {
+                address: string | null;
+                name: string | null;
+            };
+            to: string[];
+            cc: string[];
+            subject: string;
+            /** Format: uuid */
+            message_id: string;
+            ticket: {
+                id: string;
+                number: number;
+                title: string;
+            } | null;
+            /** Format: uuid */
+            comment_id: string | null;
+            /** Format: uuid */
+            contact_id: string | null;
+            /**
+             * @description Files the message carried; `skipped` says why one was not stored (`type_not_allowed`,
+             *     `too_large`, `empty`, `quota_exceeded`, `storage_failed`, `limit`, `inline`, `not_stored`).
+             */
+            attachments: {
+                name: string;
+                size: number;
+                media_id: string | null;
+                skipped: string | null;
+            }[];
+            /** Format: date-time */
+            sent_at: string | null;
+            /** Format: date-time */
+            processed_at: string;
         };
         /** InviteUserRequest */
         InviteUserRequest: {
@@ -3190,7 +3522,7 @@ export interface components {
         };
         /**
          * NotificationResource
-         * @description An in-app notification of the signed-in user (bell menu). Ticket notifications name the ticket; `export_ready` names the export and its file.
+         * @description An in-app notification of the signed-in user (bell menu). Ticket notifications name the ticket; `export_ready` names the export and its file; `inbound_email_rejected` the inbound log row (and the ticket, when the message was aimed at one).
          */
         NotificationResource: {
             /** Format: uuid */
@@ -3199,7 +3531,7 @@ export interface components {
              * @description What happened.
              * @enum {string}
              */
-            kind: "ticket_assigned" | "ticket_unassignable" | "ticket_escalated" | "public_reply" | "internal_note" | "sla_warning" | "sla_breached" | "export_ready";
+            kind: "ticket_assigned" | "ticket_unassignable" | "ticket_escalated" | "public_reply" | "internal_note" | "sla_warning" | "sla_breached" | "export_ready" | "inbound_email_rejected";
             /**
              * Format: uuid
              * @description Ticket notifications name the ticket; `export_ready` names the export and its file instead.
@@ -3212,6 +3544,11 @@ export interface components {
             /** Format: uuid */
             media_id: string | null;
             file_name: string | null;
+            /**
+             * Format: uuid
+             * @description `inbound_email_rejected` names the log row (Settings → Email); null for every other kind.
+             */
+            inbound_email_id: string | null;
             /**
              * @description One line to show as is.
              * @example Ticket #1042 was assigned to you
@@ -3882,7 +4219,7 @@ export interface components {
              * @description Channel that created the ticket.
              * @enum {string}
              */
-            created_via: "ui" | "api" | "seed";
+            created_via: "ui" | "api" | "email" | "seed";
             /** @enum {string|null} */
             sla_state?: "running" | "warning" | "breached" | "paused" | "met" | "cancelled" | null;
             /** Format: date-time */
@@ -3985,6 +4322,15 @@ export interface components {
                 level: number;
             }[];
             team_ids?: string[];
+        };
+        /** UpdateEmailSettingsRequest */
+        UpdateEmailSettingsRequest: {
+            /** @description Display name on mail to contacts; null or empty restores "<Workspace> Support". */
+            sender_name?: string | null;
+            /** @description Mail from an unknown sender to the intake address creates a contact (false: it is rejected). */
+            create_contacts?: boolean;
+            /** @description A contact created from email joins the organisation whose domain matches its address. */
+            match_organisation_domain?: boolean;
         };
         /** UpdateMediaFolderRequest */
         UpdateMediaFolderRequest: {
@@ -5149,6 +5495,72 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "audit-logs.index": {
+        parameters: {
+            query?: {
+                per_page?: number;
+                "filter[]"?: string[];
+                cursor?: string;
+                /** @description Actions, comma-separated: exact (`user.invited`) or every action of a subject (`user.*`). */
+                "filter[action]"?: string;
+                /** @description Actor types, comma-separated: user, api_client, system, platform_user. */
+                "filter[actor_type]"?: string;
+                /** @description Actor ids (user or API client), comma-separated. */
+                "filter[actor_id]"?: string;
+                /** @description Subject types, comma-separated, for example `user`, `role`, `webhook_subscription`. */
+                "filter[subject_type]"?: string;
+                /** @description Subject ids, comma-separated. */
+                "filter[subject_id]"?: string;
+                /** @description `YYYY-MM-DD,YYYY-MM-DD` in the workspace time zone, inclusive. */
+                "filter[created_between]"?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `AuditLogResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuditLogResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
             default: {
@@ -7111,6 +7523,8 @@ export interface operations {
                 group?: string;
                 /** @description The row key to drill into; omitted for the totals. */
                 key?: string;
+                /** @description A count measure of the report: only the records it counts (omitted: every record of the row). */
+                measure?: string;
                 /** @description One-based page number. */
                 page?: number;
                 /** @description As for the run. */
@@ -8133,6 +8547,170 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "settings.email.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `EmailSettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EmailSettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "settings.email.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateEmailSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description `EmailSettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EmailSettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbound-emails.index": {
+        parameters: {
+            query?: {
+                per_page?: number;
+                "filter[]"?: string[];
+                cursor?: string;
+                /** @description States, comma-separated: comment, ticket, ignored, unrouted, rejected. */
+                "filter[state]"?: string;
+                /** @description Messages routed to these tickets, comma-separated ids. */
+                "filter[ticket_id]"?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `InboundEmailResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InboundEmailResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbound-emails.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inboundEmail: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InboundEmailDetailResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InboundEmailDetailResource"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {
@@ -10120,6 +10698,42 @@ export interface operations {
                     };
                 };
             };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "realtime.auth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthorizeChannelRequest"];
+            };
+        };
+        responses: {
+            /** @description `ChannelAuthorizationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelAuthorizationResource"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {

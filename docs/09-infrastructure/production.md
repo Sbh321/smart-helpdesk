@@ -40,7 +40,7 @@ What `infra/compose/prod.yaml` adds to `compose.yaml`: images by tag (`BACKEND_I
 |---|---|---|---|
 | (none) | always | always | proxy, app, horizon, scheduler, postgres, valkey |
 | `storage` | default on | off (managed Spaces/R2) | RustFS container; omit if the customer supplies an S3 endpoint |
-| `realtime` | optional | optional | Reverb; requires `REALTIME_ENABLED=true` and `BROADCAST_CONNECTION=reverb` |
+| `realtime` | optional | optional | Reverb (M3-16); requires `REALTIME_ENABLED=true`, `BROADCAST_CONNECTION=reverb` and `REVERB_APP_ID/KEY/SECRET` with `REVERB_HOST=reverb`, `REVERB_PORT=8080`, `REVERB_SCHEME=http`. Ansible sets all of them from `realtime_profile` (the key and secret are generated host secrets). The proxy serves the key in `config.json` and routes only the socket (`/app/*` on the api host, `/api/app/*` in the single layout) to Reverb. See [realtime.md](../03-architecture/realtime.md) |
 | `demo` | never | never | demo fixtures |
 | `ops` | on demand | on demand | `migrate` one-shot (`docker compose run --rm migrate`); never started by `up` |
 
@@ -74,7 +74,27 @@ The workspace is created by `php artisan platform:create-tenant corp "Corp Ltd" 
 
 ## Mail
 
-Only SMTP is configured for on-prem: `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION`, `MAIL_FROM_ADDRESS`. The shipped default is `MAIL_MAILER=log` so a half-configured install never spams. Cloud installs may use `postmark`, `ses` or `resend` via the same variables plus the provider key. Test with `php artisan mail:test admin@example.com`.
+Two ways to send; the application code is the same ([email.md §As built (M3-18)](../04-domain/email.md#as-built-m3-18-identity-headers-mail-server)).
+
+| Option | `.env` | When |
+|---|---|---|
+| **Bundled Stalwart** (default in the env examples) | `COMPOSE_PROFILES=…,mail`; `MAIL_MAILER=smtp`, `MAIL_HOST=mail`, `MAIL_PORT=587`, `MAIL_USERNAME=app@<domain>`, `MAIL_PASSWORD=<MAIL_APP_PASSWORD>`; `MAIL_ADMIN_PASSWORD`, `MAIL_APP_PASSWORD`, `MAIL_INBOUND_PASSWORD`; optional `MAIL_RELAY_*` | on-prem and any VM; inbound email (M3-19) needs it |
+| External SMTP provider | no `mail` profile; `MAIL_HOST`/`MAIL_PORT`/`MAIL_USERNAME`/`MAIL_PASSWORD` of the provider | outbound only, no inbound email |
+
+`MAIL_MAILER=log` (the Ansible default while nothing is configured) never sends, so a half-configured install never spams. `MAIL_FROM_ADDRESS` must be on the mail domain (`no-reply@<domain>`): contact mail is sent from `support+<slug>@<domain>`, agent mail from `MAIL_FROM_ADDRESS`, both DKIM-signed for `<domain>`.
+
+First start with the bundled server (Ansible does the same with `mail_profile: true`):
+
+```sh
+cd /opt/smart-helpdesk
+docker compose up -d --wait                  # the mail profile is in COMPOSE_PROFILES
+./infra/scripts/mail-init.sh                 # prints the DNS records and two MAIL_DKIM_* lines
+# publish the records (§DNS below), add the two lines to .env, then
+docker compose up -d app horizon scheduler   # Settings → Email shows the DKIM record as ready
+docker compose exec app php artisan mail:send-test you@gmail.com --workspace=Demo
+```
+
+**Outbound port 25 blocked** (AWS, GCP, many VPS providers): set `MAIL_RELAY_HOST` and re-run `mail-init.sh`; Stalwart still signs with the platform's DKIM key and hands every remote message to the smart host. The SES steps are in [runbooks.md §Outbound mail](../11-operations/runbooks.md#outbound-mail-relay-port-25-blocked). Inbound mail needs port 25 **in**, which AWS does not block: the `envs/aws` security group already allows it, and the Ansible firewall role opens 25/tcp when `mail_profile` is true.
 
 ## Deploy and upgrade
 
@@ -146,9 +166,9 @@ Limits are in `prod.yaml` ([docker.md](docker.md)). Docker's `json-file` driver 
 |---|---|---|
 | A (and AAAA) | `shp`, `app.shp`, `api.shp`, `admin.shp`, `monitor.shp`, `docs.shp`, `files.shp`, `mail.shp` | VM address (or one `*.shp` wildcard A record plus `shp`) |
 | MX | `shp` | `10 mail.shp.subhambhandari.com.np.` |
-| TXT (SPF) | `shp` | `v=spf1 mx -all` (add `include:` of the relay provider when relaying) |
-| TXT (DKIM) | `<selector>._domainkey.shp` | public key printed by `mail-init.sh` |
-| TXT (DMARC) | `_dmarc.shp` | `v=DMARC1; p=none; rua=mailto:dmarc@shp.subhambhandari.com.np` (tighten to `quarantine` after checking reports) |
+| TXT (SPF) | `shp` | `v=spf1 mx -all` (`MAIL_SPF_INCLUDE` adds the relay provider's `include:` when its envelope sender uses the domain) |
+| TXT (DKIM) | `<selector>._domainkey.shp` | `v=DKIM1; k=rsa; h=sha256; p=<key>` printed by `mail-init.sh` (selector like `v1-rsa-20260921`); with SES also its three `_domainkey` CNAMEs |
+| TXT (DMARC) | `_dmarc.shp` | `v=DMARC1; p=none; rua=mailto:postmaster@shp.subhambhandari.com.np` (`MAIL_DMARC_POLICY`; tighten to `quarantine` after checking reports) |
 | PTR | VM address | `mail.shp.subhambhandari.com.np` (set at the hosting provider) |
 | CAA (optional) | `shp` | `0 issue "letsencrypt.org"` |
 

@@ -13,7 +13,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { copy, fill } from '@/copy/en'
+import { queryKeys } from '@/lib/api/query-keys'
 import { useSession } from '@/lib/auth'
+import { NOTIFICATION_CREATED, RealtimeSubscription, realtimeChannels } from '@/lib/realtime'
 import {
   markAllNotificationsRead,
   markNotificationRead,
@@ -23,12 +25,14 @@ import {
 import { NotificationRow } from './notification-row'
 
 const shell = copy.shell.notifications
+const BELL_EVENTS = [NOTIFICATION_CREATED] as const
 const text = copy.notifications
 
 /**
  * The bell (docs/06-design-system/components.md §NotificationBell): unread badge polled every 30 s,
  * a popover with the latest 10 and mark-read, a link to all of them. A rising count is announced once
- * in a polite live region.
+ * in a polite live region. With live updates on, `notification.created` on the user's own channel
+ * refetches at once (M3-16); the 30 s poll stays as the fallback.
  */
 export function NotificationBell({ workspace }: { workspace: string }) {
   const client = useQueryClient()
@@ -70,6 +74,11 @@ export function NotificationBell({ workspace }: { workspace: string }) {
 
   return (
     <>
+      <RealtimeSubscription
+        channel={tenantId !== '' && session ? realtimeChannels.user(tenantId, session.user.id) : ''}
+        events={BELL_EVENTS}
+        invalidate={[queryKeys.notifications.all(tenantId), queryKeys.session.me()]}
+      />
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={<Button variant="ghost" size="icon-sm" aria-label={label} className="relative" />}

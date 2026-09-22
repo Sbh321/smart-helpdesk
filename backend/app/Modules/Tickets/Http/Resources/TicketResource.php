@@ -69,7 +69,7 @@ final class TicketResource extends JsonResource
             'assigned_agent_id' => $this->assigned_agent_id,
             'duplicate_of_id' => $this->duplicate_of_id,
             /**
-             * @var 'ui'|'api'|'seed'
+             * @var 'ui'|'api'|'email'|'seed'
              *
              * Channel that created the ticket.
              */

@@ -26,8 +26,8 @@ export interface ReportTableProps {
   isFetching: boolean
   error: unknown
   onRetry: () => void
-  /** Present when the report drills down: opens the records behind a row. */
-  onDrill?: ((row: ReportRow) => void) | undefined
+  /** Present when the report drills down: opens the records one count measure counts in a row. */
+  onDrill?: ((row: ReportRow, measure: string) => void) | undefined
 }
 
 function compareRows(a: ReportRow, b: ReportRow, field: string): number {
@@ -88,7 +88,7 @@ export function ReportTable({
                   label: row.original.label,
                   measure: measure.label,
                 })}
-                onClick={() => onDrill(row.original)}
+                onClick={() => onDrill(row.original, measure.key)}
               >
                 {shown}
               </Button>

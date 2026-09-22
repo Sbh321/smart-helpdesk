@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Notifications;
 
+use App\Support\Mail\PlatformSender;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -32,7 +33,10 @@ final class UserInvitation extends Notification
             $this->token,
         );
 
+        $sender = PlatformSender::onBehalfOf($this->workspaceName);
+
         return (new MailMessage)
+            ->from($sender->address, $sender->name)
             ->subject("You have been invited to {$this->workspaceName} on Smart Helpdesk")
             ->line("You can now join the {$this->workspaceName} workspace.")
             ->action('Accept the invitation', $url)

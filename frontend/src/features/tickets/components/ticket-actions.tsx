@@ -76,7 +76,11 @@ export function TicketActions({ ticket }: { ticket: Ticket }) {
       toast.success(text.statusChanged)
     },
     onSettled: async () => {
-      await client.invalidateQueries({ queryKey: queryKeys.tickets.all(tenantId) })
+      // Pending pauses the SLA timers and resolving meets them: the SLA panel reads a separate query.
+      await Promise.all([
+        client.invalidateQueries({ queryKey: queryKeys.tickets.all(tenantId) }),
+        client.invalidateQueries({ queryKey: queryKeys.sla.ticket(tenantId, ticket.id) }),
+      ])
       submitting.current = false
     },
   })

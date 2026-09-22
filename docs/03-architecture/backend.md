@@ -15,11 +15,13 @@ Laravel 13, PHP 8.5, API-only. Decision: [ADR-0004](../adr/0004-modular-monolith
 | `Sla` | policies, targets, timers, calendars, `SlaStrategy` contract and `SimpleSlaTimer` baseline, `BusinessCalendar` contract, timer domain (`TimerData`, `TimerState`, `TimerOutcome`, `SlaEvent`), check command, warning/breach notifications | `SlaStrategy` (start/pause/resume/complete/recompute/check); events `SlaWarning`, `SlaBreached`, `SlaMet` |
 | `Automation` | strategy contracts (`PriorityStrategy`, `AssignmentStrategy`, `DuplicateStrategy`), baseline implementations in `Strategies/Baseline` (academic, replaceable — [ADR-0023](../adr/0023-minimal-replaceable-algorithms.md)), text helpers `Domain/Text/WordSet` and `Domain/Text/ReplyParser`, `FairnessIndex`, candidate loaders, settings schemas, experiments | the contracts, resolved from `config('helpdesk.strategies')` (binding lands in M2); results carry `strategy`, `strategy_version` and `explanation()`; `ReplyParser` for `Mail` |
 | `Notifications` | notification classes, `notifications` table with `tenant_id`, in-app API | listeners on domain events |
+| `Realtime` (M3-16) | channel authorisation (`POST /v1/broadcasting/auth`, `Support\Channels`), the broadcast events (`ticket.*`, `comment.added`, `notification.created`) and the listeners that queue them after commit on `broadcasts`, `RealtimeSwitch`, `ReverbCheck` ([realtime.md](realtime.md)) | nothing: listeners only, never imported by other modules (architecture test) |
 | `Integrations` | Passport client management, webhook subscriptions/deliveries, signing, retry job, `/v1` public resources reuse Tickets/Contacts | listeners on domain events; `DeliverWebhook` job |
 | `Reporting` (replaces `Analytics`) | change-capture trigger migration and actor settings, `report_*` read models, `ReportDefinition` catalogue, `ReportRunner`, entity overview queries, history/as-of API, CSV/XLSX export jobs, dashboard | `ReportRunner::run()`, `ChangeReplayer::asOf()`, `IntervalBuilder`, `reports:*` commands ([reporting.md](../04-domain/reporting.md)) |
 | `Audit` | `audit_logs`, `RecordAuditLog` action, viewer API | `Audit::record(...)` |
 | `Media` | media items, folders, mediables, presigned upload intent/complete, variants job, quota | `MediaItem`, `AttachMedia` action, `RegisterUpload` action ([media.md](../04-domain/media.md)) |
-| `Mail` | outbound mail identity/headers, inbound fetch, routing, `inbound_emails`; uses `Automation`'s `ReplyParser` | `mail:fetch-inbound`, events `InboundEmailProcessed` ([email.md](../04-domain/email.md)) |
+| `Mail` | outbound mail identity/headers, inbound fetch (`InboundMailbox`), MIME parsing, routing (`InboundRouter`), automated-mail detection, `inbound_emails`, the inbound log API; uses `Automation`'s `ReplyParser` and `HtmlToText` | `mail:fetch-inbound`, `mail:inject` (dev), `ProcessInboundEmail`, event `InboundEmailProcessed` ([email.md](../04-domain/email.md)) |
+| `Demo` (M3-13) | the demo dataset: `DemoCatalogue` (literal identities), `DemoPlan` (pure, seeded timeline), `DemoWorkspaceBuilder` (replays the plan through the other modules' actions under a moving frozen clock), `demo:reset` / `demo:tick`; no routes, models or tables. It may use every module; no module uses it | `database/seeders/DemoSeeder` ([roadmap/11-demo-dataset.md](../../roadmap/11-demo-dataset.md)) |
 | `Calendars` (inside `Sla`, `Sla/Domain/Calendar`) | business calendars, holidays, `TwentyFourSevenCalendar`, `WorkingHoursCalendar`; agent shifts live in `Agents` | `BusinessCalendar` implementations ([ADR-0020](../adr/0020-business-calendars.md)) |
 
 `app/Support`: `Time\Clock` interface + `SystemClock`/`FrozenClock`, `Attributes\AcademicBaseline`, `TenantAwareJob` trait (tags, tenant context), `ApiResponse` helpers, `ProblemDetails` exception renderer, base `Action` marker, `Money`/`Duration` value objects if needed.
@@ -34,8 +36,8 @@ ADR-0004 fixed the original rules; the modules added by ADR-0018, ADR-0019 and A
 | `Automation` | `Tickets`, `Agents`, `Sla` (ADR-0004; candidate loaders only — the contracts, baselines and `Domain/` use only `app/Support`) |
 | `Sla` (incl. calendars) | `Tickets`, `Tenancy` |
 | `Media` | `Tenancy` |
-| `Mail` | `Tickets`, `Contacts`, `Media`, `Automation` (`ReplyParser` only) |
-| `Notifications`, `Integrations`, `Reporting`, `Audit` | listeners/readers only; never imported by domain modules |
+| `Mail` | `Tickets`, `Contacts`, `Media`, `Automation` (`Domain\Text` only: `ReplyParser`, `HtmlToText`); never `Sla`, `Agents`, `Integrations` or `Notifications` (encoded in `tests/Architecture/ModulesTest.php` since M3-19, with `Mail\Domain` framework-free) |
+| `Notifications`, `Integrations`, `Reporting`, `Audit`, `Realtime` | listeners/readers only; never imported by domain modules |
 
 The Pest architecture test encodes this table.
 
@@ -100,7 +102,7 @@ Namespaces: `App\Modules\Tickets\...`. Each provider registers routes (prefix `/
 | Exceptions | Domain exceptions extend `DomainException` with `code()` and `status()`; rendered as problem details ([error-handling.md](error-handling.md)) |
 | Scheduled commands | Declared in module providers via `Schedule`, always `onOneServer()->withoutOverlapping()` |
 | Repositories | Not used |
-| Interfaces | Only `Clock`, `BusinessCalendar`, the four strategy contracts, and Laravel's own driver contracts |
+| Interfaces | Only `Clock`, `BusinessCalendar`, the four strategy contracts, `Mail\Contracts\InboundMailbox` (the IMAP mailbox, faked in tests; M3-19), and Laravel's own driver contracts |
 
 ## Strategy baselines (M1-18..M1-21)
 

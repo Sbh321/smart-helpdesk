@@ -35,10 +35,12 @@ import { Route as WorkspaceAppReportsReportKeyRouteImport } from './routes/$work
 import { Route as WorkspaceAppSettingsIndexRouteImport } from './routes/$workspace/_app/settings/index'
 import { Route as WorkspaceAppSettingsAgentsRouteImport } from './routes/$workspace/_app/settings/agents'
 import { Route as WorkspaceAppSettingsApiClientsRouteImport } from './routes/$workspace/_app/settings/api-clients'
+import { Route as WorkspaceAppSettingsAuditRouteImport } from './routes/$workspace/_app/settings/audit'
 import { Route as WorkspaceAppSettingsAutomationRouteImport } from './routes/$workspace/_app/settings/automation'
 import { Route as WorkspaceAppSettingsBrandingRouteImport } from './routes/$workspace/_app/settings/branding'
 import { Route as WorkspaceAppSettingsCalendarsRouteImport } from './routes/$workspace/_app/settings/calendars'
 import { Route as WorkspaceAppSettingsCategoriesRouteImport } from './routes/$workspace/_app/settings/categories'
+import { Route as WorkspaceAppSettingsEmailRouteImport } from './routes/$workspace/_app/settings/email'
 import { Route as WorkspaceAppSettingsGeneralRouteImport } from './routes/$workspace/_app/settings/general'
 import { Route as WorkspaceAppSettingsMediaRouteImport } from './routes/$workspace/_app/settings/media'
 import { Route as WorkspaceAppSettingsPriorityRouteImport } from './routes/$workspace/_app/settings/priority'
@@ -197,6 +199,12 @@ const WorkspaceAppSettingsApiClientsRoute =
     path: '/api-clients',
     getParentRoute: () => WorkspaceAppSettingsRoute,
   } as any)
+const WorkspaceAppSettingsAuditRoute =
+  WorkspaceAppSettingsAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
 const WorkspaceAppSettingsAutomationRoute =
   WorkspaceAppSettingsAutomationRouteImport.update({
     id: '/automation',
@@ -219,6 +227,12 @@ const WorkspaceAppSettingsCategoriesRoute =
   WorkspaceAppSettingsCategoriesRouteImport.update({
     id: '/categories',
     path: '/categories',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsEmailRoute =
+  WorkspaceAppSettingsEmailRouteImport.update({
+    id: '/email',
+    path: '/email',
     getParentRoute: () => WorkspaceAppSettingsRoute,
   } as any)
 const WorkspaceAppSettingsGeneralRoute =
@@ -329,10 +343,12 @@ export interface FileRoutesByFullPath {
   '/$workspace/reports/$reportKey': typeof WorkspaceAppReportsReportKeyRoute
   '/$workspace/settings/agents': typeof WorkspaceAppSettingsAgentsRoute
   '/$workspace/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
+  '/$workspace/settings/audit': typeof WorkspaceAppSettingsAuditRoute
   '/$workspace/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
   '/$workspace/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
   '/$workspace/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
   '/$workspace/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
+  '/$workspace/settings/email': typeof WorkspaceAppSettingsEmailRoute
   '/$workspace/settings/general': typeof WorkspaceAppSettingsGeneralRoute
   '/$workspace/settings/media': typeof WorkspaceAppSettingsMediaRoute
   '/$workspace/settings/priority': typeof WorkspaceAppSettingsPriorityRoute
@@ -371,10 +387,12 @@ export interface FileRoutesByTo {
   '/$workspace/reports/$reportKey': typeof WorkspaceAppReportsReportKeyRoute
   '/$workspace/settings/agents': typeof WorkspaceAppSettingsAgentsRoute
   '/$workspace/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
+  '/$workspace/settings/audit': typeof WorkspaceAppSettingsAuditRoute
   '/$workspace/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
   '/$workspace/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
   '/$workspace/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
   '/$workspace/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
+  '/$workspace/settings/email': typeof WorkspaceAppSettingsEmailRoute
   '/$workspace/settings/general': typeof WorkspaceAppSettingsGeneralRoute
   '/$workspace/settings/media': typeof WorkspaceAppSettingsMediaRoute
   '/$workspace/settings/priority': typeof WorkspaceAppSettingsPriorityRoute
@@ -419,10 +437,12 @@ export interface FileRoutesById {
   '/$workspace/_app/reports/$reportKey': typeof WorkspaceAppReportsReportKeyRoute
   '/$workspace/_app/settings/agents': typeof WorkspaceAppSettingsAgentsRoute
   '/$workspace/_app/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
+  '/$workspace/_app/settings/audit': typeof WorkspaceAppSettingsAuditRoute
   '/$workspace/_app/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
   '/$workspace/_app/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
   '/$workspace/_app/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
   '/$workspace/_app/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
+  '/$workspace/_app/settings/email': typeof WorkspaceAppSettingsEmailRoute
   '/$workspace/_app/settings/general': typeof WorkspaceAppSettingsGeneralRoute
   '/$workspace/_app/settings/media': typeof WorkspaceAppSettingsMediaRoute
   '/$workspace/_app/settings/priority': typeof WorkspaceAppSettingsPriorityRoute
@@ -465,10 +485,12 @@ export interface FileRouteTypes {
     | '/$workspace/reports/$reportKey'
     | '/$workspace/settings/agents'
     | '/$workspace/settings/api-clients'
+    | '/$workspace/settings/audit'
     | '/$workspace/settings/automation'
     | '/$workspace/settings/branding'
     | '/$workspace/settings/calendars'
     | '/$workspace/settings/categories'
+    | '/$workspace/settings/email'
     | '/$workspace/settings/general'
     | '/$workspace/settings/media'
     | '/$workspace/settings/priority'
@@ -507,10 +529,12 @@ export interface FileRouteTypes {
     | '/$workspace/reports/$reportKey'
     | '/$workspace/settings/agents'
     | '/$workspace/settings/api-clients'
+    | '/$workspace/settings/audit'
     | '/$workspace/settings/automation'
     | '/$workspace/settings/branding'
     | '/$workspace/settings/calendars'
     | '/$workspace/settings/categories'
+    | '/$workspace/settings/email'
     | '/$workspace/settings/general'
     | '/$workspace/settings/media'
     | '/$workspace/settings/priority'
@@ -554,10 +578,12 @@ export interface FileRouteTypes {
     | '/$workspace/_app/reports/$reportKey'
     | '/$workspace/_app/settings/agents'
     | '/$workspace/_app/settings/api-clients'
+    | '/$workspace/_app/settings/audit'
     | '/$workspace/_app/settings/automation'
     | '/$workspace/_app/settings/branding'
     | '/$workspace/_app/settings/calendars'
     | '/$workspace/_app/settings/categories'
+    | '/$workspace/_app/settings/email'
     | '/$workspace/_app/settings/general'
     | '/$workspace/_app/settings/media'
     | '/$workspace/_app/settings/priority'
@@ -769,6 +795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceAppSettingsApiClientsRouteImport
       parentRoute: typeof WorkspaceAppSettingsRoute
     }
+    '/$workspace/_app/settings/audit': {
+      id: '/$workspace/_app/settings/audit'
+      path: '/audit'
+      fullPath: '/$workspace/settings/audit'
+      preLoaderRoute: typeof WorkspaceAppSettingsAuditRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
     '/$workspace/_app/settings/automation': {
       id: '/$workspace/_app/settings/automation'
       path: '/automation'
@@ -795,6 +828,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/$workspace/settings/categories'
       preLoaderRoute: typeof WorkspaceAppSettingsCategoriesRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/email': {
+      id: '/$workspace/_app/settings/email'
+      path: '/email'
+      fullPath: '/$workspace/settings/email'
+      preLoaderRoute: typeof WorkspaceAppSettingsEmailRouteImport
       parentRoute: typeof WorkspaceAppSettingsRoute
     }
     '/$workspace/_app/settings/general': {
@@ -908,10 +948,12 @@ declare module '@tanstack/react-router' {
 interface WorkspaceAppSettingsRouteChildren {
   WorkspaceAppSettingsAgentsRoute: typeof WorkspaceAppSettingsAgentsRoute
   WorkspaceAppSettingsApiClientsRoute: typeof WorkspaceAppSettingsApiClientsRoute
+  WorkspaceAppSettingsAuditRoute: typeof WorkspaceAppSettingsAuditRoute
   WorkspaceAppSettingsAutomationRoute: typeof WorkspaceAppSettingsAutomationRoute
   WorkspaceAppSettingsBrandingRoute: typeof WorkspaceAppSettingsBrandingRoute
   WorkspaceAppSettingsCalendarsRoute: typeof WorkspaceAppSettingsCalendarsRoute
   WorkspaceAppSettingsCategoriesRoute: typeof WorkspaceAppSettingsCategoriesRoute
+  WorkspaceAppSettingsEmailRoute: typeof WorkspaceAppSettingsEmailRoute
   WorkspaceAppSettingsGeneralRoute: typeof WorkspaceAppSettingsGeneralRoute
   WorkspaceAppSettingsMediaRoute: typeof WorkspaceAppSettingsMediaRoute
   WorkspaceAppSettingsPriorityRoute: typeof WorkspaceAppSettingsPriorityRoute
@@ -929,10 +971,12 @@ interface WorkspaceAppSettingsRouteChildren {
 const WorkspaceAppSettingsRouteChildren: WorkspaceAppSettingsRouteChildren = {
   WorkspaceAppSettingsAgentsRoute: WorkspaceAppSettingsAgentsRoute,
   WorkspaceAppSettingsApiClientsRoute: WorkspaceAppSettingsApiClientsRoute,
+  WorkspaceAppSettingsAuditRoute: WorkspaceAppSettingsAuditRoute,
   WorkspaceAppSettingsAutomationRoute: WorkspaceAppSettingsAutomationRoute,
   WorkspaceAppSettingsBrandingRoute: WorkspaceAppSettingsBrandingRoute,
   WorkspaceAppSettingsCalendarsRoute: WorkspaceAppSettingsCalendarsRoute,
   WorkspaceAppSettingsCategoriesRoute: WorkspaceAppSettingsCategoriesRoute,
+  WorkspaceAppSettingsEmailRoute: WorkspaceAppSettingsEmailRoute,
   WorkspaceAppSettingsGeneralRoute: WorkspaceAppSettingsGeneralRoute,
   WorkspaceAppSettingsMediaRoute: WorkspaceAppSettingsMediaRoute,
   WorkspaceAppSettingsPriorityRoute: WorkspaceAppSettingsPriorityRoute,

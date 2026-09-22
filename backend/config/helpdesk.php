@@ -23,6 +23,42 @@ return [
         'mail' => env('MAIL_DOMAIN', env('PLATFORM_DOMAIN', 'shp.localhost')),
     ],
 
+    // Outbound mail identity and the DNS records shown in Settings → Email (docs/04-domain/email.md, M3-18).
+    // The addresses use hosts.mail as their domain; the DKIM values are printed by infra/scripts/mail-init.sh.
+    'mail' => [
+        'product_name' => env('MAIL_PRODUCT_NAME', 'Smart Helpdesk'),
+        'mx_host' => env('MAIL_HOSTNAME', 'mail.'.env('MAIL_DOMAIN', env('PLATFORM_DOMAIN', 'shp.localhost'))),
+        'spf_include' => env('MAIL_SPF_INCLUDE'),
+        'dmarc_policy' => env('MAIL_DMARC_POLICY', 'none'),
+        'dkim_selector' => env('MAIL_DKIM_SELECTOR'),
+        'dkim_public_key' => env('MAIL_DKIM_PUBLIC_KEY'),
+
+        // Inbound email (docs/04-domain/email.md §Inbound pipeline, M3-19): `mail:fetch-inbound` reads the
+        // catch-all `inbound@` mailbox of the bundled server over IMAP every minute. Off by default, because
+        // the mail server runs only in the `mail` profile.
+        'inbound' => [
+            'enabled' => (bool) env('MAIL_INBOUND_ENABLED', false),
+            'host' => env('MAIL_INBOUND_HOST', 'mail'),
+            'port' => (int) env('MAIL_INBOUND_PORT', 143),
+            // none | ssl | tls (STARTTLS). The bundled server's IMAP listener is internal and plain.
+            'encryption' => env('MAIL_INBOUND_ENCRYPTION', 'none'),
+            'validate_cert' => (bool) env('MAIL_INBOUND_VALIDATE_CERT', true),
+            'username' => env('MAIL_INBOUND_USERNAME', 'inbound@'.env('MAIL_DOMAIN', env('PLATFORM_DOMAIN', 'shp.localhost'))),
+            'password' => env('MAIL_INBOUND_PASSWORD'),
+            // Read in this order; Stalwart files mail its spam filter doubts under "Junk Mail".
+            'folders' => array_values(array_filter(array_map('trim', explode(',', (string) env('MAIL_INBOUND_FOLDERS', 'INBOX,Junk Mail'))))),
+            'processed_folder' => 'Processed',
+            'failed_folder' => 'Failed',
+            // Messages per run; the rest waits for the next minute.
+            'batch_size' => 50,
+            // A larger message is logged as rejected (too_large) without its body.
+            'max_message_bytes' => 30 * 1024 * 1024,
+            // Tickets created from email: impact 1 (single user) and urgency 2 until an agent triages them.
+            'default_impact' => 1,
+            'default_urgency' => 2,
+        ],
+    ],
+
     // Release shown in logs and the health report (docs/11-operations/logs.md).
     'version' => env('APP_VERSION', 'dev'),
 
@@ -92,7 +128,10 @@ return [
     ],
     'sla' => ['warning_fraction' => 0.75, 'first_response_applies_to_agent_created' => true],
     'shifts' => ['enforce' => false],
-    'features' => ['realtime' => false, 'exports' => true],
+    // `realtime`: the workspace default follows the deployment (REALTIME_ENABLED, set with the Compose
+    // profile `realtime`); a workspace may turn it off. The SPA connects only when config.json has
+    // realtime.enabled as well (docs/03-architecture/realtime.md).
+    'features' => ['realtime' => (bool) env('REALTIME_ENABLED', false), 'exports' => true],
 
     // Outbound webhooks (docs/07-api/webhooks.md).
     'webhooks' => [
@@ -109,6 +148,21 @@ return [
         'retention_days' => 30,
         'max_payload_bytes' => 256 * 1024,
         'response_excerpt_bytes' => 1024,
+    ],
+
+    // Demo dataset (roadmap/11-demo-dataset.md, M3-13): `demo:reset` drops and rebuilds only the `acme` and
+    // `globex` workspaces. In production both commands refuse unless DEMO_INSTANCE=true says this
+    // instance exists to be demonstrated (the public demo deployment); then `--force` is still required.
+    'demo' => [
+        'instance' => (bool) env('DEMO_INSTANCE', false),
+        // Password of every seeded account; set DEMO_PASSWORD on a public demo instance.
+        'password' => env('DEMO_PASSWORD', 'password'),
+        'seed' => 2026,
+        // Closed tickets of days −90 to −30 before the 120 live ones (more history, slower reset).
+        'history_tickets' => (int) env('DEMO_HISTORY_TICKETS', 180),
+        // Development only: the secret of the seeded webhook subscription to the Compose webhook-echo
+        // service, which verifies signatures with the same value (infra/compose/tools.yaml).
+        'webhook_secret' => env('DEMO_WEBHOOK_SECRET', 'ZGVtby13ZWJob29rLXNlY3JldC1kZXYtb25seS0wMDE='),
     ],
 
     'media' => [

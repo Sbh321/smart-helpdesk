@@ -101,6 +101,7 @@ return [
     'waits' => [
         'redis:default' => 60,
         'redis:webhooks' => 120,
+        'redis-broadcasts:broadcasts' => 10,
     ],
 
     /*
@@ -227,6 +228,20 @@ return [
             // Below the redis connection's retry_after (90 s), so a running job is never handed out twice.
             'timeout' => 80,
             'nice' => 10,
+        ],
+        // Realtime broadcasts (M3-16): one process blocking on `broadcasts` (connection block_for), so a
+        // broadcast reaches Reverb well within a second; each job is one short HTTP call to Reverb.
+        'supervisor-broadcasts' => [
+            'connection' => 'redis-broadcasts',
+            'queue' => ['broadcasts'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 1,
+            'timeout' => 30,
+            'nice' => 0,
         ],
         // Outbound webhooks (docs/07-api/webhooks.md): a slow receiver waits up to 10 s, so deliveries
         // get their own processes and never hold up SLA, notification or report jobs.

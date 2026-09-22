@@ -64,7 +64,7 @@ it('gives every report a description, a group and a known chart', function (): v
     foreach (app(ReportCatalogue::class)->all() as $report) {
         /** @var ReportDefinition $report */
         expect($report->description())->not->toBe('')
-            ->and($report->group())->toBeIn(['tickets', 'contacts', 'agents', 'sla', 'media', 'administration'])
+            ->and($report->group())->toBeIn(['tickets', 'contacts', 'agents', 'sla', 'channels', 'media', 'administration'])
             ->and($report->chart())->toBeIn(['bar', 'line', 'stacked_area', 'heatmap', 'histogram', 'table'])
             ->and($report->dimensions())->toHaveKey($report->defaultDimension());
     }

@@ -128,9 +128,14 @@ function ReportView({
     const current = parseReportSearch(router.state.location.search as Record<string, unknown>, filterKeys)
     write({ ...current, ...patch, drill: undefined, drillPage: 1 })
   }
-  const drill = (rowKey: string | undefined, page = 1) => {
+  const drill = (rowKey: string | undefined, page = 1, measure?: string) => {
     const current = parseReportSearch(router.state.location.search as Record<string, unknown>, filterKeys)
-    write({ ...current, drill: rowKey, drillPage: page })
+    write({
+      ...current,
+      drill: rowKey,
+      drillMeasure: rowKey === undefined ? undefined : measure,
+      drillPage: page,
+    })
   }
 
   const run = useQuery({
@@ -145,7 +150,8 @@ function ReportView({
   const canDrill = definition.drill_down_to !== null
   const rows = run.data?.rows
   const drillRow = params.drill !== undefined ? rows?.find((row) => row.key === params.drill) : undefined
-  const onDrill = canDrill ? (row: ReportRow) => drill(row.key) : undefined
+  const onDrill = canDrill ? (row: ReportRow, measure: string) => drill(row.key, 1, measure) : undefined
+  const drillMeasureLabel = measures.find((measure) => measure.key === params.drillMeasure)?.label
 
   return (
     <div className="flex flex-col gap-6">
@@ -294,7 +300,8 @@ function ReportView({
           params={params}
           rowKey={params.drill}
           rowLabel={drillRow?.label}
-          onPage={(page) => drill(params.drill, page)}
+          measureLabel={drillMeasureLabel}
+          onPage={(page) => drill(params.drill, page, params.drillMeasure)}
           onClose={() => drill(undefined)}
         />
       ) : null}

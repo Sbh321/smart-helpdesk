@@ -75,6 +75,17 @@ return [
             'after_commit' => false,
         ],
 
+        // Realtime broadcasts (M3-16): its own Horizon supervisor blocks on the list, so a broadcast is
+        // picked up at once instead of after the idle worker's sleep (docs/03-architecture/realtime.md).
+        'redis-broadcasts' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => 'broadcasts',
+            'retry_after' => 90,
+            'block_for' => 5,
+            'after_commit' => false,
+        ],
+
         'deferred' => [
             'driver' => 'deferred',
         ],

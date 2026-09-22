@@ -22,6 +22,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * The report catalogue (docs/04-domain/reporting.md, docs/07-api/conventions.md §Reports).
@@ -83,6 +84,7 @@ final class ReportController
     #[QueryParameter('group', 'As for the run: the dimension `key` belongs to.', type: 'string')]
     #[QueryParameter('filter', 'As for the run.', type: 'array<string, string>')]
     #[QueryParameter('key', 'The row key to drill into; omitted for the totals.', type: 'string')]
+    #[QueryParameter('measure', 'A count measure of the report: only the records it counts (omitted: every record of the row).', type: 'string')]
     #[QueryParameter('page', 'One-based page number.', type: 'integer')]
     public function records(Request $request, string $report): AnonymousResourceCollection
     {
@@ -92,7 +94,11 @@ final class ReportController
         $parameters = $this->runner->parameters($definition, (array) $request->query(), (string) tenant()?->getTenantKey(), $this->timezone());
         $page = max(1, $request->integer('page', 1));
         $key = $request->query('key');
-        $found = $definition->records($parameters, is_string($key) ? $key : null, $page, 50);
+        $measure = $request->query('measure');
+        if ($measure !== null && (! is_string($measure) || ($definition->measures()[$measure]->unit ?? null) !== 'count')) {
+            throw ValidationException::withMessages(['measure' => 'Choose a count measure of this report.']);
+        }
+        $found = $definition->records($parameters, is_string($key) ? $key : null, $page, 50, $measure);
 
         return ReportRecordResource::collection($this->describe((string) $definition->drillDownTo(), $found['ids']))
             ->additional(['meta' => ['entity' => $definition->drillDownTo(), 'current_page' => (int) $page, 'per_page' => 50, 'total' => (int) $found['total']]]);

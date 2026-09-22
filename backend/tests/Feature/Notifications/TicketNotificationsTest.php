@@ -39,7 +39,7 @@ beforeEach(function (): void {
     tenancy()->initialize($this->tenant);
 });
 
-it('notifies the agent in-app, by mail and realtime when a manager assigns a ticket', function (): void {
+it('notifies the agent in-app and by mail when a manager assigns a ticket', function (): void {
     Notification::fake();
     $ticket = Ticket::factory()->forTenant($this->tenant)->create();
     tenancy()->initialize($this->tenant);
@@ -47,7 +47,7 @@ it('notifies the agent in-app, by mail and realtime when a manager assigns a tic
     $this->postJson("/v1/tickets/{$ticket->id}/assign", ['agent_id' => $this->agent->id])->assertOk();
 
     Notification::assertSentTo($this->agentUser, TicketAssignedToYou::class, function (TicketAssignedToYou $notification, array $channels) use ($ticket): bool {
-        return $channels === [TenantDatabaseChannel::class, 'broadcast', 'mail']
+        return $channels === [TenantDatabaseChannel::class, 'mail']
             && $notification->ticketId === $ticket->id
             && $notification->queue === 'notifications'
             && str_starts_with($notification->key(), 'ticket_assigned:');
@@ -72,7 +72,7 @@ it('tells the assignee about replies and notes of others, in-app only', function
 
     $this->postJson("/v1/tickets/{$this->ticket->id}/comments", ['body' => 'Any news on this?', 'visibility' => $visibility])->assertCreated();
 
-    Notification::assertSentTo($this->agentUser, $class, fn ($notification, array $channels): bool => $channels === [TenantDatabaseChannel::class, 'broadcast']);
+    Notification::assertSentTo($this->agentUser, $class, fn ($notification, array $channels): bool => $channels === [TenantDatabaseChannel::class]);
     Notification::assertNothingSentTo($this->manager);
 })->with([['public', PublicReplyOnYourTicket::class], ['internal', InternalNoteOnYourTicket::class]]);
 
@@ -178,7 +178,8 @@ it('mails a link to the ticket in the workspace', function (): void {
         ->and($mail->salutation)->toBe('Notify Desk');
 });
 
-it('broadcasts on the private channel of the user', function (): void {
-    expect($this->agentUser->receivesBroadcastNotificationsOn())->toBe("tenants.{$this->tenant->id}.users.{$this->agentUser->id}")
-        ->and((new SlaBreachNotice('Notify Desk', 'notify', $this->ticket->id, 42, 'Printer offline', 'timer'))->broadcastType())->toBe('sla_breached');
+it('leaves the realtime announcement to the Realtime module', function (): void {
+    // tests/Feature/Realtime/BroadcastEventsTest.php covers `notification.created` on the user's channel.
+    expect((new SlaBreachNotice('Notify Desk', 'notify', $this->ticket->id, 42, 'Printer offline', 'timer'))->via($this->agentUser))
+        ->not->toContain('broadcast');
 });

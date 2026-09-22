@@ -47,6 +47,17 @@ arch('media depends on tenancy only among domain modules')
     ->expect('App\Modules\Media')
     ->not->toUse(['App\Modules\Tickets', 'App\Modules\Automation', 'App\Modules\Sla', 'App\Modules\Agents']);
 
+arch('mail depends on tickets, contacts, media and the automation text helpers only (M3-19)')
+    ->expect('App\Modules\Mail')
+    ->not->toUse([
+        'App\Modules\Sla', 'App\Modules\Agents', 'App\Modules\Integrations', 'App\Modules\Notifications',
+        'App\Modules\Automation\Actions', 'App\Modules\Automation\Strategies', 'App\Modules\Automation\Contracts',
+    ]);
+
+arch('the mail domain stays framework-free')
+    ->expect('App\Modules\Mail\Domain')
+    ->not->toUse(['Illuminate', 'Webklex']);
+
 arch('reporting is never imported by other modules')
     ->expect([
         'App\Modules\Platform', 'App\Modules\Tenancy', 'App\Modules\Identity', 'App\Modules\Contacts',
@@ -54,6 +65,15 @@ arch('reporting is never imported by other modules')
         'App\Modules\Media', 'App\Modules\Mail', 'App\Modules\Integrations', 'App\Modules\Audit',
     ])
     ->not->toUse('App\Modules\Reporting');
+
+arch('realtime is never imported by other modules')
+    ->expect([
+        'App\Modules\Platform', 'App\Modules\Tenancy', 'App\Modules\Identity', 'App\Modules\Contacts',
+        'App\Modules\Agents', 'App\Modules\Tickets', 'App\Modules\Sla', 'App\Modules\Automation',
+        'App\Modules\Media', 'App\Modules\Mail', 'App\Modules\Integrations', 'App\Modules\Audit',
+        'App\Modules\Notifications', 'App\Modules\Reporting', 'App\Models',
+    ])
+    ->not->toUse('App\Modules\Realtime');
 
 arch('algorithm implementations are only referenced through their contracts')
     ->expect(['App\Modules\Automation\Strategies', 'App\Modules\Sla\Strategies'])

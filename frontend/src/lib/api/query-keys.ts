@@ -138,6 +138,17 @@ export const queryKeys = {
     asOf: (tenantId: string, type: string, id: string, at: string) =>
       [...queryKeys.entity360.all(tenantId), 'as-of', type, id, at] as const,
   },
+  /** The workspace audit log (M3-03): a cursor feed per filter set. */
+  audit: {
+    all: (tenantId: string) => [tenantId, 'audit'] as const,
+    list: (tenantId: string, query: object) => [...queryKeys.audit.all(tenantId), 'list', query] as const,
+  },
+  /** The inbound email log of Settings → Email (M3-19): a cursor feed per filter set. */
+  inboundEmails: {
+    all: (tenantId: string) => [tenantId, 'inbound-emails'] as const,
+    list: (tenantId: string, query: object) =>
+      [...queryKeys.inboundEmails.all(tenantId), 'list', query] as const,
+  },
   settings: {
     all: (tenantId: string) => [tenantId, 'settings'] as const,
     list: (tenantId: string) => [...queryKeys.settings.all(tenantId), 'list'] as const,

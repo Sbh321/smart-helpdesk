@@ -1,66 +1,36 @@
 import { expect, type Page, test } from '@playwright/test'
+import { stateFor, users } from './support/env'
+import { expectOk, sessionApi, ticketDefaults } from './support/session'
 
 /**
  * Milestone 2 golden path through the UI against the Compose stack (docs/10-quality/definition-of-done.md
  * §Roadmap week, M2): create → automatic priority → duplicate suggestion → automatic assignment → reply →
- * pending → resolve → close. Needs the dev seed (`acme`, priya@acme.test with an Agent profile).
+ * pending → resolve → close. Needs the demo dataset (`acme`, priya@acme.test with an Agent profile).
  */
 
-const workspace = process.env.E2E_WORKSPACE ?? 'acme'
-const email = process.env.E2E_EMAIL ?? 'priya@acme.test'
-const password = process.env.E2E_PASSWORD ?? 'password'
+const workspace = users.priya.workspace
 
-async function signIn(page: Page) {
-  await page.goto(`/${workspace}/login`)
-  await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Sign in' }).click()
-  await expect(page).toHaveURL(new RegExp(`/${workspace}/?$`))
-}
-
-async function apiClient(page: Page) {
-  const api = `https://api.${new URL(page.url()).hostname.replace(/^app\./, '')}/v1`
-  const xsrf = decodeURIComponent(
-    (await page.context().cookies()).find((cookie) => cookie.name === 'XSRF-TOKEN')?.value ?? '',
-  )
-  const headers = {
-    Accept: 'application/json',
-    'X-XSRF-TOKEN': xsrf,
-    Origin: new URL(page.url()).origin,
-    Referer: page.url(),
-  }
-  return { api, headers }
-}
+test.use({ storageState: stateFor('priya') })
 
 /**
  * Set-up through the API, not assertions: the agent needs a free slot for automatic assignment, and an
  * earlier ticket with the same wording is what the duplicate suggestion should find.
  */
 async function prepare(page: Page, title: string): Promise<number> {
-  const { api, headers } = await apiClient(page)
-  const me = await (await page.request.get(`${api}/me`, { headers })).json()
-  const agentId: string | undefined = me.data.agent_profile?.id
+  const api = sessionApi(page.context())
+  const me = await api.json<{ data: { agent_profile?: { id: string } } }>('/me')
+  const agentId = me.data.agent_profile?.id
   expect(agentId, 'the signed-in user needs an Agent profile').toBeTruthy()
-  const response = await page.request.patch(`${api}/agents/${agentId}`, {
-    headers,
-    data: { capacity: 100, availability: 'available' },
-  })
-  expect(response.ok(), await response.text()).toBeTruthy()
+  await expectOk(await api.patch(`/agents/${agentId}`, { capacity: 100, availability: 'available' }))
 
-  const contact = (await (await page.request.get(`${api}/contacts?per_page=1`, { headers })).json()).data[0]
-  const category = (await (await page.request.get(`${api}/categories`, { headers })).json()).data[0]
-  const twin = await page.request.post(`${api}/tickets`, {
-    headers,
-    data: {
-      title,
-      description: 'The VPN connection for the sales team drops every hour since Monday.',
-      contact_id: contact.id,
-      category_id: category.id,
-      impact: 2,
-      urgency: 2,
-    },
+  const twin = await api.post('/tickets', {
+    title,
+    description: 'The VPN connection for the sales team drops every hour since Monday.',
+    ...(await ticketDefaults(api)),
+    impact: 2,
+    urgency: 2,
   })
-  expect(twin.ok(), await twin.text()).toBeTruthy()
+  await expectOk(twin)
   return (await twin.json()).data.number
 }
 
@@ -69,7 +39,6 @@ test('create, prioritise, suggest duplicates, assign, reply, pend, resolve and c
 }) => {
   const stamp = Date.now().toString(36)
   const title = `Golden path ${stamp}: VPN drops every hour`
-  await signIn(page)
   const twinNumber = await prepare(page, title)
 
   // Create: the duplicate preview runs while typing.

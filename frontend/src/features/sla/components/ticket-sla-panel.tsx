@@ -11,9 +11,21 @@ function remaining(timer: SlaTimer, now: number): string {
   if (timer.state === 'paused') return copy.sla.paused
   const seconds = Math.max(0, Math.ceil((new Date(timer.due_at).getTime() - now) / 1000))
   if (seconds === 0) return copy.sla.overdue
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.ceil((seconds % 3600) / 60)
+  // Rounded up to whole minutes first, so 1 h 59 min 30 s reads "2h 0m", never "1h 60m".
+  const totalMinutes = Math.ceil(seconds / 60)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
   return hours > 0 ? fill(copy.sla.hoursMinutes, { hours, minutes }) : fill(copy.sla.minutesOnly, { minutes })
+}
+
+/** The SLA state tokens of docs/06-design-system (tokens.css `--sla-*`); the state is always written out too. */
+const STATE_TINT: Record<SlaTimer['state'], string> = {
+  running: 'bg-sla-ok text-sla-ok-foreground',
+  warning: 'bg-sla-warning text-sla-warning-foreground',
+  breached: 'bg-sla-breached text-sla-breached-foreground',
+  paused: 'bg-sla-paused text-sla-paused-foreground',
+  met: 'bg-muted',
+  cancelled: 'bg-muted',
 }
 
 export function TicketSlaPanel({
@@ -46,14 +58,22 @@ export function TicketSlaPanel({
             <span className="font-medium">
               {timer.kind === 'first_response' ? copy.sla.firstResponse : copy.sla.resolution}
             </span>
-            <span className="rounded bg-muted px-2 py-0.5">{copy.sla.timerStates[timer.state]}</span>
+            <span className={`rounded px-2 py-0.5 ${STATE_TINT[timer.state]}`}>
+              {copy.sla.timerStates[timer.state]}
+            </span>
           </div>
           <p className="mt-2 text-muted-foreground">
             {fill(copy.sla.dueAt, { time: formatInZone(timer.due_at, timeZone) })}
           </p>
-          <p className="mt-1 tabular-nums" aria-live="polite" aria-atomic="true">
-            {fill(copy.sla.remainingTime, { time: remaining(timer, now) })}
-          </p>
+          {timer.state === 'met' || timer.state === 'cancelled' ? null : (
+            <p className="mt-1 tabular-nums" aria-live="polite" aria-atomic="true">
+              {timer.state === 'paused'
+                ? copy.sla.paused
+                : timer.state === 'breached' || new Date(timer.due_at).getTime() <= now
+                  ? copy.sla.overdue
+                  : fill(copy.sla.remainingTime, { time: remaining(timer, now) })}
+            </p>
+          )}
           <p className="mt-1 text-xs text-muted-foreground">
             {fill(copy.sla.strategy, { name: timer.strategy, version: timer.strategy_version })}
           </p>

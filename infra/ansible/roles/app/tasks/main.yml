@@ -29,6 +29,7 @@
     - { src: infra/postgres/entrypoint.sh, mode: "0755" }
     - { src: infra/postgres/init/10-roles-and-databases.sh, mode: "0755" }
     - { src: infra/scripts/smoke.sh, mode: "0755" }
+    - { src: infra/scripts/mail-init.sh, mode: "0755" }
   notify: Converge the stack
 
 - name: Secrets
@@ -102,6 +103,19 @@
     remove_orphans: true
     wait: true
     wait_timeout: 300
+
+- name: Configure the bundled mail server (accounts, DKIM, relay) and print its DNS records
+  ansible.builtin.command:
+    argv: ["{{ app_dir }}/infra/scripts/mail-init.sh"]
+    chdir: "{{ app_dir }}"
+  register: app_mail_init
+  changed_when: "'completing Stalwart' in app_mail_init.stdout"
+  when: mail_profile | bool
+
+- name: DNS records for the mail domain (set mail_dkim_selector and mail_dkim_public_key from them)
+  ansible.builtin.debug:
+    msg: "{{ app_mail_init.stdout_lines | select('search', '^  (MX|A|TXT) |MAIL_DKIM_') | list }}"
+  when: mail_profile | bool
 
 - name: Record that the stack exists (proxy handler)
   ansible.builtin.set_fact:

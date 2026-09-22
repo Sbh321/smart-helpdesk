@@ -23,6 +23,13 @@
     - { port: "443", proto: tcp }
     - { port: "443", proto: udp }
 
+- name: Allow inbound SMTP for the bundled mail server
+  community.general.ufw:
+    rule: allow
+    port: "25"
+    proto: tcp
+  when: mail_profile | default(false) | bool
+
 - name: Deny everything else and enable
   community.general.ufw:
     state: enabled

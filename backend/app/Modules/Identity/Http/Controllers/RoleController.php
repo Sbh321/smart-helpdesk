@@ -130,8 +130,9 @@ final class RoleController
             throw RoleInUse::held($holders);
         }
 
+        $permissions = $role->permissions->pluck('name')->all();
         $role->delete();
-        Audit::record('role.deleted', $role);
+        Audit::record('role.deleted', $role, ['name' => $role->name, 'permissions' => $permissions]);
 
         return response()->noContent();
     }

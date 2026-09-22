@@ -1,0 +1,46 @@
+From: Zara Ali <zara.ali@wayne-foods.test>
+To: ticket+{{TICKET}}@shp.example
+Subject: Re: [#1042] Printer offline
+Date: Tue, 22 Sep 2026 11:00:00 +0000
+Message-ID: <attachments-8812@wayne-foods.test>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="mixed-boundary"
+
+--mixed-boundary
+Content-Type: text/plain; charset=utf-8
+
+Here is the error screen and the printer log.
+
+--mixed-boundary
+Content-Type: image/png; name="screen.png"
+Content-Disposition: attachment; filename="screen.png"
+Content-Transfer-Encoding: base64
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmM
+IQAAAABJRU5ErkJggg==
+
+--mixed-boundary
+Content-Type: application/pdf; name="printer-log.pdf"
+Content-Disposition: attachment; filename="printer-log.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZz4+ZW5kb2JqCnRyYWlsZXI8PC9Sb290IDEg
+MCBSPj4KJSVFT0YK
+
+--mixed-boundary
+Content-Type: application/x-msdownload; name="fix.exe"
+Content-Disposition: attachment; filename="fix.exe"
+Content-Transfer-Encoding: base64
+
+TVogdGhpcyBpcyBub3QgYSByZWFsIHByb2dyYW0=
+
+--mixed-boundary
+Content-Type: image/png; name="logo.png"
+Content-Disposition: inline; filename="logo.png"
+Content-ID: <logo@wayne-foods.test>
+Content-Transfer-Encoding: base64
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmM
+IQAAAABJRU5ErkJggg==
+
+--mixed-boundary--

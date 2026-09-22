@@ -4,7 +4,7 @@
 name: smart-helpdesk
 
 include:
-  - infra/compose/tools.yaml   # mailpit (dev), webhook-echo (demo), playwright (e2e)
+  - infra/compose/tools.yaml   # mailpit (dev), webhook-echo (dev, demo)
 
 x-logging: &logging
   driver: json-file
@@ -18,6 +18,11 @@ x-backend: &backend
   env_file:
     - path: ${BACKEND_ENV_FILE:-./backend/.env}
       required: true
+  environment:
+    # Realtime switch (M3-16, docs/03-architecture/realtime.md): set both in the root .env together with
+    # COMPOSE_PROFILES=…,realtime; the defaults keep polling only.
+    REALTIME_ENABLED: ${REALTIME_ENABLED:-false}
+    BROADCAST_CONNECTION: ${BROADCAST_CONNECTION:-log}
   secrets: [db_owner_password, db_app_password]
   networks: [internal]
   depends_on:
@@ -44,6 +49,8 @@ services:
       MAIL_WEB_UPSTREAM: ${MAIL_WEB_UPSTREAM:-mail:8080}
       MAIL_ADMIN_UPSTREAM: ${MAIL_ADMIN_UPSTREAM:-mail:8080}
       REALTIME_ENABLED: ${REALTIME_ENABLED:-false}
+      # Public Pusher-protocol key for the SPA's runtime config.json; equals the backend's REVERB_APP_KEY.
+      REVERB_APP_KEY: ${REVERB_APP_KEY:-}
     ports:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
@@ -167,6 +174,37 @@ services:
       retries: 10
     logging: *logging
 
+  # Bundled mail server (ADR-0018, docker.md §Mail). Profile `mail`; configured by
+  # infra/scripts/mail-init.sh (`just mail-init`), which completes Stalwart's bootstrap, creates the
+  # `app` submission and `inbound` accounts, the catch-all, the DKIM key and the relay route, and prints
+  # the DNS records. STALWART_RECOVERY_ADMIN is the management credential mail-init.sh uses.
+  mail:
+    image: ${STALWART_IMAGE:-stalwartlabs/stalwart:v0.16.22-alpine}
+    profiles: [mail]
+    hostname: mail.${PLATFORM_DOMAIN}
+    command: ["--config", "/var/lib/stalwart/config.json"]
+    environment:
+      STALWART_RECOVERY_ADMIN: admin:${MAIL_ADMIN_PASSWORD:-}
+    volumes: [mail-data:/var/lib/stalwart]
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/healthz/live || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *logging
+
+  # Stalwart's management CLI for mail-init.sh (`docker compose run --rm -T mail-cli …`); never started by `up`.
+  mail-cli:
+    image: ${STALWART_CLI_IMAGE:-stalwartlabs/cli:1.0.12}
+    profiles: [mail-tools]
+    environment:
+      STALWART_URL: http://mail:8080
+      STALWART_USER: admin
+      STALWART_PASSWORD: ${MAIL_ADMIN_PASSWORD:-}
+    networks: [internal]
+
 networks:
   edge: {}
   internal: {}
@@ -177,6 +215,7 @@ volumes:
   object-data: {}
   caddy-data: {}
   caddy-config: {}
+  mail-data: {}
 
 secrets:
   db_superuser_password: { file: ./secrets/db_superuser_password }

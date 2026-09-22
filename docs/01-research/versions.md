@@ -15,7 +15,9 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | RustFS | 1.0.0 | pinned exact tag | released 2026-09-16; Garage 2.4.1 alternative |
 | Caddy | 2.11.4 | `caddy:2` | |
 | Mailpit | 1.31.1 | `axllent/mailpit` | dev only |
-| Stalwart Mail Server | 0.16.22 | `stalwartlabs/stalwart` pinned tag | profile `mail`; docker-mailserver 14.0.0 alternative |
+| Stalwart Mail Server | 0.16.22 | `stalwartlabs/stalwart:v0.16.22-alpine` (M3-18) | profile `mail`; the Alpine variant is 80 MB against 103 MB; 0.16.23 was published on 2026-09-21 and is not taken mid-sprint; docker-mailserver 14.0.0 alternative |
+| Stalwart CLI | 1.0.12 | `stalwartlabs/cli:1.0.12` (4 MB) | M3-18: `mail-init.sh` applies Stalwart's configuration with the CLI's declarative `apply` (0.16 manages everything through its JMAP API; the server image has no CLI); profile `mail-tools`, run only by the script |
+| dkimpy | 1.1.8 | `uvx --from dkimpy==1.1.8` (dev tool, not installed) | M3-18: `infra/scripts/mail-dkim-verify.py` / `just mail-dkim-check` verify Stalwart's DKIM signature on a Mailpit message without public DNS |
 | Docker Engine / Compose | 29.8 / v5.5 | Compose spec with `include`, profiles, `develop.watch` | local machine has 29.6 / v5.2 |
 | OpenTofu | 1.12.6 | pinned via mise | Terraform 1.16 is BUSL |
 | ansible-core | 2.21.4 | + community.docker 5.3, ansible.posix 2.2, community.general 13.4 | `geerlingguy.docker` role |
@@ -45,7 +47,7 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | stancl/tenancy | 3.10.1 | `^3.10` | Required |
 | laravel/horizon | 5.49.0 | `^5.49` | Required |
 | laravel/telescope | 5.24.0 | `^5.24` (dev) | Useful |
-| laravel/reverb | 1.11.1 | `^1.11` | Should-have |
+| laravel/reverb | 1.11.1 | `^1.11` | Should-have: installed in M3-16. It pulls `pusher/pusher-php-server` 7.3 (the broadcaster's publisher), `react/*` and `ratchet/rfc6455`. Reverb requires `guzzlehttp/psr7` ^2.6, so Composer moved `guzzlehttp/guzzle` from 8.2 to 7.15.5 (`psr7` 3.1 → 2.13, `promises` 3.0 → 2.5). Laravel 13, the AWS SDK and spatie/laravel-health accept both majors, and 7.x is still maintained. Revisit when Reverb allows psr7 3 |
 | dedoc/scramble | 0.13.43 | `0.13.*` | Required |
 | league/flysystem-aws-s3-v3 | 3.35.3 | `^3.35` | Required |
 | spatie/laravel-health | 1.40.2 | `^1.40` | Required |
@@ -56,7 +58,7 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | larastan/larastan | 3.12.1 | `^3.12` (dev) | Required |
 | laravel/pint | 1.32.1 | `^1.32` (dev) | Required |
 | intervention/image | 4.3.2 | `^4.3` | Required (media variants) |
-| webklex/laravel-imap | 6.2.0 | `^6.2` | Useful (inbound email) |
+| webklex/laravel-imap | 6.2.0 (with webklex/php-imap 6.2.0) | `^6.2` | Useful (inbound email); added in M3-19 for `mail:fetch-inbound` and MIME decoding (`Message::fromString`), pure PHP (no `ext-imap`) |
 | openspout/openspout | 5.11.3 (PHP 8.4/8.5) | `^5.11` | Required (XLSX report export) |
 | Deferred | pulse 1.8.1, pennant 1.26.0, octane 2.19.1, scout 11.7.0, activitylog 5.1.1, rector-laravel 2.6.2, spatie/laravel-medialibrary 11.23.8 | — | V1 / Rejected |
 
@@ -91,7 +93,8 @@ Verified 2026-09-17 against release pages, Packagist, npm and Docker Hub (see th
 | msw | 2.15.0 | `^2.15` (dev) | Useful |
 | culori (token contrast check script) | not installed | — | Not needed: `scripts/check-contrast.ts` uses the dependency-free `src/lib/theme/contrast.ts` (M1-11) |
 | docx (report builder, `report/` only) | 9.7.1 | `^9.7` | Required for report generation; not part of the product |
-| laravel-echo, @laravel/echo-react | 2.5.0 | `^2.5` | Should-have |
+| laravel-echo, @laravel/echo-react | 2.5.0 | `^2.5` | Should-have: installed in M3-16. `@laravel/echo-react` bundles Echo; `laravel-echo` supplies its type declarations |
+| pusher-js | 8.6.0 | `^8.6` | Should-have (M3-16): required peer of `@laravel/echo-react` for the Reverb (Pusher protocol) connector; version as in [realtime-options.md](realtime-options.md) |
 | Deferred | @tanstack/react-virtual 3.14, zustand 5.0, storybook 10.6, i18next 26 | — | V1 |
 
 ## Experiment tooling (report only)

@@ -4,7 +4,7 @@ Application-level design: [03-architecture/tenancy.md](../03-architecture/tenanc
 
 ## `tenant_id` conventions
 
-- Every application-plane table has `tenant_id uuid NOT NULL REFERENCES tenants(id)`; `audit_logs.tenant_id` and `roles.tenant_id` are nullable (platform-level rows / global roles).
+- Every application-plane table has `tenant_id uuid NOT NULL REFERENCES tenants(id)`; `audit_logs.tenant_id`, `inbound_emails.tenant_id` and `roles.tenant_id` are nullable (platform-level rows, inbound mail that names no workspace, global roles).
 - Control-plane tables (`tenants`, `domains`, `platform_users`, `platform_settings`, framework tables) have none.
 - Secondary tables (comments, events, timers, deliveries, pivots) carry `tenant_id` too, even though it is derivable, so RLS is uniform and indexes can lead with it.
 - `tenant_id` is filled by `BelongsToTenant` on create and is immutable (a `BEFORE UPDATE` trigger raises on change — the one trigger in the schema).
@@ -45,7 +45,7 @@ CREATE POLICY tenant_isolation ON {table}
 
 `NULLIF(…, '')` is needed because a custom setting that has been set once on a connection reads as `''`, not NULL, after it is cleared; `''::uuid` would raise. Unset or cleared, the expression is NULL, `tenant_id = NULL` matches nothing, and the table **fails closed**: a `SELECT` returns zero rows, an `UPDATE` or `DELETE` reaches none, and an `INSERT` raises `42501 new row violates row-level security policy`.
 
-Nullable variants (`audit_logs`, `roles`) use `IS NOT DISTINCT FROM`, so the central context (no tenant) is the "NULL tenant":
+Nullable variants (`audit_logs`, `inbound_emails` since M3-19, `roles`) use `IS NOT DISTINCT FROM`, so the central context (no tenant) is the "NULL tenant":
 
 ```sql
 -- audit_logs: platform entries only centrally, a tenant's entries only inside it
@@ -110,8 +110,10 @@ Nothing else. Work that spans tenants initialises each tenant instead of bypassi
 | Platform audit entries (`tenant.created`, `tenant.suspended`, …) | written centrally with a NULL tenant, which the `audit_logs` policy allows only in the central context |
 | `sla:evaluate`, `webhooks:retry-due` | visit every active tenant (`Tenant::active()->cursor()`) and query the due rows inside `$tenant->run()`; a tenant with nothing due costs one indexed query. They used to read the due tenant ids across all tenants first. |
 | `webhooks:prune` | deletes expired deliveries inside each tenant, suspended ones included |
+| `mail:fetch-inbound` (M3-19) | routes each message centrally, asking each active tenant inside `$tenant->run()` whether it holds the ticket id of a `ticket+<uuid>@` address (one indexed query each), then writes the log row, comment or ticket inside that tenant; a message that names no tenant is a platform row with a NULL tenant, which only the central context sees |
 | `tickets:auto-close`, `tickets:reevaluate-priority`, `agents:reconcile-workload`, `media:cleanup`, `reports:snapshot-daily`, `reports:rebuild`, `reports:verify` | already looped `Tenant::active()` with `$tenant->run()` |
 | Global roles and permissions (`identity:sync-permissions`, `DatabaseSeeder`) | central context (`tenancy()->central()`) |
+| Demo dataset (`demo:reset`, `demo:tick`, M3-13) | deletes the `acme` and `globex` tenant rows by id on the app role (the foreign keys cascade; referential actions are not filtered by the policies, and the change-capture trigger skips rows of a deleted tenant), then replays the dataset inside each new workspace; `demo:tick` moves timers inside each demo workspace. No other workspace is read |
 
 ## Setting lifecycle
 
@@ -157,7 +159,7 @@ The whole backend suite runs as `helpdesk_app`; `Tests\TestCase` migrates throug
 | Raw query backstop: inside A, a raw count equals A's rows; `where tenant_id = B` = 0 | same |
 | Writes: an insert with B's `tenant_id` in A, or any tenant row centrally, raises `42501`; an update or delete of B's rows in A reaches 0 rows | same |
 | Every seedable tenant model: B's row is invisible to a raw query centrally and in A, visible in B | same (dataset over `TenantModelInventory::seedablePrimary()`) |
-| Nullable policies: platform audit entries only centrally; global roles visible in every tenant but not writable by one | `RowLevelSecurityTest` §nullable tenant tables |
+| Nullable policies: platform audit entries and unrouted inbound email only centrally, a workspace's inbound email only inside it; global roles visible in every tenant but not writable by one | `RowLevelSecurityTest` §nullable tenant tables |
 | Lifecycle: cleared on end; restored after a failing `Tenant::run()` inside a transaction; re-applied after a rollback; no leak from a failing tenant job into the next central job on one worker connection; a stale setting cleared before a central job | `RowLevelSecurityTest` §setting lifecycle |
 | Reflection | every Eloquent model is classified and its table is in `TenantTables` or the documented allow-list (`ModelReflectionTest`) |
 

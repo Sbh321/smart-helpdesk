@@ -1,0 +1,41 @@
+From: "Bikram Thapa" <bikram@wayne-foods.test>
+To: "Acme Support" <ticket+{{TICKET}}@shp.example>
+Subject: RE: [#1042] Printer offline
+Date: Tue, 22 Sep 2026 04:10:00 +0000
+Message-ID: <AM0PR01MB1234.outlook-5521@AM0PR01MB1234.eurprd01.prod.outlook.test>
+In-Reply-To: <ticket-{{TICKET}}.1@shp.example>
+Thread-Topic: [#1042] Printer offline
+Content-Language: en-US
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="_000_AM0PR01MB_"
+
+--_000_AM0PR01MB_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Hello,
+
+The printer on floor 2 still shows ERR-17.
+
+Regards,
+Bikram
+
+________________________________
+From: Acme Support <support+acme@shp.example>
+Sent: Tuesday, September 22, 2026 9:40 AM
+To: Bikram Thapa <bikram@wayne-foods.test>
+Subject: [#1042] Printer offline
+
+We replaced the toner.
+
+--_000_AM0PR01MB_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><style>p{margin:0}</style></head><body><div>Hello,</div><div>Th=
+e printer on floor 2 still shows ERR-17.</div><div>Regards,<br>Bikram</div>=
+<hr style=3D"display:inline-block;width:98%"><div id=3D"divRplyFwdMsg"><b>F=
+rom:</b> Acme Support<br><b>Sent:</b> Tuesday</div><div>We replaced the ton=
+er.</div></body></html>
+
+--_000_AM0PR01MB_--

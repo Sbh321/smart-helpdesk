@@ -141,6 +141,17 @@ it('shows a ticket and its history, newest first', function (): void {
         ->assertJsonStructure(['meta' => ['next_cursor', 'per_page']]);
 });
 
+it('sends empty value maps as JSON objects, never as lists', function (): void {
+    $this->acme->run(function (): void {
+        TicketEvent::query()->create(['ticket_id' => $this->t1->id, 'type' => 'created', 'actor_type' => 'system', 'old_values' => [], 'new_values' => ['status' => 'open']]);
+    });
+
+    $body = $this->getJson("/v1/tickets/{$this->t1->id}/history")->assertOk()->getContent();
+
+    // A list ([]) makes a client's old_values['at'] resolve to Array.prototype.at.
+    expect($body)->toContain('"old_values":{}')->not->toContain('"old_values":[]');
+});
+
 it('answers 404 for another workspace ticket', function (): void {
     $foreign = $this->globex->run(fn (): Ticket => Ticket::query()->sole());
 

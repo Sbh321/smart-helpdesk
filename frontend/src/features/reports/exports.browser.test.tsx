@@ -143,6 +143,7 @@ test('the bell shows a finished export with a link to the file', async () => {
     export_id: '01990000-0000-7000-8000-000000000001',
     media_id: EXPORT_MEDIA_ID,
     file_name: 'Ticket volume 2026-09-21 1445.csv',
+    inbound_email_id: null,
     summary: 'Your export is ready',
     read_at: null,
     created_at: '2026-09-21T09:30:00Z',

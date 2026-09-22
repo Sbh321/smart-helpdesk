@@ -35,6 +35,7 @@ import {
 import { type BulkMode, TicketBulkButtons, TicketBulkDialogs, type TicketLabel } from './ticket-bulk-actions'
 import { TICKET_HIDDEN_COLUMNS, ticketColumns } from './ticket-columns'
 import { QUICK_VIEWS, type QuickView, TicketQuickViews } from './ticket-quick-views'
+import { TicketListRealtime } from './ticket-realtime'
 
 const NO_OPTIONS: FilterOption[] = []
 const STATUS_OPTIONS: FilterOption[] = [
@@ -152,6 +153,7 @@ export function TicketList({ workspace }: { workspace: string }) {
 
   return (
     <div className="flex flex-col gap-3">
+      <TicketListRealtime tenantId={tenantId} />
       <div className="flex flex-wrap items-start justify-between gap-2">
         <TicketQuickViews params={list.params} views={quickViews} onSelect={selectQuickView} />
         {/* Exports the list as filtered, searched and sorted now (roadmap M3-09). */}

@@ -6,6 +6,7 @@ import { AvailabilityControl } from '@/features/agents'
 import { ensureSession } from '@/features/auth'
 import { NotificationBell } from '@/features/notifications'
 import { guardWorkspaceRoute, REDIRECT_PARAM } from '@/lib/auth'
+import { RealtimeProvider } from '@/lib/realtime'
 
 /**
  * The authenticated shell. The guard runs before anything renders: no session sends the visitor to the
@@ -39,13 +40,17 @@ export const Route = createFileRoute('/$workspace/_app')({
 
 function AppLayout() {
   const { workspace } = Route.useParams()
+  const { config } = Route.useRouteContext()
+  // Live updates (M3-16) for everything inside the shell; off unless config.json and the workspace say so.
   return (
-    <AppShell
-      workspace={workspace}
-      topbarActions={<AvailabilityControl />}
-      topbarNotifications={<NotificationBell workspace={workspace} />}
-    >
-      <Outlet />
-    </AppShell>
+    <RealtimeProvider config={config}>
+      <AppShell
+        workspace={workspace}
+        topbarActions={<AvailabilityControl />}
+        topbarNotifications={<NotificationBell workspace={workspace} />}
+      >
+        <Outlet />
+      </AppShell>
+    </RealtimeProvider>
   )
 }

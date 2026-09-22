@@ -50,6 +50,13 @@ http://127.0.0.1:5555 {
 	}
 	import tls_{$TLS_MODE:acme}
 
+	# Reverb WebSocket (profile `realtime`, M3-16) under /api, before the API itself. Only /app (the
+	# socket): the app publishes to Reverb's /apps HTTP API on the internal network.
+	@realtime path /api/app/*
+	handle @realtime {
+		uri strip_prefix /api
+		reverse_proxy reverb:8080
+	}
 	handle_path /api/* {
 		reverse_proxy app:8080
 	}

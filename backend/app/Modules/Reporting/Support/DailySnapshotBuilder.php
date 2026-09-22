@@ -56,8 +56,11 @@ final class DailySnapshotBuilder
                 $metrics[(string) $row->k]['backlog'] = (int) $row->n;
             }
 
+            // MATERIALIZED: right after a rebuild the planner's statistics still describe empty read
+            // models, and an inlined CTE was re-run once per fact row (about 50 ms a day for 300
+            // tickets, 25 s for a 90-day demo rebuild). Computed once, the plan no longer depends on them.
             $flows = DB::select(<<<SQL
-                WITH flows AS (
+                WITH flows AS MATERIALIZED (
                     SELECT ticket_id, created_at AS at, 'created' AS kind FROM report_ticket_facts
                      WHERE tenant_id = ? AND created_at >= ? AND created_at < ?
                     UNION ALL

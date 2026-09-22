@@ -73,7 +73,7 @@ CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile
 ```sh
 #!/bin/sh
 set -eu
-envsubst '$PLATFORM_DOMAIN $REALTIME_ENABLED $REALTIME_HOST $STORAGE_PUBLIC_ENDPOINT' \
+envsubst '$PLATFORM_DOMAIN $REALTIME_ENABLED $REVERB_APP_KEY $REALTIME_HOST $REALTIME_PATH $STORAGE_PUBLIC_ENDPOINT' \
   < /srv/config.template.json > /srv/config.json
 exec "$@"
 ```
@@ -127,7 +127,7 @@ app.{$PLATFORM_DOMAIN} {
 api.{$PLATFORM_DOMAIN} {
 	import common
 	import tls_mode
-	@realtime path /app/* /apps/*
+	@realtime path /app/*            # the Reverb socket only; /apps (publishing) stays internal (M3-16)
 	handle @realtime { reverse_proxy reverb:8080 }
 	handle { reverse_proxy app:8080 }
 }
@@ -188,13 +188,13 @@ As built in M1-04. The files below are authoritative; the YAML excerpts further 
 ```text
 compose.yaml                 # every service; dev defaults are off; includes infra/compose/tools.yaml
 compose.override.yaml        # dev only, loaded automatically: bind mounts, dev image target, 127.0.0.1 ports, TLS internal
-infra/compose/tools.yaml     # profile dev: mailpit (later: webhook-echo, playwright)
+infra/compose/tools.yaml     # profile dev: mailpit; dev and demo: webhook-echo
 infra/compose/prod.yaml      # production overlay (M3-14): images by tag, restart, limits, log rotation, migrate one-shot, Passport keys, certs
 ```
 
 Plain `docker compose up` in the repository loads `compose.yaml` and `compose.override.yaml`. Servers never have the override file; their `.env` sets `COMPOSE_FILE=compose.yaml:infra/compose/prod.yaml` and `BACKEND_ENV_FILE=.env`, so `docker compose up -d --wait` there means the production stack (templates in `infra/env/`, details in [production.md](production.md#host-layout)). Migrations run with `docker compose run --rm migrate` (profile `ops`, `DB_CONNECTION=pgsql_owner`). The first design used `include` overlays, but `include` cannot override services that the root file defines, so the standard override file replaced it.
 
-Profiles: `dev` (mailpit), `storage` (rustfs), `realtime` (reverb), later `demo` (webhook-echo) and `e2e` (playwright runner). The root `.env` sets `COMPOSE_PROFILES=dev,storage` for development. Production on-prem typically runs `COMPOSE_PROFILES=storage`, cloud runs no profile (managed storage), and both add `realtime` when enabled.
+Profiles: `dev` (mailpit), `storage` (rustfs), `realtime` (reverb), `mail` (Stalwart, M3-18; `mail-tools` holds its CLI for `mail-init.sh`), `demo` (webhook-echo). There is no Playwright container: the E2E suite runs on the host or the CI runner with `pnpm -C frontend e2e` (M3-12, [testing.md](../10-quality/testing.md) §End-to-end), which keeps the multi-gigabyte browser image off the machine. The root `.env` sets `COMPOSE_PROFILES=dev,storage` for development. Production on-prem typically runs `COMPOSE_PROFILES=storage`, cloud runs no profile (managed storage), and both add `realtime` when enabled.
 
 Image sources are variables (`POSTGRES_IMAGE`, `VALKEY_IMAGE`, `MAILPIT_IMAGE`, `NODE_IMAGE`, `CADDY_IMAGE`), so a host that hits the Docker Hub pull limit can use mirrors such as `public.ecr.aws/docker/library/postgres:18-trixie`, `public.ecr.aws/valkey/valkey:9-alpine` and `ghcr.io/axllent/mailpit:v1.31.1`.
 
@@ -203,9 +203,9 @@ Image sources are variables (`POSTGRES_IMAGE`, `VALKEY_IMAGE`, `MAILPIT_IMAGE`, 
 | Network | Members | Published ports |
 |---|---|---|
 | `edge` | proxy | `${HTTP_PORT:-80}`, `${HTTPS_PORT:-443}` (tcp and udp) |
-| `internal` | proxy, app, horizon, scheduler, reverb, postgres, valkey, rustfs, mailpit | none in prod; dev publishes PostgreSQL on `127.0.0.1:${DEV_DB_PORT:-55439}` and Valkey on `127.0.0.1:${DEV_VALKEY_PORT:-56379}` |
+| `internal` | proxy, app, horizon, scheduler, reverb, postgres, valkey, rustfs, mail, mailpit | none in prod except `mail` port 25; dev publishes PostgreSQL on `127.0.0.1:${DEV_DB_PORT:-55439}` and Valkey on `127.0.0.1:${DEV_VALKEY_PORT:-56379}` |
 
-Only `proxy` is ever published. The RustFS console and Mailpit are reached through the proxy (`monitor.…/storage`, `mail.…`), never through their own ports. The dev ports are unusual on purpose, so the stack does not collide with a PostgreSQL, Redis or Mailpit already running on the developer's machine. The proxy carries network aliases for every `*.${PLATFORM_DOMAIN}` host on `internal`, so containers reach the public hostnames without leaving Docker.
+Only `proxy` is ever published, plus port 25 of `mail` in production when the mail profile is on. The RustFS console and Mailpit are reached through the proxy (`monitor.…/storage`, `mail.…`), never through their own ports. The dev ports are unusual on purpose, so the stack does not collide with a PostgreSQL, Redis or Mailpit already running on the developer's machine. The proxy carries network aliases for every `*.${PLATFORM_DOMAIN}` host on `internal`, so containers reach the public hostnames without leaving Docker.
 
 ### PostgreSQL bootstrap
 
@@ -429,15 +429,9 @@ services:
     environment: { WEBHOOK_SECRET: demo-secret }
     networks: [internal]
     ports: ["127.0.0.1:9100:9100"]
-  playwright:
-    image: mcr.microsoft.com/playwright:v1.63.0-noble
-    profiles: [e2e]
-    working_dir: /work/frontend
-    volumes: [./:/work]
-    environment: { BASE_URL: https://app.shp.localhost/acme, NODE_TLS_REJECT_UNAUTHORIZED: "0" }
-    networks: [internal]
-    entrypoint: ["pnpm", "exec", "playwright", "test"]
 ```
+
+As built, webhook-echo is the `node:24-alpine` image running the mounted `tools/webhook-echo` (in `infra/compose/tools.yaml`, profiles `dev` and `demo`), and the planned `playwright` service was not added (M3-12): Playwright runs on the host or the CI runner.
 
 ## One-shot commands
 
@@ -466,4 +460,26 @@ CI tags `backend`, `proxy` and `webhook-echo` images with the git SHA and `main`
 
 ## Mail service (added by ADR-0018)
 
-Profile `mail` adds `mail` (`stalwartlabs/stalwart`, pinned tag) with ports 25 (inbound SMTP, published), 587 (submission, internal), 143/993 (IMAP, internal), 8080 (admin, proxied at `/mail-admin` for platform admins only), volume `mail-data`, healthcheck on the admin HTTP port. First boot runs `infra/scripts/mail-init.sh`: creates the `app` submission account, the `inbound` mailbox with catch-all for `ticket+*@` and `support+*@`, generates DKIM keys for `PLATFORM_DOMAIN` and prints the DNS records. `MAIL_RELAY_HOST/PORT/USERNAME/PASSWORD` configure the smart host when port 25 is blocked. Dev keeps Mailpit for viewing outbound mail; `just mail-send-test` and `just mail-inject "<eml file>"` exercise the inbound path. docker-mailserver 14 is the documented alternative image with the same ports and volume names.
+Profile `mail` adds `mail` (`stalwartlabs/stalwart:v0.16.22-alpine`, [versions.md](../01-research/versions.md)) with ports 25 (inbound SMTP, published by `prod.yaml` only), 587 (submission, internal), 143 (IMAP, internal: `mail:fetch-inbound` reads `inbound@`, M3-19) and 8080 (admin API and `/healthz/live`, internal; the proxy serves it at `mail.<domain>` and `monitor.<domain>/mail`), volume `mail-data` (`/var/lib/stalwart`: `config.json` and the RocksDB store in `data/`), healthcheck on 8080. `STALWART_RECOVERY_ADMIN=admin:${MAIL_ADMIN_PASSWORD}` is the management credential; it works in Stalwart's bootstrap mode and afterwards.
+
+### As built (M3-18)
+
+`infra/scripts/mail-init.sh` (`just mail-init`; Ansible runs it when `mail_profile` is true) configures the server and is idempotent:
+
+1. starts `mail`; on an empty volume Stalwart is in bootstrap mode, and the script completes it through the JMAP management API (`x:Bootstrap/set`: hostname `mail.<domain>`, default domain, RocksDB path, logs to stdout, DKIM keys) and restarts it;
+2. applies a declarative plan with Stalwart's CLI (`mail-cli` service, `stalwartlabs/cli:1.0.12`, profile `mail-tools`, run with `docker compose run --rm`): accounts `app@` (submission) and `inbound@` (the domain's catch-all, so `ticket+…@`, `support+…@` and `unsubscribe+…@` land there), sub-addressing on, listeners reconciled to exactly smtp 25 / submission 587 (no TLS: internal network only) / imap 143 / http 8080, IMAP login without TLS allowed (internal port only, for `mail:fetch-inbound`; MVP-SHORTCUT, V1-ML-06), SMTP AUTH on 587 only, `app@` may send as any address of the domain (other accounts must match their sender), and the remote route `relay` (when `MAIL_RELAY_HOST` is set) or `mx`;
+3. keeps one RSA DKIM key (the Ed25519 key Stalwart also generates is deleted; DKIM management is set to manual, so the selector never rotates under published DNS);
+4. restarts `mail` (listener changes need it) and prints the MX, SPF, DKIM and DMARC records plus the `MAIL_DKIM_SELECTOR`/`MAIL_DKIM_PUBLIC_KEY` lines for the backend `.env` (Settings → Email shows the same records).
+
+| Variable (root `.env` or environment) | Meaning |
+|---|---|
+| `MAIL_ADMIN_PASSWORD`, `MAIL_APP_PASSWORD`, `MAIL_INBOUND_PASSWORD` | required; A–Z a–z 0–9 `. _ ~ @ + / = -`, at least 8 characters; Laravel's `MAIL_PASSWORD` equals `MAIL_APP_PASSWORD` |
+| `MAIL_DOMAIN` (default `PLATFORM_DOMAIN`), `MAIL_HOSTNAME` (default `mail.<domain>`) | the mail domain and the server's name (MX target, EHLO) |
+| `MAIL_RELAY_HOST`, `MAIL_RELAY_PORT` (587), `MAIL_RELAY_USERNAME`, `MAIL_RELAY_PASSWORD`, `MAIL_RELAY_IMPLICIT_TLS` (false; true for 465), `MAIL_RELAY_ALLOW_INVALID_CERTS` (false) | smart host for all remote mail; empty host = direct MX delivery |
+| `MAIL_SPF_INCLUDE`, `MAIL_DMARC_POLICY` (`none`) | printed records; also read by Laravel for Settings → Email |
+
+**Development: Mailpit and Stalwart side by side.** Laravel in dev always sends to Mailpit (`MAIL_HOST=mailpit` in `backend/.env`), so the stack works without the mail profile and every notification is visible at `https://mail.shp.localhost`. Stalwart is started only on demand (`just mail-init`); the dev `.env` sets `MAIL_RELAY_HOST=mailpit`, `MAIL_RELAY_PORT=1025`, so whatever Stalwart sends out also lands in Mailpit, DKIM-signed. `just mail-send-test you@example.com stalwart` submits a message through Stalwart (the recipe overrides `MAIL_HOST=mail` for one command) and `just mail-dkim-check` verifies the newest Mailpit message with dkimpy against the key in `backend/.env`, without public DNS. Port 25 is not published in dev. `docker compose --profile mail stop mail` stops it again; `docker compose down -v` removes `mail-data` with the other volumes.
+
+**Production.** `prod.yaml` gives `mail` a restart policy, 512 MB / 0.5 CPU, log rotation and publishes `${MAIL_SMTP_PORT:-25}:25`. `COMPOSE_PROFILES` includes `mail`, and Laravel submits to `mail:587` as `app@<domain>` ([production.md §Mail](production.md#mail)). The `mail-data` volume holds the inbound mailbox and the DKIM key; the host backup timer does not copy it yet (the key can be regenerated with new DNS, and inbound mail is processed within minutes by M3-19).
+
+docker-mailserver 14 remains the documented alternative image (ADR-0018); it is not wired.

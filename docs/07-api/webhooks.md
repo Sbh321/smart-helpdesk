@@ -234,5 +234,12 @@ timestamp). The PHP snippet is copied into `WebhookSignerTest`. Live check on th
 deliveries of resolving ticket #44 were verified by webhook-echo (204); a tampered body and the same
 delivery replayed after five minutes were answered 401.
 
+**Test-control endpoints of webhook-echo (M3-12).** The handler is `tools/webhook-echo/echo.mjs`
+(`echo.test.mjs` tests it on a real port). `PUT /_echo/receivers/<name>` with `{"secret": "…", "status": 0}`
+makes deliveries to `/hook/<name>` verify with that secret (a subscription's secret shown once) and, when
+`status` is not 0, answer with it; `GET /_echo/deliveries?path=/hook/<name>` returns the last 500
+deliveries with `verified`, `reason`, `answered`, the event and delivery ids and the body. The E2E suite
+(`frontend/e2e/webhooks.spec.ts`) uses them; the service is development-only and never deployed.
+
 **Not built (deviations from the plan above).** Static per-subscription `headers`; `WithoutOverlapping`
 per subscription (ordering is not guaranteed anyway); the notification on auto-disable (V1-DP-06).
