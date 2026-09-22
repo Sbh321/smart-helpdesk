@@ -11,6 +11,16 @@ Applies to on-premise servers and the reference cloud VM alike; the differences 
 
 Memory budget at the minimum tier: PostgreSQL 1 GB, app 768 MB, Horizon 768 MB, scheduler 256 MB, proxy 256 MB, Valkey 512 MB, RustFS 256 MB, OS ≈ 200 MB. Swap of 2 GB is configured by the `common` role as a safety margin.
 
+**Queue workers.** Horizon's production block auto-balances the main queues (`sla`, `notifications`, `default`, `reports`) up to 10 workers with at least one per queue, and runs 4 webhook workers, 1 media worker and, with Reverb, 1 broadcast worker: about 9 idle PHP workers of 50–100 MB each. A demo host below the minimum tier sets a fixed small pool through the environment (Ansible `horizon_balance`, `horizon_max_processes`, `horizon_webhook_processes`):
+
+| Setting | Default | Demo host (2 GB) |
+|---|---|---|
+| `HORIZON_BALANCE` | `auto` | `false`: every main worker takes all four queues in priority order, `sla` first |
+| `HORIZON_MAX_PROCESSES` | `10` | `2` (without balancing this is also the minimum) |
+| `HORIZON_WEBHOOK_PROCESSES` | `4` | `1` |
+
+The broadcast supervisor starts only when `BROADCAST_CONNECTION=reverb`. The AWS demo host (t3.small, terraform.md §AWS environment) runs 4 workers in total: 2 main, 1 webhooks, 1 media; before the change Horizon held about 480 MB with 9 workers.
+
 ## Host layout
 
 As built in M3-14 (the Ansible `app` role creates exactly this):

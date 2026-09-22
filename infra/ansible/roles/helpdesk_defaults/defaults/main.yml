@@ -84,6 +84,13 @@ manage_firewall: true
 harden_ssh: true
 kernel_tuning: true                # vm.overcommit_memory=1 for Valkey; off in containers (not namespaced)
 
+# ---- Queue workers (config/horizon.php) ----
+# Production sizing. A small demo host (2 GB) uses false / 2 / 1: two workers taking every main queue in
+# priority order, one for webhooks, one for media (production.md §Sizing).
+horizon_balance: auto              # auto | false
+horizon_max_processes: 10
+horizon_webhook_processes: 4
+
 # ---- Backups (backups.md §Host safety net) ----
 backup_on_calendar: "*-*-* 02:30:00"
 backup_retention_days: 7

@@ -230,8 +230,9 @@ return [
             'nice' => 10,
         ],
         // Realtime broadcasts (M3-16): one process blocking on `broadcasts` (connection block_for), so a
-        // broadcast reaches Reverb well within a second; each job is one short HTTP call to Reverb.
-        'supervisor-broadcasts' => [
+        // broadcast reaches Reverb well within a second; each job is one short HTTP call to Reverb. Only
+        // with Reverb as the broadcaster: otherwise nothing is ever queued there (BroadcastTicketActivity).
+        ...(env('BROADCAST_CONNECTION', 'log') === 'reverb' ? ['supervisor-broadcasts' => [
             'connection' => 'redis-broadcasts',
             'queue' => ['broadcasts'],
             'balance' => 'simple',
@@ -242,7 +243,7 @@ return [
             'tries' => 1,
             'timeout' => 30,
             'nice' => 0,
-        ],
+        ]] : []),
         // Outbound webhooks (docs/07-api/webhooks.md): a slow receiver waits up to 10 s, so deliveries
         // get their own processes and never hold up SLA, notification or report jobs.
         'supervisor-webhooks' => [
@@ -261,14 +262,20 @@ return [
     ],
 
     'environments' => [
+        // Sized for a production host; a small demo host (the AWS t3.small, docs/09-infrastructure/terraform.md)
+        // sets HORIZON_BALANCE=false, HORIZON_MAX_PROCESSES=2 and HORIZON_WEBHOOK_PROCESSES=1: two workers
+        // that take every main queue in priority order (sla first) instead of at least one per queue.
         'production' => [
             'supervisor-1' => [
-                'maxProcesses' => 10,
+                'balance' => env('HORIZON_BALANCE', 'auto'),
+                'maxProcesses' => (int) env('HORIZON_MAX_PROCESSES', 10),
+                // Without balancing Horizon runs the minimum, so it equals the maximum there.
+                'minProcesses' => env('HORIZON_BALANCE', 'auto') === false ? (int) env('HORIZON_MAX_PROCESSES', 10) : 1,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'supervisor-webhooks' => [
-                'maxProcesses' => 4,
+                'maxProcesses' => (int) env('HORIZON_WEBHOOK_PROCESSES', 4),
             ],
         ],
 
