@@ -14,7 +14,7 @@ A 22-minute scripted demonstration that works offline (only the Compose stack on
 
 | Min | Step | What the examiner sees | Academic point |
 |---|---|---|---|
-| 0–1 | Platform admin: `admin.shp.localhost/platform-api/tenants` (signed in as `admin@platform.test`) | The two workspaces as JSON; suspend/reactivate through the platform API reference (`/platform-api/docs`) | Multi-tenancy |
+| 0–1 | Platform admin: `admin.shp.localhost` redirects to the platform sign-in; sign in as `admin@platform.test` | The two workspaces in the tenant list; suspend/reactivate through the platform API reference (`/platform-api/docs`) | Multi-tenancy |
 | 1–3 | Priya: Dashboard | Eight KPIs with the previous period, six charts; SLA compliance ≈ 82 %, 26 breaches in 30 days | Analytics |
 | 3–5 | Arjun: Tickets → New ticket, title "Cannot login after password reset", description "After the password reset the portal login fails with ERR-401 and I cannot log in." | Duplicate panel suggests #1031 (80 %) with the shared words before saving | Duplicate detection |
 | 5–7 | Contact Laura Schmidt (Umbrella Health, enterprise), Account access, impact 2, urgency 3 → Create; the ticket (#1121) opens | P2 High, score 51.7, "Why this priority?" with the four factor contributions; assigned to Chen Wei; SLA panel: first response due in 2 h, resolution in 24 h. Then Priya opens an untriaged open ticket (e.g. #1099) → **Assignment**: the ranking (load, last assigned) and the eight excluded agents with reasons (Elena away, Grace offline, Farid at capacity, missing skills) → Auto-assign | Priority + assignment + SLA |
@@ -43,7 +43,7 @@ Rehearsed twice on 2026-09-22 on the dev stack: 25 of 25 steps passed both times
 Open points found in the rehearsal (the same list is in the M3-13 report):
 
 - The docs host loads Stoplight Elements from `unpkg.com`: the only step that needs the internet. Offline, show the committed `backend/openapi.json` or a screenshot.
-- The platform console page is still a placeholder (V1-PL-13): step 0–1 uses the platform API.
+- The platform console has a sign-in page, a guard, sign-out and a read-only tenant list (2026-09-23); creating, editing, suspending and reactivating workspaces from the console is still V1-PL-13, so step 0–1 does those through the platform API.
 - Timeline entries of SLA events render `at: function at() …` and `details: [object Object]`, and assignment entries show raw ids (ticket timeline polish, M3-03).
 - An automatically assigned ticket does not show its stored ranking; the Assignment dialog shows it only for an unassigned ticket, hence #1099 in step 5–7.
 - Backlog over time has no drill-down; the drill-down is shown on Ticket volume.

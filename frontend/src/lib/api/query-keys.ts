@@ -15,6 +15,12 @@ export const queryKeys = {
     all: ['session'] as const,
     me: () => [...queryKeys.session.all, 'me'] as const,
   },
+  /** Platform administration on the admin host (its own session, never tenant-scoped). */
+  platform: {
+    all: ['platform'] as const,
+    me: () => [...queryKeys.platform.all, 'me'] as const,
+    tenants: () => [...queryKeys.platform.all, 'tenants'] as const,
+  },
   system: {
     all: ['system'] as const,
     ping: () => [...queryKeys.system.all, 'ping'] as const,

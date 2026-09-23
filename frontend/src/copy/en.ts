@@ -1638,9 +1638,22 @@ export const copy = {
     title: 'Tenants',
     description: 'Every workspace on this installation.',
     heading: 'Platform administration',
-    placeholderTitle: 'The platform API arrives in M1-07',
-    placeholderBody:
-      'This page lists tenants once the platform API and the super-admin guard exist (roadmap M1-07).',
+    login: {
+      heading: 'Platform sign-in',
+      body: 'Sign in as a Platform Super Admin.',
+      invalidCredentials: 'The email or password is incorrect.',
+    },
+    signOut: 'Sign out',
+    signedInAs: 'Signed in as {name}',
+    emptyTitle: 'No workspaces yet',
+    emptyBody: 'Workspaces created on this installation appear here.',
+    columns: {
+      name: 'Name',
+      slug: 'Workspace',
+      status: 'Status',
+      plan: 'Plan',
+      created: 'Created',
+    },
   },
   /** Entity 360 pages: overview and history tabs (roadmap M3-21, docs/04-domain/reporting.md §Entity 360). */
   entity360: {

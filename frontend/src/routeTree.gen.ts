@@ -14,6 +14,7 @@ import { Route as WorkspaceRouteImport } from './routes/$workspace'
 import { Route as PlatformRouteImport } from './routes/_platform'
 import { Route as WorkspaceAppRouteImport } from './routes/$workspace/_app'
 import { Route as WorkspaceAuthRouteImport } from './routes/$workspace/_auth'
+import { Route as PlatformLoginRouteImport } from './routes/platform.login'
 import { Route as WorkspaceAppIndexRouteImport } from './routes/$workspace/_app/index'
 import { Route as WorkspaceAppNotificationsRouteImport } from './routes/$workspace/_app/notifications'
 import { Route as WorkspaceAppSettingsRouteImport } from './routes/$workspace/_app/settings'
@@ -78,6 +79,11 @@ const WorkspaceAppRoute = WorkspaceAppRouteImport.update({
 const WorkspaceAuthRoute = WorkspaceAuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => WorkspaceRoute,
+} as any)
+const PlatformLoginRoute = PlatformLoginRouteImport.update({
+  id: '/platform/login',
+  path: '/platform/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const WorkspaceAppIndexRoute = WorkspaceAppIndexRouteImport.update({
   id: '/',
@@ -326,6 +332,7 @@ const WorkspaceAppTicketsNewRoute = WorkspaceAppTicketsNewRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$workspace': typeof WorkspaceRouteWithChildren
+  '/platform/login': typeof PlatformLoginRoute
   '/$workspace/notifications': typeof WorkspaceAppNotificationsRoute
   '/$workspace/settings': typeof WorkspaceAppSettingsRouteWithChildren
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
@@ -372,6 +379,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$workspace': typeof WorkspaceAppIndexRoute
+  '/platform/login': typeof PlatformLoginRoute
   '/$workspace/notifications': typeof WorkspaceAppNotificationsRoute
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/login': typeof WorkspaceAuthLoginRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/_platform': typeof PlatformRouteWithChildren
   '/$workspace/_app': typeof WorkspaceAppRouteWithChildren
   '/$workspace/_auth': typeof WorkspaceAuthRouteWithChildren
+  '/platform/login': typeof PlatformLoginRoute
   '/$workspace/_app/notifications': typeof WorkspaceAppNotificationsRoute
   '/$workspace/_app/settings': typeof WorkspaceAppSettingsRouteWithChildren
   '/$workspace/_auth/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
@@ -468,6 +477,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$workspace'
+    | '/platform/login'
     | '/$workspace/notifications'
     | '/$workspace/settings'
     | '/$workspace/accept-invitation'
@@ -514,6 +524,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$workspace'
+    | '/platform/login'
     | '/$workspace/notifications'
     | '/$workspace/accept-invitation'
     | '/$workspace/login'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/_platform'
     | '/$workspace/_app'
     | '/$workspace/_auth'
+    | '/platform/login'
     | '/$workspace/_app/notifications'
     | '/$workspace/_app/settings'
     | '/$workspace/_auth/accept-invitation'
@@ -609,6 +621,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WorkspaceRoute: typeof WorkspaceRouteWithChildren
   PlatformRoute: typeof PlatformRouteWithChildren
+  PlatformLoginRoute: typeof PlatformLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -647,6 +660,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$workspace'
       preLoaderRoute: typeof WorkspaceAuthRouteImport
       parentRoute: typeof WorkspaceRoute
+    }
+    '/platform/login': {
+      id: '/platform/login'
+      path: '/platform/login'
+      fullPath: '/platform/login'
+      preLoaderRoute: typeof PlatformLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$workspace/_app/': {
       id: '/$workspace/_app/'
@@ -1087,6 +1107,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WorkspaceRoute: WorkspaceRouteWithChildren,
   PlatformRoute: PlatformRouteWithChildren,
+  PlatformLoginRoute: PlatformLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

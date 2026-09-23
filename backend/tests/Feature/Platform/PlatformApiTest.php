@@ -49,6 +49,26 @@ it('signs a platform admin in and out with its own guard', function (): void {
     $this->getJson(onPlatform('me'))->assertUnauthorized();
 });
 
+// Regression (2026-09-23): the priority sorter moved StartSession ahead of UsePlatformSession, so the
+// platform session used the tenant cookie name, and a guest 401 set the domain-wide tenant cookie; a
+// browser then held two `shp_session` cookies and a successful sign-in never stuck.
+it('keeps the platform session in its own host-only cookie', function (string $path, int $status): void {
+    // Read before the request: the platform middleware rewrites `session.cookie` in this process.
+    $tenantCookie = (string) config('session.cookie');
+    $platformCookie = (string) config('helpdesk.platform.session_cookie');
+
+    $response = $this->getJson(onPlatform($path))->assertStatus($status);
+
+    $cookies = collect($response->headers->getCookies())->keyBy(fn ($cookie) => $cookie->getName());
+
+    expect($cookies)->toHaveKey($platformCookie)
+        ->and($cookies)->not->toHaveKey($tenantCookie)
+        ->and($cookies[$platformCookie]->getDomain())->toBeNull();
+})->with([
+    'csrf cookie' => ['csrf-cookie', 204],
+    'guest /me' => ['me', 401],
+]);
+
 it('refuses wrong platform credentials', function (): void {
     PlatformUser::query()->create(['name' => 'Platform admin', 'email' => 'admin@platform.test', 'password' => 'platform-password']);
 
