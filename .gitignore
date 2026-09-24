@@ -29,3 +29,7 @@ terraform.tfvars
 
 # experiments: datasets and results are committed; scratch output is not
 experiments/tmp/
+
+# office editors: lock and owner files while a document is open
+.~lock.*
+~$*
