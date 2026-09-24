@@ -70,6 +70,11 @@ return Application::configure(basePath: dirname(__DIR__))
             ValidatePlatformCsrfToken::class,
         ]);
 
+        // The platform cookie settings must be in place before the session starts. Without a priority, the
+        // sorter moves EncryptCookies/StartSession/Authenticate ahead of it (the `api` group's
+        // SubstituteBindings comes first), so the platform session used the tenant cookie.
+        $middleware->prependToPriorityList(EncryptCookies::class, UsePlatformSession::class);
+
         // Tenancy before authentication, membership right after it, both before route bindings.
         $middleware->prependToPriorityList(AuthenticatesRequests::class, ResolveTenantFromPrincipal::class);
         $middleware->prependToPriorityList(AuthenticatesRequests::class, InitializeTenancyFromWorkspace::class);

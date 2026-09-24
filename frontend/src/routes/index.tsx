@@ -14,6 +14,10 @@ import { messagesOf } from '@/lib/forms/messages'
  */
 export const Route = createFileRoute('/')({
   beforeLoad: async ({ context }) => {
+    // The admin host serves the same build (appMode "platform"); its start page is the platform console.
+    if (context.config.appMode === 'platform') {
+      throw redirect({ to: '/platform/tenants', replace: true })
+    }
     const session = await ensureSession(context.queryClient)
     if (session) {
       throw redirect({ href: workspaceHref(session), replace: true })

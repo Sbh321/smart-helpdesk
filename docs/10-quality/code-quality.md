@@ -59,7 +59,7 @@ Conventions:
 
 ## Commits, branches, review
 
-- **Conventional Commits**: `feat(tickets): …`, `fix(sla): …`, `test(isolation): …`, `docs(adr): …`, `chore(infra): …`, `perf(queries): …`. Scope = module or area. Body explains why; footer references the roadmap task (`Task: M2-07`).
+- **Conventional Commits**: `feat(tickets): …`, `fix(sla): …`, `test(isolation): …`, `docs(adr): …`, `chore(infra): …`, `perf(queries): …`. Scope = module or area. Body explains why; footer references the roadmap task (`Task: M2-07`). Merge commits keep git's generated subject.
 - **Branches**: `main` is always green and deployable to the demo environment. Work happens on short-lived `w2-07-ticket-comments` branches merged by fast-forward or squash; no long-lived branches; no direct pushes to `main` once CI exists (M1 day 2).
 - **Self-review checklist** (solo developer, before merge): diff read top to bottom as a reviewer; task acceptance criteria ticked; [Definition of Done](definition-of-done.md) satisfied; no leftover `MVP-SHORTCUT` without a backlog item; no secrets; migrations reversible; docs pages named in the task updated; CI green; `just verify` run locally.
 
@@ -76,8 +76,10 @@ pre-commit:
     secrets: { run: gitleaks protect --staged }
 commit-msg:
   commands:
-    conventional: { run: npx --yes commitlint --edit {1} }
+    conventional: { run: sh infra/scripts/commit-msg.sh {1} }
 ```
+
+As built, `commit-msg` is `infra/scripts/commit-msg.sh` rather than commitlint (no Node dependency in the hook): the subject must match `type(scope)!: summary` with the types listed above. Git's own merge subjects are accepted as they are (`Merge branch 'feat/admin-auth' into dev`, `Merge remote-tracking branch …`, `Merge pull request …`, `Merge tag …`, `Merge commit …`), because they record a merge rather than a change.
 
 ## MVP-SHORTCUT markers
 
