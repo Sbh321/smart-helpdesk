@@ -23,6 +23,10 @@ final class ReportDefinitionResource extends JsonResource
             'description' => $this->description,
             'group' => $this->group,
             'chart' => $this->chart,
+            /** The measures the chart draws by default; for `stacked_bar`, the parts of a whole. */
+            'chart_measures' => $this->chartMeasures,
+            /** False for a report of the present: the period and comparison do not apply. */
+            'period_applies' => $this->periodApplies,
             'default_dimension' => $this->defaultDimension,
             'drill_down_to' => $this->drillDownTo,
             'periods' => $this->periods,

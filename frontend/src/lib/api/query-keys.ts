@@ -65,6 +65,8 @@ export const queryKeys = {
     all: (tenantId: string) => [tenantId, 'assignment'] as const,
     candidates: (tenantId: string, ticketId: string) =>
       [...queryKeys.assignment.all(tenantId), 'candidates', ticketId] as const,
+    latest: (tenantId: string, ticketId: string) =>
+      [...queryKeys.assignment.all(tenantId), 'latest', ticketId] as const,
   },
   categories: {
     all: (tenantId: string) => [tenantId, 'categories'] as const,
@@ -110,8 +112,13 @@ export const queryKeys = {
     all: (tenantId: string) => [tenantId, 'webhooks'] as const,
     list: (tenantId: string) => [...queryKeys.webhooks.all(tenantId), 'list'] as const,
     events: (tenantId: string) => [...queryKeys.webhooks.all(tenantId), 'events'] as const,
-    deliveries: (tenantId: string, webhookId: string) =>
-      [...queryKeys.webhooks.all(tenantId), 'deliveries', webhookId] as const,
+    /** Without `state` this is the prefix of every filtered log of the webhook (for invalidation). */
+    deliveries: (tenantId: string, webhookId: string, state?: string) =>
+      state === undefined
+        ? ([...queryKeys.webhooks.all(tenantId), 'deliveries', webhookId] as const)
+        : ([...queryKeys.webhooks.all(tenantId), 'deliveries', webhookId, state] as const),
+    delivery: (tenantId: string, deliveryId: string) =>
+      [...queryKeys.webhooks.all(tenantId), 'delivery', deliveryId] as const,
   },
   reports: {
     all: (tenantId: string) => [tenantId, 'reports'] as const,

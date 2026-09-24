@@ -64,7 +64,7 @@ final class Ageing extends SqlReport
         return 'a.ticket_id';
     }
 
-    protected function periodApplies(): bool
+    public function periodApplies(): bool
     {
         return false;
     }

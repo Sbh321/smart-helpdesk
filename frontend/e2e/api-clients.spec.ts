@@ -85,7 +85,8 @@ test('a client created in Settings gets a token, creates a ticket, and stops wor
     await page.getByRole('searchbox').first().fill(run)
     await page.getByRole('cell', { name: `#${ticket.number}`, exact: true }).click()
     await expect(page.getByRole('heading', { level: 1 })).toContainText(title)
-    await expect(page.getByRole('definition').filter({ hasText: /^api$/ })).toBeVisible()
+    // The channel reads as its label ("API"), not the stored value, since M4-05.
+    await expect(page.getByRole('definition').filter({ hasText: /^API$/ })).toBeVisible()
 
     // Revoke: the token is refused on its next request.
     await page.goto(`/${workspace}/settings/api-clients`)

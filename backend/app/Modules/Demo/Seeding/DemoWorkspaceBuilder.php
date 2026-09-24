@@ -574,7 +574,7 @@ final class DemoWorkspaceBuilder
             $succeeded = (bool) array_shift($plan);
             app(RecordDeliveryOutcome::class)($delivery, $succeeded
                 ? DeliveryAttempt::succeeded(204, null)->withDuration(40 + $order % 30)
-                : DeliveryAttempt::failed('HTTP 503', 503, 'Service Unavailable')->withDuration(1200 + $order % 300));
+                : DeliveryAttempt::failed('http_status', 503, 'Service Unavailable')->withDuration(1200 + $order % 300));
             $order++;
             $delivery->refresh();
             if ($plan !== [] && $delivery->next_attempt_at !== null) {

@@ -87,6 +87,10 @@
                   {
                     "group": ["@/features/**", "@/routes/**"],
                     "message": "components must not import features or routes."
+                  },
+                  {
+                    "group": ["@base-ui/react", "@base-ui/react/**", "sonner"],
+                    "message": "only src/components/ui wraps Base UI and sonner; compositions build on those primitives (principles.md D2)."
                   }
                 ]
               }
@@ -111,6 +115,18 @@
                   {
                     "group": ["@/features/*/*"],
                     "message": "import another feature only through its index (\"@/features/<name>\")."
+                  },
+                  {
+                    "group": [
+                      "@base-ui/react",
+                      "@base-ui/react/**",
+                      "recharts",
+                      "sonner",
+                      "react-day-picker",
+                      "@tanstack/react-table",
+                      "cmdk"
+                    ],
+                    "message": "features use the design system, never a vendor directly: primitives from @/components/ui, charts and tables from @/components/shared, toast from @/components/ui/sonner (docs/06-design-system/principles.md D2)."
                   }
                 ]
               }

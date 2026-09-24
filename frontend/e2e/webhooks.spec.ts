@@ -90,7 +90,7 @@ test('a subscription receives a signed delivery that webhook-echo verifies, and 
   await expectOk(created)
   const ticketId: string = (await created.json()).data.id
 
-  await expectDelivery(page, name, 'ticket.created', 'Succeeded', '204')
+  await expectDelivery(page, name, 'ticket.created', 'Delivered', '204')
   const verified = (await received(request, receiver)).filter(
     (record) => record.event_type === 'ticket.created',
   )
@@ -107,12 +107,13 @@ test('a subscription receives a signed delivery that webhook-echo verifies, and 
   await expect(page.getByText(`Test delivery queued for ${name}.`)).toBeVisible()
   // A test delivery is not rescheduled, so a refusal leaves it dead at once; a failed event would wait
   // for its automatic retry. Either way the retry button is offered.
-  await expectDelivery(page, name, 'ping', /Failed|Dead/, '500')
+  // The status reads in words since M4-11: a refused delivery is retrying (or has failed / given up).
+  await expectDelivery(page, name, 'ping', /Retrying|Failed|Gave up/, '500')
 
   await configureReceiver(request, receiver, secret, 0)
   await page.getByRole('button', { name: 'Retry delivery ping' }).click()
   await expect(page.getByText('Delivery queued again.')).toBeVisible()
-  const retried = await expectDelivery(page, name, 'ping', 'Succeeded', '204')
+  const retried = await expectDelivery(page, name, 'ping', 'Delivered', '204')
   await expect(retried.getByRole('button', { name: /^Retry/ })).toHaveCount(0)
 
   const pings = (await received(request, receiver)).filter((record) => record.event_type === 'ping')

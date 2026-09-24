@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { ErrorState } from '@/components/shared/error-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { copy, fill } from '@/copy/en'
 import { useDirectoryNames } from '@/features/agents'
@@ -30,7 +30,7 @@ export interface AssignableTicket {
 type Exclusion = AssignmentPreview['excluded'][number] | AgentExclusion
 
 /** The reason is a code; the sentence comes from the copy file. An unknown code gets a neutral wording. */
-function exclusionText(item: Exclusion): string {
+export function exclusionText(item: Exclusion): string {
   const reasons: Record<string, string> = copy.assignment.reasons
   const text = reasons[item.reason] ?? copy.assignment.reasonUnknown
   return item.reason === 'missing_skill' && item.missing_skills?.length
@@ -65,6 +65,7 @@ export function AssignmentDialog({
     void client.invalidateQueries({ queryKey: queryKeys.sla.ticket(tenantId, ticket.id) })
     void client.invalidateQueries({ queryKey: queryKeys.agents.all(tenantId) })
     void client.invalidateQueries({ queryKey: queryKeys.assignment.candidates(tenantId, ticket.id) })
+    void client.invalidateQueries({ queryKey: queryKeys.assignment.latest(tenantId, ticket.id) })
   }
 
   /** The server's view moved on: refetch instead of overwriting the cache with stale data. */

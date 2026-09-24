@@ -78,3 +78,52 @@ test('the breadcrumb trail names the page and links back to the dashboard', asyn
   await expect.element(trail.getByRole('link', { name: copy.nav.dashboard })).toBeVisible()
   await expect.element(trail.getByText(copy.tickets.title)).toBeVisible()
 })
+
+test('the account menu carries theme and density, and applies the choice to the document', async () => {
+  const { screen } = await openShell()
+  const root = document.documentElement
+
+  await screen.getByRole('button', { name: copy.nav.account }).click()
+  const menu = screen.getByRole('menu')
+  await expect.element(menu.getByText(copy.theme.label)).toBeVisible()
+
+  await menu.getByRole('menuitemradio', { name: copy.theme.dark }).click()
+  await expect.poll(() => root.getAttribute('data-theme')).toBe('dark')
+
+  // Density had no control before M4-02, although the tokens supported it.
+  await menu.getByRole('menuitemradio', { name: copy.density.compact }).click()
+  await expect.poll(() => root.getAttribute('data-density')).toBe('compact')
+
+  await menu.getByRole('menuitemradio', { name: copy.theme.light }).click()
+  await expect.poll(() => root.getAttribute('data-theme')).toBe('light')
+})
+
+test('the navigation is grouped and collapses to an icon rail that keeps its labels', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({
+        data: sessionFixture({ permissions: ['tickets.view', 'contacts.view', 'reports.view'] }),
+      }),
+    ),
+  )
+  const app = await renderApp('/acme')
+  const { screen } = app
+  await expect.element(screen.getByRole('heading', { level: 1, name: copy.dashboard.title })).toBeVisible()
+
+  const nav = screen.getByRole('navigation', { name: copy.nav.primary })
+  await expect.element(nav.getByRole('heading', { level: 2, name: copy.nav.groups.records })).toBeVisible()
+  await expect.element(nav.getByRole('link', { name: copy.nav.tickets })).toBeVisible()
+
+  await nav.getByRole('button', { name: copy.nav.collapse }).click()
+
+  // Collapsed: the visible text goes, the accessible name stays, and the choice is remembered.
+  await expect.element(nav.getByRole('link', { name: copy.nav.tickets })).toBeVisible()
+  await expect
+    .element(nav.getByRole('heading', { level: 2, name: copy.nav.groups.records }))
+    .not.toBeInTheDocument()
+  expect(window.localStorage.getItem('sh.nav-collapsed')).toBe('true')
+
+  await nav.getByRole('button', { name: copy.nav.expand }).click()
+  await expect.element(nav.getByRole('heading', { level: 2, name: copy.nav.groups.records })).toBeVisible()
+  expect(window.localStorage.getItem('sh.nav-collapsed')).toBe('false')
+})

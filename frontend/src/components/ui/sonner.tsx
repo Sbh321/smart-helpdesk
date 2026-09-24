@@ -1,6 +1,6 @@
 import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from "lucide-react"
 import type { CSSProperties } from "react"
-import { Toaster as Sonner, type ToasterProps } from "sonner"
+import { Toaster as Sonner, toast, type ToasterProps } from "sonner"
 
 import { useTheme } from "@/lib/theme"
 
@@ -38,4 +38,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
   )
 }
 
-export { Toaster }
+// Product code imports `toast` from here, never from sonner directly: the toast engine stays behind the
+// UI layer like every other vendor (docs/06-design-system/principles.md D2).
+export { Toaster, toast }

@@ -7,11 +7,12 @@ import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { NotFoundState } from '@/components/shared/not-found-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { RecordLayout } from '@/components/shared/record-layout'
 import { buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { copy } from '@/copy/en'
 import { isApiError } from '@/lib/api/errors'
-import { useCan } from '@/lib/auth'
+import { useCan, useSession } from '@/lib/auth'
 import { organizationQueries } from '../api/organization-queries'
 import { OrganizationForm } from './organization-form'
 import { OrganizationList, tierLabel } from './organization-list'
@@ -86,6 +87,7 @@ export function OrganizationScreen({
   const allowed = useCan('contacts.view')
   const canManage = useCan('contacts.manage')
   const tenantId = useTenantId()
+  const timeZone = useSession().session?.tenant.timezone ?? 'UTC'
   const organization = useQuery({
     ...organizationQueries.detail(tenantId, organizationId),
     enabled: allowed && tenantId !== '',
@@ -128,8 +130,14 @@ export function OrganizationScreen({
 
   const current = organization.data
   return (
-    <>
-      <PageHeader eyebrow={back} title={current.name} description={tierLabel(current.tier)} />
+    <RecordLayout
+      eyebrow={back}
+      kind={copy.entity360.entities.organizations}
+      title={current.name}
+      description={tierLabel(current.tier)}
+      timeZone={timeZone}
+      history={tabs.find((tab) => tab.value === 'history')?.content}
+    >
       <DetailTabs
         label={copy.entity360.tabs}
         detailsLabel={copy.entity360.details}
@@ -152,6 +160,6 @@ export function OrganizationScreen({
           )
         }
       />
-    </>
+    </RecordLayout>
   )
 }

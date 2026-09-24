@@ -1,13 +1,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { ApiError } from '@/lib/api/errors'
 import { queryKeys } from '@/lib/api/query-keys'
@@ -117,19 +118,16 @@ export function RolesSettings() {
   const custom = roles.data?.filter((role) => !isReadOnly(role)) ?? []
 
   return (
-    <section className="space-y-6" aria-labelledby="settings-roles-heading">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="settings-roles-heading" className="text-lg font-semibold">
-            {text.title}
-          </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground">{text.intro}</p>
-        </div>
+    <SettingsPage
+      title={text.title}
+      description={text.intro}
+      actions={
         <Button onClick={() => setEditing(null)}>
           <PlusIcon aria-hidden="true" />
           {text.create}
         </Button>
-      </div>
+      }
+    >
       {roles.isPending ? (
         <Skeleton className="h-48 w-full" />
       ) : roles.isError ? (
@@ -184,6 +182,6 @@ export function RolesSettings() {
           toast.success(fill(text.deleted, { name: deleting.name }))
         }}
       />
-    </section>
+    </SettingsPage>
   )
 }

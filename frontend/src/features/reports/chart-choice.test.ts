@@ -12,6 +12,8 @@ describe('chartKindFor', () => {
     ['bar', 'priority', false, 'bar'],
     ['bar', 'week', true, 'line'],
     ['histogram', 'age_bucket', false, 'histogram'],
+    ['stacked_bar', 'week', true, 'stacked_bar'],
+    ['stacked_bar', 'team', false, 'stacked_bar'],
     ['table', 'agent', false, 'table'],
   ])('%s grouped by %s → %s', (declared, group, isTime, expected) => {
     expect(chartKindFor(declared, group, isTime)).toBe(expected)
@@ -32,5 +34,11 @@ describe('chartMeasuresFor', () => {
   test('a chosen measure alone; an unknown choice falls back', () => {
     expect(chartMeasuresFor(measures, 'median').map((m) => m.key)).toEqual(['median'])
     expect(chartMeasuresFor(measures, 'nope').map((m) => m.key)).toEqual(['tickets', 'resolved'])
+  })
+
+  test("a report's declared chart measures are the default: the parts of a stacked bar (M4-09)", () => {
+    expect(chartMeasuresFor(measures, undefined, ['resolved']).map((m) => m.key)).toEqual(['resolved'])
+    expect(chartMeasuresFor(measures, 'median', ['resolved']).map((m) => m.key)).toEqual(['median'])
+    expect(chartMeasuresFor(measures, undefined, ['gone']).map((m) => m.key)).toEqual(['tickets', 'resolved'])
   })
 })

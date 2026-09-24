@@ -1,6 +1,8 @@
 # Design system principles
 
-The design system is the set of tokens, primitives and compositions the SPA is built from. Decisions: [ADR-0002](../adr/0002-ui-primitive-strategy.md) (shadcn on Base UI, Tailwind v4 tokens). Pages: [tokens](tokens.md) · [themes](themes.md) · [typography](typography.md) · [spacing](spacing.md) · [components](components.md) · [accessibility](accessibility.md).
+The design system is the set of tokens, primitives and compositions the SPA is built from. Decisions: [ADR-0002](../adr/0002-ui-primitive-strategy.md) (shadcn on Base UI, Tailwind v4 tokens). Pages: [tokens](tokens.md) · [themes](themes.md) · [typography](typography.md) · [spacing](spacing.md) · [components](components.md) · [page patterns](page-patterns.md) · [accessibility](accessibility.md) · [data visualisation](data-visualization.md) · [responsive](responsive.md) · [UX review](ux-review.md).
+
+**D1, D2 and D9 are enforced, not trusted** (roadmap M4-01). `pnpm lint` fails on: a feature importing `@base-ui/react`, `recharts`, `sonner`, `react-day-picker`, `@tanstack/react-table` or `cmdk` (Biome `noRestrictedImports` per layer — features use `@/components/ui` and `@/components/shared`; only `components/ui` wraps Base UI and sonner); and any literal colour, Tailwind palette class, arbitrary radius or arbitrary z-index in `src` (`scripts/check-design-tokens.ts`). A literal that is an input rather than styling — the brand colour picker's default — carries `// design-tokens-allow: <reason>` on the line above.
 
 ## Principles
 

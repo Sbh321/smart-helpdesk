@@ -1,15 +1,17 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { UnsavedChangesGuard } from '@/components/shared/save-bar'
 import { SelectField } from '@/components/shared/select-field'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { FieldGroup, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { SlaDefaultsCard } from '@/features/settings'
 import { queryKeys } from '@/lib/api/query-keys'
@@ -24,6 +26,7 @@ import {
   slaQueries,
   updatePolicy,
 } from '../api/sla-queries'
+import { workingTime } from '../readable'
 import {
   ALL_TIERS,
   ALWAYS_OPEN,
@@ -32,6 +35,7 @@ import {
   SLA_PRIORITIES,
   SLA_TIERS,
 } from '../schemas'
+import { PolicyTargets } from './sla-readable'
 
 const TIER_OPTIONS: { value: PolicyFormValues['tier']; label: string }[] = [
   { value: ALL_TIERS, label: copy.sla.allTiers },
@@ -195,6 +199,9 @@ function PolicyForm({
                   <TextField
                     id={`sla-${priority}-${target.name}`}
                     label={fill(copy.sla.targetField, { priority, target: target.label })}
+                    description={fill(copy.sla.readable.targetHint, {
+                      time: workingTime(Number(field.state.value)),
+                    })}
                     type="number"
                     inputMode="numeric"
                     min={1}
@@ -212,15 +219,18 @@ function PolicyForm({
           </div>
         ))}
       </FieldSet>
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
+      <form.Subscribe
+        selector={(state) => ({ submitting: state.isSubmitting, dirty: !state.isDefaultValue })}
+      >
+        {({ submitting, dirty }) => (
           <div className="flex gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? copy.sla.saving : copy.sla.savePolicy}
+            <Button type="submit" disabled={submitting}>
+              {submitting ? copy.sla.saving : copy.sla.savePolicy}
             </Button>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onDone}>
+            <Button type="button" variant="outline" disabled={submitting} onClick={onDone}>
               {copy.sla.cancel}
             </Button>
+            <UnsavedChangesGuard dirty={dirty && !submitting} />
           </div>
         )}
       </form.Subscribe>
@@ -231,27 +241,32 @@ function PolicyForm({
 export function PolicySettings() {
   const allowed = useCan('tickets.view')
   if (!allowed) return <ForbiddenState />
-  return (
-    <div className="space-y-8">
-      <PolicyList />
-      <SlaDefaultsCard />
-    </div>
-  )
+  return <PolicyList />
 }
 
+/**
+ * Settings → SLA policies (roadmap M4-12): each policy as a card that says what it promises (a table
+ * of targets per priority in working time), to whom (organisation tier), on which calendar and when
+ * it warns, so the page is readable without opening a form or the docs.
+ */
 function PolicyList() {
   const canManage = useCan('sla.manage')
   const tenantId = useSession().session?.tenant.id ?? ''
   const policies = useQuery({ ...slaQueries.policies(tenantId), enabled: tenantId !== '' })
   const calendars = useQuery({ ...slaQueries.calendars(tenantId), enabled: tenantId !== '' })
   const [editing, setEditing] = useState<SlaPolicy | null | undefined>(undefined)
+  const calendarName = (id: string | null) =>
+    id === null
+      ? copy.sla.alwaysOpen
+      : (calendars.data?.find((row) => row.id === id)?.name ?? copy.sla.alwaysOpen)
+  const readable = copy.sla.readable
 
   return (
-    <section className="space-y-4" aria-labelledby="sla-policies-heading">
-      <h2 id="sla-policies-heading" className="text-lg font-semibold">
-        {copy.sla.policies}
-      </h2>
-      {canManage ? <Button onClick={() => setEditing(null)}>{copy.sla.addPolicy}</Button> : null}
+    <SettingsPage
+      title={copy.sla.policies}
+      description={readable.pageDescription}
+      actions={canManage ? <Button onClick={() => setEditing(null)}>{copy.sla.addPolicy}</Button> : null}
+    >
       {editing !== undefined ? (
         <PolicyForm
           key={editing?.id ?? 'new'}
@@ -267,32 +282,44 @@ function PolicyList() {
       ) : policies.data.length === 0 ? (
         <p className="text-sm text-muted-foreground">{copy.sla.noPolicies}</p>
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border">
+        <ul className="grid gap-4 xl:grid-cols-2">
           {policies.data.map((policy) => (
-            <li key={policy.id} className="flex items-center justify-between gap-3 p-3">
-              <span>
-                {fill(copy.sla.policyLine, {
-                  name: policy.name,
-                  tier: policy.is_default
+            <li key={policy.id} className="flex flex-col gap-3 rounded-lg border border-border p-4">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="font-semibold">{policy.name}</h3>
+                {canManage ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label={fill(copy.sla.editNamed, { name: policy.name })}
+                    onClick={() => setEditing(policy)}
+                  >
+                    {copy.sla.edit}
+                  </Button>
+                ) : null}
+              </div>
+              <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+                <dt className="text-muted-foreground">{readable.appliesTo}</dt>
+                <dd>
+                  {policy.is_default
                     ? copy.sla.default
                     : isTier(policy.applies_to_tier)
                       ? copy.sla.tiers[policy.applies_to_tier]
-                      : copy.sla.allTiers,
-                })}
-              </span>
-              {canManage ? (
-                <Button
-                  variant="outline"
-                  aria-label={fill(copy.sla.editNamed, { name: policy.name })}
-                  onClick={() => setEditing(policy)}
-                >
-                  {copy.sla.edit}
-                </Button>
-              ) : null}
+                      : copy.sla.allTiers}
+                </dd>
+                <dt className="text-muted-foreground">{readable.calendar}</dt>
+                <dd>{calendarName(policy.calendar_id)}</dd>
+                <dt className="text-muted-foreground">{readable.warnsAt}</dt>
+                <dd>{fill(readable.warnsAtValue, { percent: Math.round(policy.warning_fraction * 100) })}</dd>
+                <dt className="text-muted-foreground">{readable.version}</dt>
+                <dd className="tabular-nums">{policy.version}</dd>
+              </dl>
+              <PolicyTargets policy={policy} />
             </li>
           ))}
         </ul>
       )}
-    </section>
+      <SlaDefaultsCard />
+    </SettingsPage>
   )
 }

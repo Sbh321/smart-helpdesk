@@ -61,6 +61,25 @@ The scheduler indexes on `(state, due_at)` and `(state, warning_at)` so a pass i
 - **Business calendars are in the MVP** ([ADR-0020](../adr/0020-business-calendars.md)): each policy references a `business_calendars` row (time zone, weekly windows, holidays) or none for 24×7; `due_at`/`warning_at` are computed through the calendar, pauses are measured in business seconds, and the timer stores `calendar_id` so later calendar edits do not move existing deadlines.
 - The management API rejects changes to working hours, time zone or holidays while that Business calendar has running, warning or paused timers (409). Create a replacement calendar and move policies to it instead; existing timers retain their original calendar. Editing a policy increments its version and does not rewrite materialised timer deadlines.
 
+## Presentation
+
+How a timer reads to a person (M4-07, [components.md §SlaIndicator](../06-design-system/components.md#slaindicator)):
+
+| Stored `state` | Shown as | Time part |
+|---|---|---|
+| `running` | On track | time left until `due_at` |
+| `warning` | Due soon | time left until `due_at` |
+| `breached` | Breached | time since `due_at` |
+| `paused` | Paused, with "paused since" | none: the clock is stopped |
+| `met` | Met, with the time it was met | none |
+| `cancelled` | Cancelled (panel only) | none |
+
+Every timer is labelled by kind (Response or Resolution). The panel names the policy and the version the timer started with and its Business calendar, because later edits do not move an existing deadline (rules above). The remaining time is wall-clock time to the stored `due_at`, which the calendar already placed; it is not a count of working minutes.
+
+### Settings presentation (M4-12)
+
+Settings → SLA policies lists each policy with its targets as a table per priority in **working time** (minutes and hours of the policy's Business calendar, never "days", because a day of working time is not 24 hours), the tier it applies to, the calendar and the warning point ("80% of the target"). Settings → Business calendars shows each calendar's working week with windows in words and the weekly total, and holidays as dates. Both editors warn before leaving with unsaved changes.
+
 ## Notifications on warning and breach
 
 Warning: the assignee (or the team's members when unassigned). Breach: the assignee and the tenant's managers. Notifications are idempotent per timer and event. Automatic priority changes, reassignment and escalation chains are future replacements ([future/sla-evaluation-advanced.md](../05-algorithms/future/sla-evaluation-advanced.md)).

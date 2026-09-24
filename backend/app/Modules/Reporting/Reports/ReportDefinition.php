@@ -39,8 +39,20 @@ interface ReportDefinition
 
     public function defaultDimension(): string;
 
-    /** bar, line, stacked_area, heatmap, histogram or table */
+    /** bar, stacked_bar, line, stacked_area, heatmap, histogram or table */
     public function chart(): string;
+
+    /**
+     * The measures the chart draws by default, when they are not simply the first measure and those of
+     * its unit. A `stacked_bar` names the parts of a whole here (met, breached, running), so the whole
+     * (`timers`) is never stacked on top of its own parts. Null: the SPA's default.
+     *
+     * @return list<string>|null
+     */
+    public function chartMeasures(): ?array;
+
+    /** False for a report of the present (open tickets by age, running timers): no period, no comparison. */
+    public function periodApplies(): bool;
 
     /** The entity the rows drill down to (`tickets`, `contacts`, …), or null when there is none. */
     public function drillDownTo(): ?string;

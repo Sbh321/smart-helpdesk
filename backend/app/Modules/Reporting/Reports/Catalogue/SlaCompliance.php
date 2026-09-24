@@ -51,6 +51,17 @@ final class SlaCompliance extends SqlReport
         return 'week';
     }
 
+    public function chart(): string
+    {
+        return 'stacked_bar';
+    }
+
+    /** The parts of the whole, which do not overlap (M4-09). */
+    public function chartMeasures(): array
+    {
+        return ['met', 'breached', 'running'];
+    }
+
     public function drillDownTo(): string
     {
         return 'tickets';

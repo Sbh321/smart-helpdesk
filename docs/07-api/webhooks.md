@@ -155,6 +155,20 @@ Subscriptions and deliveries carry `tenant_id` and are under RLS; the listener r
 
 Verify signature → check timestamp → deduplicate on event id → respond `2xx` fast (enqueue work) → fetch the resource via the REST API when full state is needed → tolerate unknown event types and fields.
 
+## Delivery log in the SPA (M4-11)
+
+Settings → Webhooks → Deliveries shows each delivery's status in words, derived from the stored state:
+**Queued** (`pending`), **Delivered** (`succeeded`), **Retrying** (`failed` with a `next_attempt_at`,
+shown with the next try), **Failed** (`failed` without one) and **Gave up** (`dead`), each with its own
+icon. Rows carry the response code, the duration and the stored error as a sentence (`timeout` →
+"Your endpoint did not answer within 10 seconds.", `url_rejected: <reason>` keeps its reason). A status
+filter (`filter[state]`) narrows long histories. **Details** opens `GET /v1/webhook-deliveries/{id}`:
+the attempt count and manual retries used, last and next attempt, the delivery and event ids to copy,
+the response excerpt and the payload as indented JSON with a copy button, and **Retry** where the API
+accepts it (a `failed` or `dead` delivery of an enabled webhook). The API never returns the signing
+secret or request headers, so the log cannot show them; a browser test asserts that neither the secret
+nor a signature or authorization value is on the page.
+
 ## As built (M3-05)
 
 Code: `backend/app/Modules/Integrations` (`Domain/Webhooks`, `Webhooks/`, `Actions/*Webhook*`, `Jobs/DeliverWebhook`,

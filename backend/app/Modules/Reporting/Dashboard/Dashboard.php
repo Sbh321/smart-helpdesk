@@ -20,26 +20,36 @@ use LogicException;
  */
 final readonly class Dashboard
 {
-    /** Tile key => [report, measure, label]. */
+    /**
+     * Tile key => [report, measure, label, trend series]. The trend series is a key of SERIES whose rows
+     * carry the same measure of the same report over time; the SPA draws it as the tile's sparkline
+     * (roadmap M4-08). Null where no such series exists: a sparkline is never made up.
+     */
     public const array KPIS = [
-        'created' => ['rpt-t01', 'created', 'Tickets created'],
-        'resolved' => ['rpt-t01', 'resolved', 'Tickets resolved'],
-        'open_now' => ['rpt-t05', 'open', 'Open now'],
-        'first_response_median' => ['rpt-t06', 'first_response_median', 'Median first response'],
-        'resolution_median' => ['rpt-t06', 'resolution_median', 'Median resolution'],
-        'sla_compliance' => ['rpt-s01', 'compliance', 'SLA compliance'],
-        'sla_breaches' => ['rpt-s01', 'breached', 'SLA breaches'],
-        'reopen_rate' => ['rpt-t07', 'reopen_rate', 'Reopen rate'],
+        'created' => ['rpt-t01', 'created', 'Tickets created', 'volume'],
+        'resolved' => ['rpt-t01', 'resolved', 'Tickets resolved', 'volume'],
+        'open_now' => ['rpt-t05', 'open', 'Open now', null],
+        'first_response_median' => ['rpt-t06', 'first_response_median', 'Median first response', null],
+        'resolution_median' => ['rpt-t06', 'resolution_median', 'Median resolution', null],
+        'sla_compliance' => ['rpt-s01', 'compliance', 'SLA compliance', 'sla_compliance'],
+        'sla_breaches' => ['rpt-s01', 'breached', 'SLA breaches', null],
+        'reopen_rate' => ['rpt-t07', 'reopen_rate', 'Reopen rate', null],
     ];
 
-    /** Series key => [report, group, measures, title, chart (line, stacked_area or bar)]. */
+    /**
+     * Series key => [report, group, measures, title, chart (line, stacked_area or bar), section]. The
+     * section orders the page (roadmap M4-08): `trend` is over time, `breakdown` splits the period.
+     */
     public const array SERIES = [
-        'volume' => ['rpt-t01', 'day', ['created', 'resolved'], 'Created and resolved per day', 'line'],
-        'backlog' => ['rpt-t02', 'day', ['end_backlog'], 'Backlog at the end of each day', 'stacked_area'],
-        'response_by_priority' => ['rpt-t06', 'priority', ['first_response_median', 'resolution_median'], 'Response and resolution by priority', 'bar'],
-        'sla_compliance' => ['rpt-s01', 'week', ['compliance'], 'SLA compliance per week', 'line'],
-        'agent_workload' => ['rpt-a01', 'agent', ['backlog'], 'Open assigned tickets per agent', 'bar'],
-        'time_in_status' => ['rpt-t03', 'status', ['median_wall'], 'Median time in status', 'bar'],
+        'volume' => ['rpt-t01', 'day', ['created', 'resolved'], 'Created and resolved per day', 'line', 'trend'],
+        'backlog' => ['rpt-t02', 'day', ['end_backlog'], 'Backlog at the end of each day', 'stacked_area', 'trend'],
+        'sla_compliance' => ['rpt-s01', 'week', ['compliance'], 'SLA compliance per week', 'line', 'trend'],
+        'by_channel' => ['rpt-t01', 'channel', ['created'], 'Tickets created by channel', 'bar', 'breakdown'],
+        'response_by_priority' => ['rpt-t06', 'priority', ['first_response_median', 'resolution_median'], 'Response and resolution by priority', 'bar', 'breakdown'],
+        'open_by_team' => ['rpt-t05', 'team', ['open'], 'Open tickets by team', 'bar', 'breakdown'],
+        'ageing' => ['rpt-t05', 'age_bucket', ['open'], 'Open tickets by age', 'bar', 'breakdown'],
+        'agent_workload' => ['rpt-a01', 'agent', ['backlog'], 'Open assigned tickets per agent', 'bar', 'breakdown'],
+        'time_in_status' => ['rpt-t03', 'status', ['median_wall'], 'Median time in status', 'bar', 'breakdown'],
     ];
 
     public function __construct(private ReportCatalogue $catalogue, private ReportRunner $runner) {}
@@ -52,7 +62,7 @@ final readonly class Dashboard
         $kpis = [];
         /** @var array<string, ReportResult> $totals */
         $totals = [];
-        foreach (self::KPIS as $key => [$reportKey, $measure, $label]) {
+        foreach (self::KPIS as $key => [$reportKey, $measure, $label, $trend]) {
             $report = $this->report($reportKey);
             if (! $this->catalogue->allows($user, $report)) {
                 continue;
@@ -71,11 +81,12 @@ final readonly class Dashboard
                 'previous' => $result->previous === null ? null : ($result->previous[$measure] ?? null),
                 'report' => $reportKey,
                 'measure' => $measure,
+                'trend_series' => $trend,
             ];
         }
 
         $series = [];
-        foreach (self::SERIES as $key => [$reportKey, $group, $measures, $title, $chart]) {
+        foreach (self::SERIES as $key => [$reportKey, $group, $measures, $title, $chart, $section]) {
             $report = $this->report($reportKey);
             if (! $this->catalogue->allows($user, $report)) {
                 continue;
@@ -86,6 +97,7 @@ final readonly class Dashboard
                 'key' => $key,
                 'title' => $title,
                 'chart' => $chart,
+                'section' => $section,
                 'report' => $reportKey,
                 'report_title' => $report->title(),
                 'parameters' => ['period' => $period, 'group' => $group, 'measures' => $measures],

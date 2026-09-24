@@ -1,3 +1,4 @@
+import axe from 'axe-core'
 import { HttpResponse, http } from 'msw'
 import { expect, test } from 'vitest'
 import { setupMswWorker } from '@/test/msw/browser'
@@ -19,7 +20,7 @@ test('a manager creates an SLA policy and sees it in the list', async () => {
   await screen.getByRole('spinbutton', { name: 'P1 First response (minutes)' }).fill('15')
   await screen.getByRole('button', { name: 'Save policy' }).click()
   await expect.element(screen.getByText('SLA policy saved.')).toBeVisible()
-  await expect.element(screen.getByText(/Premium support/)).toBeVisible()
+  await expect.element(screen.getByRole('heading', { name: 'Premium support' })).toBeVisible()
   expect(db.slaPolicies.find((row) => row.name === 'Premium support')?.targets[0]).toMatchObject({
     priority_level: 'P1',
     first_response_minutes: 15,
@@ -69,7 +70,7 @@ test('a 422 lands on the policy fields it names, including a target row', async 
   await expect.element(screen.getByText('An SLA policy with this name already exists.')).toBeVisible()
   await expect
     .element(screen.getByRole('spinbutton', { name: 'P3 Resolution (minutes)' }))
-    .toHaveAccessibleDescription('The P3 resolution target is too long.')
+    .toHaveAccessibleDescription(/The P3 resolution target is too long\.$/)
 })
 
 test('editing a policy starts from its stored targets', async () => {
@@ -85,7 +86,7 @@ test('editing a policy starts from its stored targets', async () => {
 test('a viewer reads policies without edit controls', async () => {
   signIn(['tickets.view'])
   const { screen } = await renderApp('/acme/settings/sla')
-  await expect.element(screen.getByText(/Standard support/)).toBeVisible()
+  await expect.element(screen.getByRole('heading', { name: 'Standard support' })).toBeVisible()
   await expect.element(screen.getByRole('button', { name: 'Add policy' })).not.toBeInTheDocument()
 })
 
@@ -139,4 +140,50 @@ test('a holiday is added, a taken date is shown on the date field, and removal a
   await dialog.getByRole('button', { name: 'Remove' }).click()
   await expect.element(screen.getByText('Holiday removed.')).toBeVisible()
   expect(db.calendars[0]?.holidays.map((row) => row.name)).toEqual(['Dashain again'])
+})
+
+test('a policy reads as its promises: targets per priority in working time, tier, calendar, warning (M4-12)', async () => {
+  signIn(['tickets.view'])
+  const { screen } = await renderApp('/acme/settings/sla')
+  const targets = screen.getByRole('table', { name: 'Targets of Standard support, in working time' })
+  await expect.element(targets.getByRole('row', { name: /P1/ })).toMatchTextContent(/30 min\s*4 h/)
+  await expect.element(targets.getByRole('row', { name: /P4/ })).toMatchTextContent(/8 h\s*48 h/)
+  await expect.element(screen.getByRole('definition').filter({ hasText: /^Kathmandu office$/ })).toBeVisible()
+  await expect.element(screen.getByText('80% of the target')).toBeVisible()
+})
+
+test('a calendar reads as its working week and holidays in dates (M4-12)', async () => {
+  signIn(['tickets.view'])
+  const { screen } = await renderApp('/acme/settings/calendars')
+  const week = screen.getByRole('table', { name: 'Working hours of Kathmandu office' })
+  await expect.element(week.getByRole('row', { name: /Monday/ })).toMatchTextContent(/10:00–17:00/)
+  await expect.element(week.getByRole('row', { name: /Sunday/ })).toMatchTextContent(/Closed/)
+  await expect.element(screen.getByText('14 h of working time a week')).toBeVisible()
+  await expect.element(screen.getByText('20 Oct 2026 · Dashain')).toBeVisible()
+})
+
+test('three settings pages have no serious axe findings', async () => {
+  signIn(['tickets.view', 'settings.manage', 'sla.manage', 'calendars.manage'])
+  for (const [path, heading] of [
+    ['/acme/settings/sla', 'SLA policies'],
+    ['/acme/settings/calendars', 'Business calendars'],
+    ['/acme/settings/general', 'General'],
+  ] as const) {
+    const { screen } = await renderApp(path)
+    await expect.element(screen.getByRole('heading', { level: 2, name: heading })).toBeVisible()
+    await expect.poll(() => screen.container.querySelector('[aria-busy="true"], .animate-pulse')).toBeNull()
+    // A fading toast from an earlier test would be measured half-transparent.
+    await Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => undefined)))
+    const results = await axe.run(screen.container, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] },
+    })
+    expect(
+      results.violations
+        .filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')
+        .map(
+          (violation) => `${path} ${violation.id}: ${violation.nodes.map((node) => node.html).join(' | ')}`,
+        ),
+    ).toEqual([])
+    await screen.unmount()
+  }
 })

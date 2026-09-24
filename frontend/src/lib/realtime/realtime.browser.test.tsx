@@ -98,6 +98,30 @@ test("another user's reply appears on the open ticket within a second", async ()
     .toBeVisible()
 })
 
+test('a reply arriving live leaves the draft, the mode and the focus of the agent who is typing (M4-05)', async () => {
+  const { panel, ticket } = await openComments()
+  const channel = realtimeChannels.ticket(tenantId, ticket.id)
+  await expect.poll(() => fakeEcho().joined()).toContain(channel)
+
+  await panel.getByRole('radio', { name: 'Internal note' }).click()
+  const message = panel.getByRole('textbox', { name: 'Message' })
+  await message.fill('Half-written note about the refund')
+  ;(message.element() as HTMLTextAreaElement).focus()
+
+  const commentId = addStoredComment(ticket.id, 'A reply from the other browser.', 'public')
+  fakeEcho().emit(channel, '.comment.added', {
+    ticket_id: ticket.id,
+    comment_id: commentId,
+    visibility: 'public',
+  })
+  await expect.element(panel.getByText('A reply from the other browser.'), { timeout: 1_000 }).toBeVisible()
+
+  // Nothing the agent was working on moved.
+  await expect.element(message).toHaveValue('Half-written note about the refund')
+  await expect.element(panel.getByRole('radio', { name: 'Internal note' })).toBeChecked()
+  expect(document.activeElement).toBe(message.element())
+})
+
 test('internal notes arrive on their own channel, joined only with comments.internal', async () => {
   const { panel, ticket } = await openComments()
   const internal = realtimeChannels.ticketInternal(tenantId, ticket.id)

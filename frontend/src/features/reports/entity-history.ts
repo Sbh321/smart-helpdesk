@@ -1,8 +1,7 @@
 import { copy, fill } from '@/copy/en'
 import { hasPermission } from '@/lib/auth'
-import { formatInZone } from '@/lib/datetime/format'
+import { formatRecordValue, type NameLookup, shortId } from '@/lib/format/record-values'
 import type { OverviewEntity } from './api/entity-queries'
-import { formatDuration } from './format'
 
 const text = copy.entity360
 
@@ -27,60 +26,12 @@ export function canViewHistory(entity: OverviewEntity, permissions: readonly str
   return can('history.view') || (entity === 'tickets' && can('comments.internal'))
 }
 
-/** "priority_override_reason" → "Priority override reason", for a column without a known name. */
-export function attributeLabel(attribute: string): string {
-  const known = text.attributes[attribute]
-  if (known) return known
-  const words = attribute.replace(/_id$/, '').replace(/_/g, ' ')
-  return words.charAt(0).toUpperCase() + words.slice(1)
-}
-
-/** Names of the records the ids of a change refer to, from option queries already in the cache. */
-export interface NameLookup {
-  organization?: (id: string) => string | undefined
-  category?: (id: string) => string | undefined
-  team?: (id: string) => string | undefined
-  agent?: (id: string) => string | undefined
-  /** By user id: the Agent directory knows the names of users who are Agents. */
-  user?: (id: string) => string | undefined
-}
-
-const RELATIONS: Record<string, keyof NameLookup> = {
-  organization_id: 'organization',
-  category_id: 'category',
-  team_id: 'team',
-  default_team_id: 'team',
-  assigned_agent_id: 'agent',
-  user_id: 'user',
-  created_by_user_id: 'user',
-  priority_override_by: 'user',
-}
-
-const LABELLED: Record<string, Record<string, string>> = {
-  status: copy.reports.fixedLabels.status ?? {},
-  priority_level: copy.reports.fixedLabels.priority ?? {},
-  priority_override_level: copy.reports.fixedLabels.priority ?? {},
-  tier: copy.reports.fixedLabels.tier ?? {},
-  created_via: copy.reports.fixedLabels.channel ?? {},
-  availability: {
-    available: copy.settings.availabilityControl.available,
-    away: copy.settings.availabilityControl.away,
-    offline: copy.settings.availabilityControl.offline,
-  },
-}
-
-const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-/** The last eight characters of an id, for a record we have no name for ("…a1b2c3d4"). */
-export function shortId(id: string): string {
-  return fill(text.values.shortId, { id: id.slice(-8) })
-}
+// The value vocabulary is shared with the ticket timeline and the audit log (lib/format/record-values).
+export { attributeLabel, type NameLookup, shortId } from '@/lib/format/record-values'
 
 /**
- * A recorded value as text: names for known relations, labels for enumerations, instants in the
- * workspace zone, durations for second counts, a short id for an unknown record, a count for
- * structured values. Never a whole UUID unless there is nothing better.
+ * A recorded value as text, in the one-line form a timeline needs (a nested value reads "3 values").
+ * Kept as a named export so the history components read the same way as before M4-03.
  */
 export function formatAttributeValue(
   attribute: string,
@@ -88,24 +39,7 @@ export function formatAttributeValue(
   timeZone: string,
   names: NameLookup = {},
 ): string {
-  if (value === null || value === undefined || value === '') return text.values.empty
-  if (typeof value === 'boolean') return value ? text.values.yes : text.values.no
-  if (typeof value === 'object') {
-    const size = Array.isArray(value) ? value.length : Object.keys(value).length
-    return size === 0 ? text.values.empty : fill(text.values.structured, { count: size })
-  }
-  if (typeof value === 'number') {
-    if (attribute.endsWith('_seconds')) return formatDuration(value)
-    return String(value)
-  }
-  const raw = String(value)
-  const relation = RELATIONS[attribute]
-  if (relation && UUID.test(raw)) return names[relation]?.(raw) ?? shortId(raw)
-  const labels = LABELLED[attribute]
-  if (labels?.[raw]) return labels[raw]
-  if (ISO_INSTANT.test(raw)) return formatInZone(raw, timeZone, 'd MMM yyyy, HH:mm:ss')
-  if (UUID.test(raw)) return shortId(raw)
-  return raw
+  return formatRecordValue(value, timeZone, { attribute, names, structured: 'count' })
 }
 
 /** Who made a change, in words. */

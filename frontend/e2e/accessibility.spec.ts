@@ -60,6 +60,7 @@ const screens: Screen[] = [
     path: ticketDetail,
     open: async (page) => {
       await page.getByRole('button', { name: 'Why this priority?' }).click()
+      await page.getByText('Show the calculation').click()
       await expect(page.getByText('basic_weighted_priority', { exact: false }).first()).toBeVisible()
     },
   },

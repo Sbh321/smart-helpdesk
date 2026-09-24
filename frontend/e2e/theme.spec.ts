@@ -51,17 +51,25 @@ test('the chosen theme survives a reload and signing in, and System follows the 
   await signIn(page, 'chen')
   expect(await bootTheme(page)).toEqual(['dark', 'dark'])
   await expect(html(page)).toHaveAttribute('data-theme', 'dark')
-  const shellThemes = page.getByRole('banner').getByRole('group', { name: 'Theme' })
-  await expect(shellThemes.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true')
+  // In the shell the choice lives in the account menu (M4-02), not in a top-bar segmented control.
+  const openAppearance = async () => {
+    await page.getByRole('banner').getByRole('button', { name: 'Account' }).click()
+    return page.getByRole('menu')
+  }
+  let menu = await openAppearance()
+  await expect(menu.getByRole('menuitemradio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
 
   // Light, then reload.
-  await shellThemes.getByRole('button', { name: 'Light' }).click()
+  await menu.getByRole('menuitemradio', { name: 'Light' }).click()
+  await page.keyboard.press('Escape')
   await expect(html(page)).toHaveAttribute('data-theme', 'light')
   await page.reload()
   expect(await bootTheme(page)).toEqual(['light', 'light'])
 
   // System follows the operating system, live and after a reload.
-  await shellThemes.getByRole('button', { name: 'System' }).click()
+  menu = await openAppearance()
+  await menu.getByRole('menuitemradio', { name: 'System' }).click()
+  await page.keyboard.press('Escape')
   await expect(html(page)).toHaveAttribute('data-theme-choice', 'system')
   await expect(html(page)).toHaveAttribute('data-theme', 'light')
   await page.emulateMedia({ colorScheme: 'dark' })

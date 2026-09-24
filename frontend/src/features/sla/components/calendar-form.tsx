@@ -1,11 +1,12 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { UnsavedChangesGuard } from '@/components/shared/save-bar'
 import { TextField } from '@/components/shared/text-field'
 import { TimeZoneField } from '@/components/shared/time-zone-field'
 import { Button } from '@/components/ui/button'
 import { FieldGroup, FieldLegend, FieldSet } from '@/components/ui/field'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useSession } from '@/lib/auth'
@@ -178,15 +179,18 @@ export function CalendarForm({
           </form.Field>
         ))}
       </FieldSet>
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
+      <form.Subscribe
+        selector={(state) => ({ submitting: state.isSubmitting, dirty: !state.isDefaultValue })}
+      >
+        {({ submitting, dirty }) => (
           <div className="flex gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? copy.sla.saving : copy.sla.saveCalendar}
+            <Button type="submit" disabled={submitting}>
+              {submitting ? copy.sla.saving : copy.sla.saveCalendar}
             </Button>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onDone}>
+            <Button type="button" variant="outline" disabled={submitting} onClick={onDone}>
               {copy.sla.cancel}
             </Button>
+            <UnsavedChangesGuard dirty={dirty && !submitting} />
           </div>
         )}
       </form.Subscribe>

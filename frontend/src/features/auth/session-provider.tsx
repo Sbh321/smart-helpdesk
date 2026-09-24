@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { type ReactNode, useEffect } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
 import { SessionContext, type SessionContextValue, type SessionStatus } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'

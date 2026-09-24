@@ -86,7 +86,7 @@ function find(ticket, candidates):
 
 Scores are compared exactly by cross-multiplication of shared and union counts, so the threshold test and the order are not decided by float rounding. The explanation shows each score rounded to 4 decimals.
 
-The explanation shown to the agent is the score and the list of shared words. `DuplicateResult::explanation()` returns `strategy` (`jaccard_duplicates`), `strategy_version` (`1.0.0`), `words` (the new ticket's set), `candidates_compared`, `settings` and `matches` (ticket id, score, shared words sorted alphabetically, shared count, union count).
+The explanation shown to the agent is the score and the list of shared words. `DuplicateResult::explanation()` returns `strategy` (`jaccard_duplicates`), `strategy_version` (`1.0.0`), `words` (the new ticket's set), `candidates_compared`, `settings` and `matches` (ticket id, score, shared words sorted alphabetically, shared count, union count). On the ticket page (M4-06) each stored suggestion shows the candidate's status, the similarity, the shared words as tokens and the strategy with its version.
 
 **Complexity:** O(L) to build a word set of text length L, and O(K × W) to compare with K ≤ 50 candidates of about W words each — a few thousand set operations per new ticket.
 

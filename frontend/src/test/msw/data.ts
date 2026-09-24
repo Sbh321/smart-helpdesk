@@ -474,6 +474,8 @@ export const db = {
   calendars: clone(CALENDAR_FIXTURES),
   comments: {} as Record<string, CommentResource[]>,
   duplicates: {} as Record<string, DuplicateSuggestionResource[]>,
+  /** The latest assignment row per ticket, as `GET /tickets/{ticket}/assignment` returns it (M4-06). */
+  assignments: {} as Record<string, components['schemas']['TicketAssignmentResource']>,
   ticketAttachments: {} as Record<string, string[]>,
   media: clone(MEDIA_FIXTURES),
   mediaFolders: clone(MEDIA_FOLDER_FIXTURES),
@@ -504,6 +506,7 @@ export function resetMockData(): void {
   db.calendars = clone(CALENDAR_FIXTURES)
   db.comments = {}
   db.duplicates = {}
+  db.assignments = {}
   db.ticketAttachments = {}
   db.media = clone(MEDIA_FIXTURES)
   db.mediaFolders = clone(MEDIA_FOLDER_FIXTURES)

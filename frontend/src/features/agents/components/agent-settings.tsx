@@ -37,6 +37,7 @@ import {
   FORM_CLASS,
   FormActions,
   PICKER_PAGE,
+  RowsSkeleton,
   Saved,
   Section,
   useDirectory,
@@ -264,7 +265,7 @@ export function AgentSettings() {
   const [saved, setSaved] = useState(false)
   if (!allowed) return <ForbiddenState />
   return (
-    <Section title={copy.settings.agents}>
+    <Section title={copy.settings.agents} description={copy.settings.descriptions.agents}>
       {canManage ? (
         <Button
           onClick={() => {
@@ -288,7 +289,7 @@ export function AgentSettings() {
         />
       ) : null}
       {agents.isPending ? (
-        <p aria-busy="true">{copy.settings.loading}</p>
+        <RowsSkeleton />
       ) : agents.isError ? (
         <ErrorState error={agents.error} onRetry={() => void agents.refetch()} />
       ) : (

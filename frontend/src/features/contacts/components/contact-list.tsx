@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { CopyIcon, UsersIcon } from 'lucide-react'
 import { useMemo } from 'react'
-import { toast } from 'sonner'
 import {
   DataTable,
   FilterBar,
@@ -13,6 +12,7 @@ import {
 } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { useSession } from '@/lib/auth'
 import { useListParams } from '@/lib/list-params'

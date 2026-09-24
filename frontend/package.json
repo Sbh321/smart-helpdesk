@@ -15,7 +15,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "biome ci .",
+    "lint": "biome ci . && node --experimental-strip-types scripts/check-design-tokens.ts",
     "format": "biome check --write .",
     "test": "vitest run --project unit",
     "tokens:check": "node --experimental-strip-types scripts/check-contrast.ts",

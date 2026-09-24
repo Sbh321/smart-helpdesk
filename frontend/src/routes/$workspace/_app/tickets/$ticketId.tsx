@@ -2,9 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { copy } from '@/copy/en'
 import { useEntityTabs } from '@/features/reports'
 import { TicketScreen } from '@/features/tickets'
+import { recordSearchSchema } from '@/lib/record-view'
 
 /** Ticket detail, lifecycle actions and history (roadmap M2-06). */
 export const Route = createFileRoute('/$workspace/_app/tickets/$ticketId')({
+  validateSearch: recordSearchSchema,
   component: TicketPage,
   staticData: { crumb: copy.tickets.detailTitle },
 })

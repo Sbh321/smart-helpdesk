@@ -1,4 +1,4 @@
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -26,7 +26,9 @@ export function LoginForm({ workspace, redirect }: { workspace: string; redirect
 
   const form = useForm({
     defaultValues: { email: '', password: '' },
-    validators: { onSubmit: loginSchema },
+    // Checked on submit, then again as each field changes (the app-wide form timing, M4-13).
+    validationLogic: revalidateLogic({ mode: 'submit', modeAfterSubmission: 'change' }),
+    validators: { onDynamic: loginSchema },
     onSubmit: async ({ value }) => {
       setBanner(null)
       setServerErrors({})

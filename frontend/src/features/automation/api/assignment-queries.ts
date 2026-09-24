@@ -1,9 +1,11 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api, unwrap } from '@/lib/api/client'
+import { isApiError } from '@/lib/api/errors'
 import { queryKeys } from '@/lib/api/query-keys'
 import type { components } from '@/lib/api/schema'
 
 export type AssignmentPreview = components['schemas']['AssignmentPreviewResource']
+export type TicketAssignment = components['schemas']['TicketAssignmentResource']
 
 export const assignmentQueries = {
   candidates: (tenantId: string, ticketId: string) =>
@@ -13,6 +15,22 @@ export const assignmentQueries = {
         unwrap(
           api().GET('/tickets/{ticket}/assignment-candidates', { params: { path: { ticket: ticketId } } }),
         ),
+    }),
+  /** The latest assignment row with its stored explanation; 404 when the ticket was never assigned. */
+  latest: (tenantId: string, ticketId: string) =>
+    queryOptions({
+      queryKey: queryKeys.assignment.latest(tenantId, ticketId),
+      // Never assigned is an ordinary state, not an error: the 404 becomes `null`.
+      queryFn: async (): Promise<TicketAssignment | null> => {
+        try {
+          return await unwrap(
+            api().GET('/tickets/{ticket}/assignment', { params: { path: { ticket: ticketId } } }),
+          )
+        } catch (error) {
+          if (isApiError(error) && error.status === 404) return null
+          throw error
+        }
+      },
     }),
 }
 

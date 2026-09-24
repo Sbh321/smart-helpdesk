@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import type { TicketStatus } from '@/components/shared/status-badge'
 import { TextareaField } from '@/components/shared/textarea-field'
@@ -13,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
 import { AssignmentDialog } from '@/features/automation'
 import { hasProblemCode, problemMessage } from '@/lib/api/problem-messages'

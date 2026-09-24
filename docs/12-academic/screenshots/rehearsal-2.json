@@ -12,14 +12,14 @@
   {
     "step": "dashboard",
     "ok": true,
-    "seconds": "2.2",
+    "seconds": "2.3",
     "notes": [],
     "file": "02-dashboard.png"
   },
   {
     "step": "duplicate-preview",
     "ok": true,
-    "seconds": "2.3",
+    "seconds": "2.1",
     "notes": [
       "#1031 suggested (80%)"
     ],
@@ -28,7 +28,7 @@
   {
     "step": "ticket-created",
     "ok": true,
-    "seconds": "3.9",
+    "seconds": "3.4",
     "notes": [
       "#1121"
     ],
@@ -37,26 +37,25 @@
   {
     "step": "why-priority",
     "ok": true,
-    "seconds": "0.1",
+    "seconds": "0.2",
     "notes": [
-      "level P2 High"
+      "This ticket scored 51.7 points. Most of it comes from urgency and organisation tier."
     ],
     "file": "05-why-priority.png"
   },
   {
     "step": "assignment-and-sla",
     "ok": true,
-    "seconds": "0.1",
+    "seconds": "0.9",
     "notes": [
-      "agent Chen Wei",
-      "assignment ranking not visible on the ticket page without opening a panel"
+      "Chen Wei was picked automatically: the only eligible Agent, with 10 of 12 tickets open."
     ],
     "file": "06-assignment-and-sla.png"
   },
   {
     "step": "assignment-ranking",
     "ok": true,
-    "seconds": "1.5",
+    "seconds": "1.4",
     "notes": [
       "#1099 (open)",
       "Excluded Agents (8)"
@@ -75,16 +74,16 @@
   {
     "step": "pending-paused",
     "ok": true,
-    "seconds": "7.1",
+    "seconds": "0.9",
     "notes": [
-      "no \"paused\" wording on the page"
+      "timer shows paused"
     ],
     "file": "09-pending-paused.png"
   },
   {
     "step": "resumed",
     "ok": true,
-    "seconds": "1.6",
+    "seconds": "4.6",
     "notes": [],
     "file": "10-resumed.png"
   },
@@ -93,14 +92,14 @@
     "ok": true,
     "seconds": "1.5",
     "notes": [
-      "Due 21 Sep 2026, 17:19"
+      "Due soon · 19 minutes left"
     ],
     "file": "11-near-breach-before.png"
   },
   {
     "step": "near-breach-after-tick",
     "ok": true,
-    "seconds": "9.5",
+    "seconds": "12.7",
     "notes": [
       "acme ........................ 94 timers moved 30 min; 5 warnings, 4 breaches",
       "breach shown"
@@ -119,7 +118,7 @@
   {
     "step": "priority-settings-preview",
     "ok": true,
-    "seconds": "4.4",
+    "seconds": "4.6",
     "notes": [
       "scores changed in the preview (not saved)"
     ],
@@ -135,16 +134,16 @@
   {
     "step": "webhooks-deliveries",
     "ok": true,
-    "seconds": "2.4",
+    "seconds": "2.9",
     "notes": [
-      "1 dead, retry not shown"
+      "filtered to Gave up: 1 delivery, 1 with Retry"
     ],
     "file": "16-webhooks-deliveries.png"
   },
   {
     "step": "resolve-webhook-echo",
     "ok": true,
-    "seconds": "7.2",
+    "seconds": "6.7",
     "notes": [
       "webhook-echo got ticket.resolved (verified true)"
     ],
@@ -160,7 +159,7 @@
   {
     "step": "isolation-404",
     "ok": true,
-    "seconds": "6.0",
+    "seconds": "5.9",
     "notes": [
       "not found shown",
       "API 404"
@@ -170,7 +169,7 @@
   {
     "step": "report-backlog",
     "ok": true,
-    "seconds": "1.6",
+    "seconds": "1.2",
     "notes": [
       "/acme/reports/rpt-t02"
     ],
@@ -190,7 +189,7 @@
     "ok": true,
     "seconds": "0.4",
     "notes": [
-      "18 records behind this number."
+      "4 records behind this number."
     ],
     "file": "22-report-drill-down.png"
   },
@@ -206,7 +205,7 @@
   {
     "step": "dark-mode-keyboard",
     "ok": true,
-    "seconds": "0.7",
+    "seconds": "0.8",
     "notes": [],
     "file": "24-dark-mode-keyboard.png"
   },

@@ -61,6 +61,18 @@ test('the application shell has no serious or critical axe violations', async ()
   await expect.element(screen.getByRole('heading', { level: 1, name: copy.dashboard.title })).toBeVisible()
 
   expect(await scan(screen.container)).toEqual([])
+
+  // The collapsed icon rail (M4-02): the labels are tooltips and accessible names, so it is scanned too.
+  await screen.getByRole('button', { name: copy.nav.collapse }).click()
+  await expect
+    .element(
+      screen
+        .getByRole('navigation', { name: copy.nav.primary })
+        .getByRole('link', { name: copy.nav.tickets }),
+    )
+    .toBeVisible()
+  expect(await scan(screen.container)).toEqual([])
+  await screen.getByRole('button', { name: copy.nav.expand }).click()
 })
 
 test('the command palette dialog is reachable from the keyboard and stays accessible', async () => {
@@ -333,13 +345,15 @@ test('the ticket tabs and the assignment dialog have no serious or critical axe 
   const ticket = db.tickets[0]
   if (!ticket) throw new Error('Missing ticket fixture')
   const { screen } = await renderApp(`/acme/tickets/${ticket.id}`)
-  for (const tab of [
-    copy.tickets.detail.comments,
-    copy.tickets.detail.attachments,
-    copy.tickets.detail.duplicates,
-  ]) {
+  // The conversation and the timeline are tabs; attachments and duplicates are context-panel
+  // sections since M4-05, so each is opened the way the agent opens it.
+  for (const tab of [copy.tickets.detail.comments, copy.tickets.detail.timeline]) {
     await screen.getByRole('tab', { name: tab }).click()
     await expect.element(screen.getByRole('tabpanel')).toBeVisible()
+    expect(await scan(screen.container)).toEqual([])
+  }
+  for (const section of [copy.tickets.detail.attachments, copy.tickets.detail.duplicates]) {
+    await screen.getByText(section, { exact: true }).click()
     expect(await scan(screen.container)).toEqual([])
   }
   await screen.getByRole('button', { name: copy.assignment.title, exact: true }).click()

@@ -72,26 +72,46 @@ test('create, prioritise, suggest duplicates, assign, reply, pend, resolve and c
   await expect(page.getByRole('heading', { level: 1 })).toContainText(title)
   await expect(page.getByText('P2 High').first()).toBeVisible()
   await page.getByRole('button', { name: 'Why this priority?' }).click()
+  // In words first, the calculation one click away (M4-06).
+  await expect(page.getByText('This ticket scored 50.0 points.', { exact: false })).toBeVisible()
+  await page.getByText('Show the calculation').click()
   await expect(page.getByText('basic_weighted_priority', { exact: false }).first()).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByText('Assigned', { exact: true }).first()).toBeVisible()
+  // Why the Agent was chosen stays on the ticket after the decision (M4-06).
+  const context = page.getByRole('complementary', { name: 'Ticket context' })
+  await context.getByText('Assignment', { exact: true }).click()
+  await expect(
+    context.getByText(
+      /was picked automatically: (the lowest load of \d+ eligible Agents|the only eligible Agent)/,
+    ),
+  ).toBeVisible()
 
-  // Duplicates: the earlier report with the same wording is suggested.
-  await page.getByRole('tab', { name: 'Duplicates' }).click()
-  await expect(page.getByRole('tabpanel', { name: 'Duplicates' })).toContainText(`#${twinNumber}`)
+  // Duplicates: the earlier report with the same wording is suggested, in the context panel (M4-05).
+  const duplicates = page.getByRole('complementary', { name: 'Ticket context' })
+  await duplicates.getByText('Duplicates', { exact: true }).click()
+  await expect(duplicates).toContainText(`#${twinNumber}`)
 
   // Reply: a public reply meets the first-response target.
   await page.getByRole('tab', { name: 'Comments' }).click()
   await expect(page.getByRole('radio', { name: 'Public reply' })).toBeChecked()
   await page.getByRole('textbox', { name: 'Message' }).fill('We are looking at the VPN logs now.')
-  await page.getByRole('button', { name: 'Send comment' }).click()
+  await page.getByRole('button', { name: 'Send reply to the Contact' }).click()
   await expect(page.getByText('We are looking at the VPN logs now.')).toBeVisible()
+  // SLA (M4-07): the reply met the response timer; the header now only carries the resolution clock.
+  await expect(context.getByRole('heading', { name: 'First response' })).toBeVisible()
+  await expect(context.getByText('Met', { exact: true })).toBeVisible()
+  const slaLine = page.getByRole('list', { name: 'SLA timers' })
+  await expect(slaLine).toContainText(/Resolution(On track|Due soon)/)
+  await expect(slaLine).not.toContainText('Response')
 
   // Lifecycle: in progress → pending → resolved (with a resolution) → closed.
   await page.getByRole('button', { name: 'Start work' }).click()
   await expect(page.getByText('In progress', { exact: true }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Set pending' }).click()
   await expect(page.getByText('Pending', { exact: true }).first()).toBeVisible()
+  // Pending stops the clock, and the header says so instead of counting down.
+  await expect(slaLine).toHaveText('ResolutionPaused')
   await page.getByRole('button', { name: 'Resolve ticket' }).click()
   const resolve = page.getByRole('dialog', { name: 'Resolve ticket' })
   await resolve

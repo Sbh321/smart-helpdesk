@@ -160,25 +160,28 @@ await step('ticket-created', arjun, async (notes) => {
 // 5–7 Priority "Why?", assignment ranking, SLA panel.
 await step('why-priority', arjun, async (notes) => {
   await arjun.getByRole('button', { name: 'Why this priority?' }).click()
-  const panel = arjun.getByText('basic_weighted_priority', { exact: false }).first()
-  await panel.waitFor()
-  const level = await arjun.getByText(/^P[1-4] /).first().textContent()
-  notes.push(`level ${level}`)
+  // In words first (M4-06): the sentence and a bar per factor; the calculation one click away.
+  const sentence = await arjun.getByText(/^This ticket scored/).first().textContent()
+  notes.push(sentence?.trim() ?? 'no sentence')
+  await arjun.getByText('Show the calculation').click()
+  await arjun.getByText('basic_weighted_priority', { exact: false }).first().waitFor()
 })
 
-await step('assignment-and-sla', arjun, async (notes) => {
+await step('assignment-and-sla', priya, async (notes) => {
   await arjun.keyboard.press('Escape')
-  const main = await arjun.locator('main').innerText()
-  const agent = main.match(/Agent\s*\n\s*([^\n]+)/)
-  if (agent) notes.push(`agent ${agent[1].trim()}`)
-  if (!/least_loaded_agent|Eligible Agents|How Agents are ranked/i.test(main))
-    notes.push('assignment ranking not visible on the ticket page without opening a panel')
-  if (!/First response|first_response/i.test(main)) notes.push('SLA panel not found')
+  // Why the Agent was chosen, from the stored explanation, in the ticket's Assignment section (M4-06).
+  // It needs tickets.assign, so Priya (Manager) shows it; Arjun (Agent) does not see it.
+  await priya.goto(ticketUrl)
+  const context = priya.getByRole('complementary', { name: 'Ticket context' })
+  await context.getByText('Assignment', { exact: true }).click()
+  const reason = await context.getByText(/was picked automatically|was chosen by hand|no eligible Agent/).first().textContent()
+  notes.push(reason?.trim() ?? 'no assignment reason')
+  if (!/First response/i.test(await context.innerText())) notes.push('SLA panel not found')
 })
 
-// The stored ranking of an automatic assignment is not shown on an assigned ticket (rough edge), so
-// the ranking is shown on one of the tickets waiting for triage: Assignment → eligible Agents and why
-// the others are excluded (Elena away, Grace offline, missing skills, at capacity).
+// The live ranking before a decision, on one of the tickets waiting for triage: Assignment → eligible
+// Agents and why the others are excluded (Elena away, Grace offline, missing skills, at capacity). The
+// ranking of a decision already made is behind "Show the ranking" on the assigned ticket (step above).
 await step('assignment-ranking', priya, async (notes) => {
   const xsrf = decodeURIComponent((await priya.context().cookies()).find((c) => c.name === 'XSRF-TOKEN')?.value ?? '')
   const headers = { Accept: 'application/json', 'X-XSRF-TOKEN': xsrf, Origin: `https://app.${domain}` }
@@ -201,12 +204,13 @@ await step('reply-and-mail', arjun, async (notes) => {
   await arjun.getByRole('tab', { name: 'Comments' }).click()
   await arjun.getByRole('radio', { name: 'Internal note' }).check()
   await arjun.getByRole('textbox', { name: 'Message' }).fill('Checked the auth logs: ERR-401 after the reset token was used.')
-  await arjun.getByRole('button', { name: 'Send comment' }).click()
+  // The send button names the audience (M4-05).
+  await arjun.getByRole('button', { name: 'Save internal note' }).click()
   await arjun.getByText('Checked the auth logs').first().waitFor()
   await arjun.waitForTimeout(1000)
   await arjun.getByRole('radio', { name: 'Public reply' }).check()
   await arjun.getByRole('textbox', { name: 'Message' }).fill('Thanks Laura, we have reset your session. Please try signing in again.')
-  await arjun.getByRole('button', { name: 'Send comment' }).click()
+  await arjun.getByRole('button', { name: 'Send reply to the Contact' }).click()
   await arjun.getByText('we have reset your session').first().waitFor()
   await arjun.waitForTimeout(4000)
   try {
@@ -299,8 +303,17 @@ await step('webhooks-deliveries', meera, async (notes) => {
   await meera.goto(`${base}/acme/settings/webhooks`)
   await meera.getByRole('button', { name: /Deliveries|Show deliveries/ }).first().click()
   await meera.waitForTimeout(1500)
-  const text = await meera.locator('body').innerText()
-  notes.push(`${(text.match(/dead/gi) ?? []).length} dead, retry ${/Retry/.test(text) ? 'shown' : 'not shown'}`)
+  // Long histories are filtered by status; then the diagnosis of the failed delivery: status, error in
+  // words, attempts, payload (M4-11).
+  await meera.getByRole('combobox', { name: 'Status' }).click()
+  await meera.getByRole('option', { name: 'Gave up' }).click()
+  const gaveUp = meera.getByRole('row').filter({ hasText: 'Gave up' }).first()
+  await gaveUp.waitFor()
+  const rows = await meera.getByRole('row').filter({ hasText: 'Gave up' }).count()
+  const retry = await meera.getByRole('button', { name: /^Retry delivery/ }).count()
+  notes.push(`filtered to Gave up: ${rows} ${rows === 1 ? 'delivery' : 'deliveries'}, ${retry} with Retry`)
+  await gaveUp.getByRole('button', { name: /^Details of delivery/ }).click()
+  await meera.getByRole('dialog').getByText('Payload').waitFor()
 })
 
 await step('resolve-webhook-echo', arjun, async (notes) => {
@@ -387,7 +400,10 @@ await step('history-as-of', priya, async (notes) => {
 
 // 19–20 Dark mode and a keyboard-driven dialog.
 await step('dark-mode-keyboard', priya, async () => {
-  await priya.getByRole('button', { name: /Dark/ }).first().click()
+  // Theme lives in the account menu since M4-02.
+  await priya.getByRole('banner').getByRole('button', { name: 'Account' }).click()
+  await priya.getByRole('menuitemradio', { name: 'Dark' }).click()
+  await priya.keyboard.press('Escape')
   await priya.goto(`${base}/acme/tickets`)
   await priya.getByRole('button', { name: 'New ticket' }).first().focus()
   await priya.keyboard.press('Enter')

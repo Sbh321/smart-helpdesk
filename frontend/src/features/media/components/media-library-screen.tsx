@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FolderPlusIcon, ImagesIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import {
   DataTable,
@@ -14,8 +13,10 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { tagQueries } from '@/features/contacts'
 import { queryKeys } from '@/lib/api/query-keys'
@@ -145,13 +146,7 @@ export function MediaLibraryScreen() {
     )
 
   return (
-    <section className="space-y-5" aria-labelledby="media-library-heading">
-      <div>
-        <h2 id="media-library-heading" className="text-xl font-semibold">
-          {copy.media.title}
-        </h2>
-        <p className="text-sm text-muted-foreground">{copy.media.description}</p>
-      </div>
+    <SettingsPage title={copy.media.title} description={copy.media.description}>
       {usage.data ? (
         <div className="space-y-1 rounded-lg border border-border p-3 text-sm">
           <p>
@@ -271,6 +266,6 @@ export function MediaLibraryScreen() {
         failedTitle={copy.media.failed}
         onConfirm={confirmPending}
       />
-    </section>
+    </SettingsPage>
   )
 }

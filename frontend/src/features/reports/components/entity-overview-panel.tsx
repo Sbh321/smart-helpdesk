@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { ChartCard } from '@/components/shared/chart-card'
+import { type ChartRow, SeriesChart } from '@/components/shared/charts/series-chart'
 import { dataTableColumnHelper } from '@/components/shared/data-table'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
@@ -15,12 +16,12 @@ import { copy, fill } from '@/copy/en'
 import { isApiError } from '@/lib/api/errors'
 import { useSession } from '@/lib/auth'
 import { formatInZone } from '@/lib/datetime/format'
+import { dimensionLabel, timeDimension } from '@/lib/format/dimension-labels'
+import { formatDuration, formatMeasure } from '@/lib/format/measure'
 import { type EntityOverview, entityQueries, type OverviewEntity } from '../api/entity-queries'
 import { type LifecycleInterval, lifecycleShares, type NameLookup } from '../entity-history'
-import { formatDuration, formatMeasure } from '../format'
 import { ChartTable } from './chart-table'
 import { LocalTable } from './local-table'
-import { type ChartRow, SeriesChart } from './series-chart'
 import { useRecordNames } from './use-record-names'
 
 const text = copy.entity360
@@ -371,24 +372,20 @@ type RecentTicket = {
   created_at: string
 }
 
-function TrendChart({
-  name,
-  rows,
-  timeZone,
-}: {
-  name: string
-  rows: Array<Record<string, unknown>>
-  timeZone: string
-}) {
+/** The dates are calendar days the API already bucketed in the workspace zone (no zone needed here). */
+function TrendChart({ name, rows }: { name: string; rows: Array<Record<string, unknown>> }) {
   const dimension = name === 'tickets_per_week' ? 'week' : 'day'
   const measure = name === 'tickets_per_week' ? 'tickets' : 'backlog'
   const measures = [{ key: measure, label: text.trendMeasures[measure] ?? measure, unit: 'count' }]
   const title = text.trendTitles[name] ?? name
+  const info = timeDimension(dimension, text.trendDimension[dimension] ?? dimension)
   const chartRows: ChartRow[] = rows.map((row) => {
     const key = String(row[dimension] ?? '')
+    const { short, long } = dimensionLabel({ key, label: key }, info)
     return {
       key,
-      label: key ? formatInZone(`${key}T12:00:00Z`, timeZone, 'd MMM') : key,
+      label: short,
+      fullLabel: long,
       values: { [measure]: typeof row[measure] === 'number' ? (row[measure] as number) : null },
     }
   })
@@ -402,7 +399,7 @@ function TrendChart({
         <ChartTable
           caption={title}
           dimensionLabel={text.trendDimension[dimension] ?? dimension}
-          rows={chartRows}
+          rows={chartRows.map((row) => ({ ...row, label: row.fullLabel ?? row.label }))}
           measures={measures}
         />
       }
@@ -410,7 +407,7 @@ function TrendChart({
       {chartRows.length === 0 ? (
         <p className="text-sm text-muted-foreground">{text.empty}</p>
       ) : (
-        <SeriesChart kind="line" rows={chartRows} measures={measures} label={title} />
+        <SeriesChart kind="line" rows={chartRows} measures={measures} label={title} time />
       )}
     </ChartCard>
   )
@@ -748,7 +745,7 @@ export default function EntityOverviewPanel({ entity, id, workspace }: EntityOve
       {Object.entries(data.trends)
         .filter(([name]) => name !== 'lifecycle')
         .map(([name, rows]) => (
-          <TrendChart key={name} name={name} rows={rows} timeZone={timeZone} />
+          <TrendChart key={name} name={name} rows={rows} />
         ))}
     </div>
   )

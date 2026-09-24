@@ -47,6 +47,17 @@ final class AssignmentBehaviour extends SqlReport
         return 'reason';
     }
 
+    public function chart(): string
+    {
+        return 'stacked_bar';
+    }
+
+    /** The parts of the whole, which do not overlap (M4-09). */
+    public function chartMeasures(): array
+    {
+        return ['automatic', 'manual', 'reassignments'];
+    }
+
     public function drillDownTo(): string
     {
         return 'tickets';

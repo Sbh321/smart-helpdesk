@@ -1,11 +1,11 @@
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
+import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
 import { workspaceHref } from '@/lib/auth'
 import { mergeMessages } from '@/lib/forms/messages'
@@ -27,7 +27,9 @@ export function AcceptInvitationForm({ workspace, token }: { workspace: string; 
 
   const form = useForm({
     defaultValues: { name: '', password: '', password_confirmation: '' },
-    validators: { onSubmit: acceptInvitationSchema },
+    // Checked on submit, then again as each field changes (the app-wide form timing, M4-13).
+    validationLogic: revalidateLogic({ mode: 'submit', modeAfterSubmission: 'change' }),
+    validators: { onDynamic: acceptInvitationSchema },
     onSubmit: async ({ value }) => {
       setBanner(null)
       setServerErrors({})

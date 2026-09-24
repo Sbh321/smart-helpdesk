@@ -2,7 +2,6 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { EntityCombobox } from '@/components/shared/entity-combobox'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { SelectField } from '@/components/shared/select-field'
@@ -20,6 +19,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { FieldGroup } from '@/components/ui/field'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import {
   type Contact,

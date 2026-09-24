@@ -2,12 +2,12 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRoundIcon, MoreHorizontalIcon, PlusIcon, TriangleAlertIcon, WebhookIcon } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { TextField } from '@/components/shared/text-field'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { FieldGroup } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { copy, fill } from '@/copy/en'
 import { CheckboxGroup } from '@/features/users'
@@ -451,19 +452,16 @@ export function WebhooksSettings() {
   }
 
   return (
-    <section className="space-y-6" aria-labelledby="settings-webhooks-heading">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="settings-webhooks-heading" className="text-lg font-semibold">
-            {text.title}
-          </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground">{text.intro}</p>
-        </div>
+    <SettingsPage
+      title={text.title}
+      description={text.intro}
+      actions={
         <Button onClick={() => setDialog({ webhook: null, rotated: null })}>
           <PlusIcon aria-hidden="true" />
           {text.create}
         </Button>
-      </div>
+      }
+    >
       {webhooks.isPending ? (
         <Skeleton className="h-48 w-full" />
       ) : webhooks.isError ? (
@@ -517,6 +515,6 @@ export function WebhooksSettings() {
         failedTitle={confirmText.failed}
         onConfirm={confirmPending}
       />
-    </section>
+    </SettingsPage>
   )
 }

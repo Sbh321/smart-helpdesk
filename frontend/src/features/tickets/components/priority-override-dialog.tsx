@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { SelectField } from '@/components/shared/select-field'
 import { Button } from '@/components/ui/button'
@@ -13,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useSession } from '@/lib/auth'

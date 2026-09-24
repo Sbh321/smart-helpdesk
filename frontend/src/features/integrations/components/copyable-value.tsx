@@ -1,7 +1,7 @@
 import { CopyIcon } from 'lucide-react'
-import { toast } from 'sonner'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 
 const text = copy.apiClients

@@ -65,7 +65,48 @@ it('gives every report a description, a group and a known chart', function (): v
         /** @var ReportDefinition $report */
         expect($report->description())->not->toBe('')
             ->and($report->group())->toBeIn(['tickets', 'contacts', 'agents', 'sla', 'channels', 'media', 'administration'])
-            ->and($report->chart())->toBeIn(['bar', 'line', 'stacked_area', 'heatmap', 'histogram', 'table'])
+            ->and($report->chart())->toBeIn(['bar', 'stacked_bar', 'line', 'stacked_area', 'heatmap', 'histogram', 'table'])
             ->and($report->dimensions())->toHaveKey($report->defaultDimension());
     }
+});
+
+it('declares chart measures that exist, share one unit, and are given for every stacked bar (M4-09)', function (): void {
+    $stacked = [];
+    foreach (app(ReportCatalogue::class)->all() as $report) {
+        /** @var ReportDefinition $report */
+        $declared = $report->chartMeasures();
+        if ($report->chart() === 'stacked_bar') {
+            expect($declared)->not->toBeNull($report->key());
+            $stacked[] = $report->key();
+        }
+        if ($declared === null) {
+            continue;
+        }
+        $units = [];
+        foreach ($declared as $key) {
+            expect($report->measures())->toHaveKey($key);
+            $units[] = $report->measures()[$key]->unit;
+        }
+        expect(array_unique($units))->toHaveCount(1, $report->key());
+    }
+    expect($stacked)->toEqualCanonicalizing(['rpt-s01', 'rpt-t08', 'rpt-t10']);
+
+    $present = array_values(array_map(
+        fn (ReportDefinition $report): string => $report->key(),
+        array_filter(app(ReportCatalogue::class)->all(), fn (ReportDefinition $report): bool => ! $report->periodApplies()),
+    ));
+    expect($present)->toEqualCanonicalizing(['rpt-t05', 'rpt-s04']);
+});
+
+it('describes chart measures and whether the period applies in the API (M4-09)', function (): void {
+    $tenant = createTenant('catalogue-api');
+    actingAsRole($tenant, 'manager');
+    tenancy()->initialize($tenant);
+
+    $sla = $this->getJson('/v1/reports/rpt-s01')->assertOk()->json('data');
+    expect($sla['chart'])->toBe('stacked_bar')
+        ->and($sla['chart_measures'])->toBe(['met', 'breached', 'running'])
+        ->and($sla['period_applies'])->toBeTrue();
+    $ageing = $this->getJson('/v1/reports/rpt-t05')->assertOk()->json('data');
+    expect($ageing['chart_measures'])->toBeNull()->and($ageing['period_applies'])->toBeFalse();
 });

@@ -242,19 +242,21 @@ function definition(key: unknown): ReportDefinition | undefined {
 
 /** The dashboard as `GET /v1/dashboard` composes it: the same runs as the reports it names. */
 export function dashboardFixture(period: string): ApiResponseBody<'/dashboard', 'get'>['data'] {
-  const tiles: [string, string, string, string][] = [
-    ['created', 'rpt-t01', 'created', 'Tickets created'],
-    ['resolved', 'rpt-t01', 'resolved', 'Tickets resolved'],
-    ['open_now', 'rpt-t05', 'open', 'Open now'],
-    ['first_response_median', 'rpt-t06', 'first_response_median', 'Median first response'],
-    ['resolution_median', 'rpt-t06', 'resolution_median', 'Median resolution'],
-    ['sla_compliance', 'rpt-s01', 'compliance', 'SLA compliance'],
-    ['sla_breaches', 'rpt-s01', 'breached', 'SLA breaches'],
-    ['reopen_rate', 'rpt-t07', 'reopen_rate', 'Reopen rate'],
+  const tiles: [string, string, string, string, string | null][] = [
+    ['created', 'rpt-t01', 'created', 'Tickets created', 'volume'],
+    ['resolved', 'rpt-t01', 'resolved', 'Tickets resolved', 'volume'],
+    ['open_now', 'rpt-t05', 'open', 'Open now', null],
+    ['first_response_median', 'rpt-t06', 'first_response_median', 'Median first response', null],
+    ['resolution_median', 'rpt-t06', 'resolution_median', 'Median resolution', null],
+    ['sla_compliance', 'rpt-s01', 'compliance', 'SLA compliance', 'sla_compliance'],
+    ['sla_breaches', 'rpt-s01', 'breached', 'SLA breaches', null],
+    ['reopen_rate', 'rpt-t07', 'reopen_rate', 'Reopen rate', null],
   ]
-  const series: [string, string, string, string[], string, string][] = [
-    ['volume', 'rpt-t01', 'day', ['created', 'resolved'], 'Created and resolved per day', 'line'],
-    ['backlog', 'rpt-t02', 'day', ['end_backlog'], 'Backlog at the end of each day', 'stacked_area'],
+  const series: [string, string, string, string[], string, string, string][] = [
+    ['volume', 'rpt-t01', 'day', ['created', 'resolved'], 'Created and resolved per day', 'line', 'trend'],
+    ['backlog', 'rpt-t02', 'day', ['end_backlog'], 'Backlog at the end of each day', 'stacked_area', 'trend'],
+    ['sla_compliance', 'rpt-s01', 'week', ['compliance'], 'SLA compliance per week', 'line', 'trend'],
+    ['by_channel', 'rpt-t01', 'channel', ['created'], 'Tickets created by channel', 'bar', 'breakdown'],
     [
       'response_by_priority',
       'rpt-t06',
@@ -262,10 +264,20 @@ export function dashboardFixture(period: string): ApiResponseBody<'/dashboard', 
       ['first_response_median', 'resolution_median'],
       'Response and resolution by priority',
       'bar',
+      'breakdown',
     ],
-    ['sla_compliance', 'rpt-s01', 'week', ['compliance'], 'SLA compliance per week', 'line'],
-    ['agent_workload', 'rpt-a01', 'agent', ['backlog'], 'Open assigned tickets per agent', 'bar'],
-    ['time_in_status', 'rpt-t03', 'status', ['median_wall'], 'Median time in status', 'bar'],
+    ['open_by_team', 'rpt-t05', 'team', ['open'], 'Open tickets by team', 'bar', 'breakdown'],
+    ['ageing', 'rpt-t05', 'age_bucket', ['open'], 'Open tickets by age', 'bar', 'breakdown'],
+    [
+      'agent_workload',
+      'rpt-a01',
+      'agent',
+      ['backlog'],
+      'Open assigned tickets per agent',
+      'bar',
+      'breakdown',
+    ],
+    ['time_in_status', 'rpt-t03', 'status', ['median_wall'], 'Median time in status', 'bar', 'breakdown'],
   ]
   const run = (key: string, input: RunInput) =>
     runReport(definition(key) as ReportDefinition, input) as ReportRun
@@ -275,7 +287,7 @@ export function dashboardFixture(period: string): ApiResponseBody<'/dashboard', 
     from: `${from}T00:00:00Z`,
     to: `${addDays(from, days)}T00:00:00Z`,
     timezone: 'Asia/Kathmandu',
-    kpis: tiles.map(([key, report, measure, label]) => {
+    kpis: tiles.map(([key, report, measure, label, trend]) => {
       const result = run(report, { period, compare: true })
       const unit =
         definition(report)?.measures.find((candidate) => candidate.key === measure)?.unit ?? 'count'
@@ -287,14 +299,16 @@ export function dashboardFixture(period: string): ApiResponseBody<'/dashboard', 
         previous: result.previous?.[measure] ?? null,
         report,
         measure,
+        trend_series: trend,
       }
     }),
-    series: series.map(([key, report, group, measures, title, chart]) => {
+    series: series.map(([key, report, group, measures, title, chart, section]) => {
       const reportDefinition = definition(report) as ReportDefinition
       return {
         key,
         title,
         chart,
+        section,
         report,
         report_title: reportDefinition.title,
         parameters: { period, group, measures },

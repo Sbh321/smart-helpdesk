@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { ChartMeasure } from '@/components/shared/charts/series-chart'
 import {
   DataTable,
   type DataTableState,
@@ -8,10 +9,9 @@ import {
 import { EmptyState } from '@/components/shared/empty-state'
 import { Button } from '@/components/ui/button'
 import { copy, fill } from '@/copy/en'
+import { formatMeasure } from '@/lib/format/measure'
 import { DEFAULT_PAGE_SIZE, parseSort } from '@/lib/list-params'
 import type { ReportRow } from '../api/report-queries'
-import { formatMeasure } from '../format'
-import type { ChartMeasure } from './series-chart'
 
 const text = copy.reports
 /** The API's row order (time ascending, or the report's ranking): no column shows as sorted. */

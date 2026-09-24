@@ -23,6 +23,7 @@ import { isApiError } from '@/lib/api/errors'
 import type { components } from '@/lib/api/schema'
 import { useCan, useSession } from '@/lib/auth'
 import { formatInZone, isoToZonedInput, zonedInputToIso } from '@/lib/datetime/format'
+import { useRecordView } from '@/lib/record-view'
 import { type EntityChange, entityQueries, HISTORY_TYPE, type OverviewEntity } from '../api/entity-queries'
 import { actorLabel, attributeLabel, formatAttributeValue, type NameLookup } from '../entity-history'
 import { useRecordNames } from './use-record-names'
@@ -52,8 +53,11 @@ interface TimelineItem {
   note: string | null
 }
 
-/** Columns every row has; a creation listing them says nothing about the record. */
-const BOOKKEEPING = new Set(['id', 'tenant_id', 'updated_at'])
+/**
+ * Columns every row has, and the optimistic-lock counter (`version`): a person never changes them, so
+ * listing them, or marking them as a difference, says nothing about the record.
+ */
+const BOOKKEEPING = new Set(['id', 'tenant_id', 'updated_at', 'version'])
 
 function fromChange(change: EntityChange): TimelineItem {
   const kind = change.operation === 'insert' ? 'set' : change.operation === 'delete' ? 'clear' : 'change'
@@ -197,6 +201,9 @@ function AsOfView({
   }
   const date = at ? formatInZone(at, timeZone, 'd MMM yyyy, HH:mm:ss') : ''
   const value = (attribute: string, raw: unknown) => formatAttributeValue(attribute, raw, timeZone, names)
+  const differences = Object.entries(view.data?.differences ?? {}).filter(
+    ([attribute]) => !BOOKKEEPING.has(attribute),
+  )
 
   return (
     <section
@@ -267,7 +274,7 @@ function AsOfView({
                 : fill(text.asOf.versionsAfter, { count: view.data.versions_after })}
             </span>
           </p>
-          {Object.keys(view.data.differences).length === 0 ? (
+          {differences.length === 0 ? (
             <p className="text-sm text-muted-foreground">{fill(text.asOf.unchanged, { date })}</p>
           ) : (
             <div className="rounded-md border border-border">
@@ -281,15 +288,15 @@ function AsOfView({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Object.entries(view.data.differences).map(([attribute, difference]) => (
+                  {differences.map(([attribute, difference]) => (
                     <TableRow key={attribute}>
                       <TableHead scope="row" className="font-medium whitespace-normal">
                         {attributeLabel(attribute)}
                       </TableHead>
-                      <TableCell className="whitespace-normal break-words">
+                      <TableCell className="whitespace-normal break-words bg-warning/10 font-medium">
                         {value(attribute, difference.then)}
                       </TableCell>
-                      <TableCell className="whitespace-normal break-words">
+                      <TableCell className="whitespace-normal break-words text-muted-foreground">
                         {value(attribute, difference.now)}
                       </TableCell>
                     </TableRow>
@@ -298,19 +305,39 @@ function AsOfView({
               </table>
             </div>
           )}
-          <details className="text-sm">
-            <summary className="cursor-pointer font-medium">{text.asOf.attributes}</summary>
-            <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1">
+          {/* Every attribute as it was, open, with the ones that differ from now marked by an edge and
+              a word as well as a tint (M4-10), so the historical state is read against the present. */}
+          <section aria-labelledby={`${headingId}-attributes`} className="text-sm">
+            <h3 id={`${headingId}-attributes`} className="font-medium">
+              {text.asOf.attributes}
+            </h3>
+            <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-6">
               {Object.entries(view.data.attributes ?? {})
                 .filter(([attribute]) => !BOOKKEEPING.has(attribute))
-                .map(([attribute, raw]) => (
-                  <div key={attribute} className="contents">
-                    <dt className="text-muted-foreground">{attributeLabel(attribute)}</dt>
-                    <dd className="min-w-0 break-words">{value(attribute, raw)}</dd>
-                  </div>
-                ))}
+                .map(([attribute, raw]) => {
+                  const changed = differences.some(([key]) => key === attribute)
+                  return (
+                    <div
+                      key={attribute}
+                      data-changed={changed || undefined}
+                      className="col-span-2 grid grid-cols-subgrid border-l-2 border-transparent py-1 pl-2 data-changed:border-warning data-changed:bg-warning/10"
+                    >
+                      <dt className="text-muted-foreground">{attributeLabel(attribute)}</dt>
+                      <dd className="min-w-0 break-words">
+                        {value(attribute, raw)}
+                        {changed ? (
+                          <span className="ml-2 text-xs font-medium text-muted-foreground">
+                            {fill(text.asOf.changedSince, {
+                              now: value(attribute, view.data.differences[attribute]?.now),
+                            })}
+                          </span>
+                        ) : null}
+                      </dd>
+                    </div>
+                  )
+                })}
             </dl>
-          </details>
+          </section>
         </div>
       )}
     </section>
@@ -337,7 +364,11 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
   const auditType = AUDIT_SUBJECT_TYPE[entity]
   const withAudit = useCan('audit.view') && auditType !== undefined
   const [source, setSource] = useState<Source>('all')
-  const [at, setAt] = useState<string | undefined>(undefined)
+  // The instant lives in the URL (M4-10): choosing one turns the whole record page into its
+  // historical view (RecordLayout), and "Back to now" there clears it.
+  const { asOf, setAsOf } = useRecordView('details')
+  const at = asOf ?? undefined
+  const setAt = (next: string | undefined) => setAsOf(next ?? null)
   const names = useRecordNames()
   const changes = useInfiniteQuery({ ...entityQueries.changes(tenantId, type, id), enabled: tenantId !== '' })
   const events = useInfiniteQuery({

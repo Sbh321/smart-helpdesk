@@ -1,7 +1,9 @@
+import { InboxIcon, SearchXIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { DataTable, dataTableColumnHelper } from '@/components/shared/data-table'
+import { DataTable, dataTableColumnHelper, SearchFilter } from '@/components/shared/data-table'
+import { EmptyState } from '@/components/shared/empty-state'
 import { Button } from '@/components/ui/button'
-import { copy } from '@/copy/en'
+import { copy, fill } from '@/copy/en'
 import type { SortSpec, UseListParamsResult } from '@/lib/list-params'
 
 interface DirectoryRow {
@@ -68,17 +70,29 @@ export function DirectoryTable<TSort extends string>({
       defaultSort={defaultSort}
       getRowId={(row) => row.id}
       getRowLabel={(row) => row.name}
-      emptyState={<p className="text-sm text-muted-foreground">{copy.settings.empty}</p>}
-      toolbar={
-        <label className="text-sm">
-          {copy.settings.search}
-          <input
-            className="ml-2 rounded-lg border p-2"
-            type="search"
-            value={list.params.search ?? ''}
-            onChange={(event) => list.setSearch(event.target.value)}
+      // "Nothing here yet" and "nothing matches" are different situations with different ways out (M4-13).
+      emptyState={
+        list.params.search ? (
+          <EmptyState
+            icon={SearchXIcon}
+            title={fill(copy.settings.noMatches, { search: list.params.search })}
+            description={copy.settings.noMatchesBody}
+            action={
+              <Button variant="outline" onClick={() => list.setSearch(undefined)}>
+                {copy.settings.clearSearch}
+              </Button>
+            }
           />
-        </label>
+        ) : (
+          <EmptyState icon={InboxIcon} title={copy.settings.empty} />
+        )
+      }
+      toolbar={
+        <SearchFilter
+          label={fill(copy.settings.searchNamed, { label })}
+          value={list.params.search}
+          onChange={(value) => list.setSearch(value)}
+        />
       }
     />
   )

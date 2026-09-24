@@ -1,11 +1,12 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import type { z } from 'zod'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SaveBar, UnsavedChangesGuard } from '@/components/shared/save-bar'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
+import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
 import { mergeMessages } from '@/lib/forms/messages'
 import { useServerErrors } from '@/lib/forms/use-server-errors'
@@ -65,6 +66,7 @@ export function NumberSettingsForm<TName extends string>({
       >
       try {
         await saveSettings(client, tenantId, section, toInput(numbers))
+        form.reset(value)
         toast.success(text.saved)
       } catch (error) {
         server.capture(error)
@@ -110,24 +112,33 @@ export function NumberSettingsForm<TName extends string>({
           </form.Field>
         ))}
       </FieldGroup>
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? text.saving : text.save}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isSubmitting}
-              onClick={() => {
-                const next = asText(defaults)
-                for (const { name } of settings) form.setFieldValue(name as string, next[name])
-              }}
-            >
-              {text.resetDefaults}
-            </Button>
-          </div>
+      <form.Subscribe
+        selector={(state) => ({ dirty: !state.isDefaultValue, submitting: state.isSubmitting })}
+      >
+        {({ dirty, submitting }) => (
+          <>
+            {/* Fills in the code defaults without saving; the save bar then shows the change. */}
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={submitting}
+                onClick={() => {
+                  const next = asText(defaults)
+                  for (const { name } of settings) form.setFieldValue(name as string, next[name])
+                }}
+              >
+                {text.resetDefaults}
+              </Button>
+            </div>
+            <SaveBar
+              dirty={dirty}
+              submitting={submitting}
+              saveLabel={text.save}
+              onDiscard={() => form.reset()}
+            />
+            <UnsavedChangesGuard dirty={dirty} />
+          </>
         )}
       </form.Subscribe>
     </form>

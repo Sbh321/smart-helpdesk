@@ -1,6 +1,5 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { SelectField } from '@/components/shared/select-field'
 import { TagInput } from '@/components/shared/tag-input'
@@ -15,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { FieldGroup } from '@/components/ui/field'
+import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
 import { useTagSuggestions } from '@/features/contacts'
 import { queryKeys } from '@/lib/api/query-keys'

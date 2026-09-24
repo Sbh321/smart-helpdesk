@@ -1,14 +1,16 @@
 import { revalidateLogic, useForm, useStore } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { CopyIcon } from 'lucide-react'
-import { toast } from 'sonner'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SaveBar, UnsavedChangesGuard } from '@/components/shared/save-bar'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { TextField } from '@/components/shared/text-field'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { copy, fill } from '@/copy/en'
 import { mergeMessages } from '@/lib/forms/messages'
@@ -60,6 +62,7 @@ function SenderForm({ tenantId, settings }: { tenantId: string; settings: EmailS
       const name = value.sender_name.trim()
       try {
         await saveEmailSettings(client, tenantId, { sender_name: name === '' ? null : name })
+        form.reset(value)
         toast.success(text.saved)
       } catch (error) {
         server.capture(error)
@@ -107,13 +110,19 @@ function SenderForm({ tenantId, settings }: { tenantId: string; settings: EmailS
           {preview}
         </span>
       </p>
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? text.saving : text.save}
-            </Button>
-          </div>
+      <form.Subscribe
+        selector={(state) => ({ dirty: !state.isDefaultValue, submitting: state.isSubmitting })}
+      >
+        {({ dirty, submitting }) => (
+          <>
+            <SaveBar
+              dirty={dirty}
+              submitting={submitting}
+              saveLabel={text.save}
+              onDiscard={() => form.reset()}
+            />
+            <UnsavedChangesGuard dirty={dirty} />
+          </>
         )}
       </form.Subscribe>
     </form>
@@ -229,13 +238,7 @@ export function EmailSettings() {
   if (!allowed) return <ForbiddenState />
 
   return (
-    <section className="space-y-6" aria-labelledby="settings-email-heading">
-      <div className="space-y-2">
-        <h2 id="settings-email-heading" className="text-lg font-semibold">
-          {text.title}
-        </h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">{text.intro}</p>
-      </div>
+    <SettingsPage title={text.title} description={text.intro}>
       {query.isPending ? (
         <Skeleton className="h-32 w-full max-w-2xl" />
       ) : query.isError ? (
@@ -249,6 +252,6 @@ export function EmailSettings() {
           <DnsRecords domain={query.data.mail_domain} records={query.data.dns_records} />
         </>
       )}
-    </section>
+    </SettingsPage>
   )
 }

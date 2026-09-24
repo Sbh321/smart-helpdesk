@@ -186,3 +186,47 @@ it('previews the ranking without storing anything', function (): void {
     expect(apiAssignments($ticket))->toBe(0)
         ->and(AgentProfile::query()->withoutTenancy()->findOrFail($busy->id)->active_ticket_count)->toBe(3);
 });
+
+it('reads back the stored explanation of the latest assignment (M4-06)', function (): void {
+    actingAsRole($this->tenant, 'manager');
+    $busy = apiAgent(['active_ticket_count' => 3]);
+    $idle = apiAgent();
+    $ticket = apiTicket();
+
+    // Never assigned: nothing to explain.
+    $this->getJson("/v1/tickets/{$ticket->id}/assignment")->assertNotFound();
+
+    $this->postJson("/v1/tickets/{$ticket->id}/auto-assign")->assertOk();
+    $stored = TicketAssignment::query()->where('ticket_id', $ticket->id)->sole();
+
+    // The stored row, as recorded: not a recomputation, so it stays what it was when the agent's load changes.
+    AgentProfile::query()->whereKey($idle->id)->update(['active_ticket_count' => 4]);
+
+    $this->getJson("/v1/tickets/{$ticket->id}/assignment")->assertOk()
+        ->assertJsonPath('data.id', $stored->id)
+        ->assertJsonPath('data.reason', 'auto')
+        ->assertJsonPath('data.agent_id', $idle->id)
+        ->assertJsonPath('data.explanation.strategy', 'least_loaded_agent')
+        ->assertJsonPath('data.explanation.agent_id', $idle->id)
+        ->assertJsonPath('data.explanation.ranking.0.agent_id', $idle->id)
+        ->assertJsonPath('data.explanation.ranking.0.open_tickets', 0)
+        ->assertJsonPath('data.explanation.ranking.1.agent_id', $busy->id);
+
+    // A reassignment makes the newer row the answer.
+    $this->postJson("/v1/tickets/{$ticket->id}/assign", ['agent_id' => $busy->id])->assertOk();
+    $this->getJson("/v1/tickets/{$ticket->id}/assignment")->assertOk()
+        ->assertJsonPath('data.reason', 'reassign')
+        ->assertJsonPath('data.agent_id', $busy->id)
+        ->assertJsonPath('data.previous_agent_id', $idle->id);
+});
+
+it('guards the explanation like the candidates: 404 across workspaces, 403 without tickets.assign', function (): void {
+    $ticket = apiTicket();
+    $foreign = Ticket::factory()->forTenant(createTenant('assign-api-d'))->create();
+
+    actingAsRole($this->tenant, 'manager');
+    $this->getJson("/v1/tickets/{$foreign->id}/assignment")->assertNotFound();
+
+    actingAsRole($this->tenant, 'agent');
+    $this->getJson("/v1/tickets/{$ticket->id}/assignment")->assertForbidden();
+});

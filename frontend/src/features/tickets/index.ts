@@ -9,3 +9,4 @@ export {
 export { CreateTicketDialog } from './components/create-ticket-dialog'
 export { NewTicketScreen } from './components/new-ticket-screen'
 export { TicketScreen, TicketsScreen } from './components/ticket-screens'
+export { TicketsRightNow } from './components/tickets-right-now'

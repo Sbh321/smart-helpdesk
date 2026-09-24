@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon } from 'lucide-react'
-import { toast } from 'sonner'
 import { BackLink } from '@/components/shared/back-link'
 import { type DetailTab, DetailTabs } from '@/components/shared/detail-tabs'
 import { ErrorState } from '@/components/shared/error-state'
@@ -9,9 +8,11 @@ import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { NotFoundState } from '@/components/shared/not-found-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { RecordLayout } from '@/components/shared/record-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { isApiError } from '@/lib/api/errors'
 import { queryKeys } from '@/lib/api/query-keys'
@@ -166,29 +167,31 @@ export function ContactScreen({
   const current = contact.data
   const archived = current.archived_at !== null
   return (
-    <>
-      <PageHeader
-        eyebrow={back}
-        title={current.name}
-        description={current.email}
-        actions={
-          canManage ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={archive.isPending}
-              onClick={() => archive.mutate(archived)}
-            >
-              {archived ? <ArchiveRestoreIcon aria-hidden="true" /> : <ArchiveIcon aria-hidden="true" />}
-              {archived ? copy.contacts.detail.unarchive : copy.contacts.detail.archive}
-            </Button>
-          ) : null
-        }
-      />
+    <RecordLayout
+      eyebrow={back}
+      kind={copy.entity360.entities.contacts}
+      title={current.name}
+      description={current.email}
+      timeZone={timeZone}
+      history={tabs.find((tab) => tab.value === 'history')?.content}
+      badges={archived ? <Badge variant="secondary">{copy.contacts.list.archived}</Badge> : null}
+      actions={
+        canManage ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={archive.isPending}
+            onClick={() => archive.mutate(archived)}
+          >
+            {archived ? <ArchiveRestoreIcon aria-hidden="true" /> : <ArchiveIcon aria-hidden="true" />}
+            {archived ? copy.contacts.detail.unarchive : copy.contacts.detail.archive}
+          </Button>
+        ) : null
+      }
+    >
       {archive.isError ? <FormErrorBanner title={copy.contacts.form.failed} error={archive.error} /> : null}
       {archived && current.archived_at ? (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Badge variant="secondary">{copy.contacts.list.archived}</Badge>
+        <p className="text-sm text-muted-foreground">
           {fill(copy.contacts.detail.archived, {
             date: formatInZone(current.archived_at, timeZone, 'd MMM yyyy'),
           })}
@@ -209,6 +212,6 @@ export function ContactScreen({
           )
         }
       />
-    </>
+    </RecordLayout>
   )
 }

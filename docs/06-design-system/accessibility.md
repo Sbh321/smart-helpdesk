@@ -103,7 +103,7 @@ Found and fixed by the scan: in the dark theme the placeholder of a Select insid
 
 | Gap | Plan |
 |---|---|
-| Mobile/touch layouts below 768px | V1 (agent app is desktop-first) |
+| Mobile/touch layouts below 768px | V1 (agent app is desktop-first). Supported widths since M4-13: designed for 1280 px, deliberate from 1024 px (icon rail, ticket context as a drawer), checked not to break at 768 px; the page never scrolls sideways ([responsive](responsive.md)) |
 | Full screen-reader verification of Recharts point navigation | rely on the hidden data table; audit in V1 |
 | Markdown editor is a plain textarea | acceptable; rich toolbar V1 |
 | Drag-and-drop upload has a file-input fallback but no keyboard reordering | reordering not needed |

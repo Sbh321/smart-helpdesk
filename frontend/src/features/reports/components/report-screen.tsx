@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import { ArrowLeftIcon, PrinterIcon } from 'lucide-react'
+import { SeriesChart } from '@/components/shared/charts/series-chart'
 import { SelectFilter } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
@@ -11,10 +12,11 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { copy, fill } from '@/copy/en'
 import { useCan, useSession } from '@/lib/auth'
+import { labelRows } from '@/lib/format/dimension-labels'
+import { describeChange, formatMeasure } from '@/lib/format/measure'
 import { exportReport } from '../api/export-queries'
 import { type ReportDefinition, type ReportRow, reportQueries } from '../api/report-queries'
 import { chartKindFor, chartMeasuresFor } from '../chart-choice'
-import { describeChange, formatMeasure } from '../format'
 import {
   ALL_RECORDS,
   parseReportSearch,
@@ -27,17 +29,10 @@ import { HeatmapChart } from './heatmap-chart'
 import { ParameterBar } from './parameter-bar'
 import { RecordsDialog } from './records-dialog'
 import { ReportTable } from './report-table'
-import { SeriesChart } from './series-chart'
 import { useFilterOptions } from './use-filter-options'
 
 const text = copy.reports
 
-/**
- * Reports that describe now (open tickets by age, running timers near breach): the API ignores the
- * period and never compares. MVP-SHORTCUT: the definition does not say so; V1: a `period_applies` flag on
- * `ReportDefinitionResource`.
- */
-const NOW_REPORTS = new Set(['rpt-t05', 'rpt-s04'])
 /** The chart measure select's "default measures" option; never sent or stored. */
 const DEFAULT_CHART = 'default'
 
@@ -117,7 +112,8 @@ function ReportView({
   const rawSearch = useLocation({ select: (location) => location.search }) as Record<string, unknown>
   const params = parseReportSearch(rawSearch, filterKeys)
   const filterChoices = useFilterOptions(definition)
-  const periodApplies = !NOW_REPORTS.has(definition.key)
+  // Reports of the present (ageing, at-risk) say so themselves (M4-09).
+  const periodApplies = definition.period_applies
 
   const write = (next: ReportParams, replace = false) => {
     const current = router.state.location.search as Record<string, unknown>
@@ -146,9 +142,14 @@ function ReportView({
   const dimension = definition.dimensions.find((candidate) => candidate.key === group)
   const measures = definition.measures
   const kind = chartKindFor(definition.chart, group, dimension?.is_time ?? false)
-  const chartMeasures = chartMeasuresFor(measures, params.chart)
+  const chartMeasures = chartMeasuresFor(measures, params.chart, definition.chart_measures)
+  const defaultMeasures = chartMeasuresFor(measures, undefined, definition.chart_measures)
   const canDrill = definition.drill_down_to !== null
-  const rows = run.data?.rows
+  // Rows in words (M4-09): dates in the app format, "No team" for the empty bucket. The chart gets the
+  // short label for its axis and the long one for its tooltip; the table and drill-down the long one.
+  const labelled = run.data ? labelRows(run.data.rows, dimension) : undefined
+  const rows = labelled?.map(({ row, long }) => ({ ...row, label: long }))
+  const chartRows = labelled?.map(({ row, short, long }) => ({ ...row, label: short, fullLabel: long }))
   const drillRow = params.drill !== undefined ? rows?.find((row) => row.key === params.drill) : undefined
   const onDrill = canDrill ? (row: ReportRow, measure: string) => drill(row.key, 1, measure) : undefined
   const drillMeasureLabel = measures.find((measure) => measure.key === params.drillMeasure)?.label
@@ -219,6 +220,7 @@ function ReportView({
                     return (
                       <KpiTile
                         key={measure.key}
+                        compact
                         label={measure.label}
                         value={formatMeasure(value, measure.unit)}
                         change={change}
@@ -246,7 +248,12 @@ function ReportView({
                     <SelectFilter
                       label={text.chartMeasure}
                       options={[
-                        { value: DEFAULT_CHART, label: text.chartDefault },
+                        {
+                          value: DEFAULT_CHART,
+                          label: fill(text.chartDefaultNamed, {
+                            measures: defaultMeasures.map((measure) => measure.label).join(', '),
+                          }),
+                        },
                         ...measures.map((measure) => ({ value: measure.key, label: measure.label })),
                       ]}
                       value={params.chart}
@@ -256,7 +263,7 @@ function ReportView({
                   </div>
                 ) : null}
               </div>
-              {!rows ? (
+              {!rows || !chartRows ? (
                 <Skeleton className="h-64 w-full" />
               ) : rows.length === 0 ? (
                 <p className="py-12 text-center text-sm text-muted-foreground">{text.noRows}</p>
@@ -267,7 +274,13 @@ function ReportView({
                   label={fill(text.heatmapLabel, { title: definition.title })}
                 />
               ) : kind !== 'heatmap' ? (
-                <SeriesChart kind={kind} rows={rows} measures={chartMeasures} label={definition.title} />
+                <SeriesChart
+                  kind={kind}
+                  rows={chartRows}
+                  measures={chartMeasures}
+                  label={definition.title}
+                  time={dimension?.is_time ?? false}
+                />
               ) : null}
               <p className="text-xs text-muted-foreground">{canDrill ? text.drillHint : null}</p>
             </section>

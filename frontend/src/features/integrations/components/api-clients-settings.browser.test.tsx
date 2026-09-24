@@ -24,6 +24,10 @@ test('lists the clients with their scopes and status, revoked ones without a rev
   await expect
     .element(table.getByRole('row', { name: /Monitoring/ }).getByText('tickets:write'))
     .toBeVisible()
+  // Scopes read in words beside their code (M4-11).
+  await expect
+    .element(table.getByRole('row', { name: /Monitoring/ }).getByText('Create tickets', { exact: true }))
+    .toBeVisible()
   await expect.element(table.getByRole('row', { name: /Old CRM sync/ }).getByText(text.revoked)).toBeVisible()
   await expect.element(screen.getByRole('button', { name: 'Revoke Monitoring' })).toBeVisible()
   expect(screen.getByRole('button', { name: 'Revoke Old CRM sync' }).query()).toBeNull()
@@ -86,4 +90,40 @@ test('is forbidden without integrations.manage and hidden from the settings navi
   await expect.element(screen.getByRole('navigation', { name: copy.settings.sections })).toBeVisible()
   expect(screen.getByRole('link', { name: text.nav }).query()).toBeNull()
   expect(screen.getByRole('heading', { level: 2, name: text.title }).query()).toBeNull()
+})
+
+test('after the one-time reveal the secret is in no page and no cache, even after navigating away (M4-11)', async () => {
+  const { screen, router, queryClient } = await openApiClients()
+  await screen.getByRole('button', { name: text.create }).click()
+  const dialog = screen.getByRole('dialog', { name: text.createTitle })
+  await dialog.getByRole('textbox', { name: text.name }).fill('Zabbix')
+  await dialog.getByRole('checkbox', { name: /^tickets:read/ }).click()
+  await dialog.getByRole('button', { name: text.save }).click()
+  const secretDialog = screen.getByRole('dialog', { name: 'Zabbix' })
+  await expect
+    .element(secretDialog.getByRole('textbox', { name: text.clientSecret }))
+    .toHaveValue(TEST_CLIENT_SECRET)
+  await secretDialog.getByRole('button', { name: text.done }).click()
+  await expect.element(secretDialog).not.toBeInTheDocument()
+
+  await router.navigate({ to: '/$workspace/settings/webhooks', params: { workspace: 'acme' } })
+  await router.navigate({ to: '/$workspace/settings/api-clients', params: { workspace: 'acme' } })
+  await expect.element(screen.getByRole('row', { name: /Zabbix/ })).toBeVisible()
+  expect(document.body.innerHTML).not.toContain(TEST_CLIENT_SECRET)
+  const cached = JSON.stringify(
+    queryClient
+      .getQueryCache()
+      .getAll()
+      .map((query) => query.state.data),
+  )
+  expect(cached).not.toContain(TEST_CLIENT_SECRET)
+  // A finished mutation keeps its result for five minutes by default; the create response carries the
+  // secret, so it must not outlive the dialog.
+  const mutations = JSON.stringify(
+    queryClient
+      .getMutationCache()
+      .getAll()
+      .map((mutation) => mutation.state.data),
+  )
+  expect(mutations).not.toContain(TEST_CLIENT_SECRET)
 })

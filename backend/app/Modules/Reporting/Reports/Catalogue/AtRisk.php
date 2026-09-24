@@ -63,7 +63,7 @@ final class AtRisk extends SqlReport
         return 'r.ticket_id';
     }
 
-    protected function periodApplies(): bool
+    public function periodApplies(): bool
     {
         return false;
     }

@@ -2,7 +2,6 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { InboxIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import {
   DataTable,
   dataTableColumnHelper,
@@ -13,6 +12,7 @@ import {
 import { EmptyState } from '@/components/shared/empty-state'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/sonner'
 import { Switch } from '@/components/ui/switch'
 import { copy, fill } from '@/copy/en'
 import { isApiError } from '@/lib/api/errors'

@@ -2774,6 +2774,72 @@
                 ]
             }
         },
+        "/tickets/{ticket}/assignment": {
+            "get": {
+                "operationId": "tickets.assignment",
+                "description": "The latest assignment attempt as it was recorded, with the strategy's explanation: the ranking,\nthe exclusions and, for a manual choice, the override (roadmap M4-06). 404 when the ticket was\nnever assigned. The explanation is the stored one; nothing is recomputed.\n\nRequires permission `tickets.assign`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Show why the ticket went to its agent",
+                "tags": [
+                    "Automation"
+                ],
+                "parameters": [
+                    {
+                        "name": "ticket",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ticket ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`TicketAssignmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TicketAssignmentResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
         "/tickets/{ticket}/assign": {
             "post": {
                 "operationId": "tickets.assign",
@@ -14181,6 +14247,12 @@
                                 },
                                 "measure": {
                                     "type": "string"
+                                },
+                                "trend_series": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
                                 }
                             },
                             "required": [
@@ -14190,7 +14262,8 @@
                                 "value",
                                 "previous",
                                 "report",
-                                "measure"
+                                "measure",
+                                "trend_series"
                             ]
                         }
                     },
@@ -14206,6 +14279,9 @@
                                     "type": "string"
                                 },
                                 "chart": {
+                                    "type": "string"
+                                },
+                                "section": {
                                     "type": "string"
                                 },
                                 "report": {
@@ -14294,6 +14370,7 @@
                                 "key",
                                 "title",
                                 "chart",
+                                "section",
                                 "report",
                                 "report_title",
                                 "parameters",
@@ -16220,6 +16297,20 @@
                     "chart": {
                         "type": "string"
                     },
+                    "chart_measures": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "The measures the chart draws by default; for `stacked_bar`, the parts of a whole.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "period_applies": {
+                        "type": "boolean",
+                        "description": "False for a report of the present: the period and comparison do not apply."
+                    },
                     "default_dimension": {
                         "type": "string"
                     },
@@ -16315,6 +16406,8 @@
                     "description",
                     "group",
                     "chart",
+                    "chart_measures",
+                    "period_applies",
                     "default_dimension",
                     "drill_down_to",
                     "periods",

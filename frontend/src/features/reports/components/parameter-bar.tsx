@@ -1,7 +1,9 @@
+import { format } from 'date-fns'
 import { useId } from 'react'
 import {
   DateRangeFilter,
   FilterBar,
+  type FilterChip,
   type FilterOption,
   MultiSelectFilter,
   SelectFilter,
@@ -24,6 +26,78 @@ export interface ParameterBarProps {
   onChange: (patch: Partial<ReportParams>) => void
 }
 
+/** "1 Sep – 15 Sep 2026" for a custom range of calendar dates. */
+function rangeWords(range: { from: string; to: string }): string {
+  const day = (value: string) => {
+    const [year, month, date] = value.split('-').map(Number)
+    return new Date(year ?? 1970, (month ?? 1) - 1, date ?? 1)
+  }
+  return `${format(day(range.from), 'd MMM')} – ${format(day(range.to), 'd MMM yyyy')}`
+}
+
+/**
+ * The parameters in force as removable chips (roadmap M4-09), so every report says the same way what
+ * it is showing, and one parameter can be dropped without finding the control it came from. The
+ * default period and grouping are not chips: they are what "no parameter" means.
+ */
+export function parameterChips(
+  definition: ReportDefinition,
+  params: ReportParams,
+  filterChoices: Record<string, FilterChoices>,
+  periodApplies: boolean,
+  onChange: (patch: Partial<ReportParams>) => void,
+): FilterChip[] {
+  const chips: FilterChip[] = []
+  if (periodApplies && params.range) {
+    chips.push({
+      key: 'period',
+      label: text.period,
+      value: rangeWords(params.range),
+      onRemove: () => onChange({ range: undefined, period: DEFAULT_PERIOD }),
+    })
+  } else if (periodApplies && params.period !== DEFAULT_PERIOD) {
+    chips.push({
+      key: 'period',
+      label: text.period,
+      value: text.periods[params.period] ?? params.period,
+      onRemove: () => onChange({ period: DEFAULT_PERIOD }),
+    })
+  }
+  if (periodApplies && params.compare) {
+    chips.push({
+      key: 'compare',
+      label: text.compareChip,
+      value: text.compareChipValue,
+      onRemove: () => onChange({ compare: false }),
+    })
+  }
+  if (params.group !== undefined && params.group !== definition.default_dimension) {
+    const dimension = definition.dimensions.find((candidate) => candidate.key === params.group)
+    chips.push({
+      key: 'group',
+      label: text.groupBy,
+      value: dimension?.label ?? params.group,
+      onRemove: () => onChange({ group: undefined }),
+    })
+  }
+  for (const filter of definition.filters) {
+    const values = params.filters[filter.key] ?? []
+    if (values.length === 0) continue
+    const options = filterChoices[filter.key]?.options ?? []
+    const words =
+      filter.type === 'boolean'
+        ? values.map((value) => (value === 'true' ? text.boolean.true : text.boolean.false))
+        : values.map((value) => options.find((option) => option.value === value)?.label ?? value)
+    chips.push({
+      key: `filter-${filter.key}`,
+      label: filter.label,
+      value: words.join(', '),
+      onRemove: () => onChange({ filters: { ...params.filters, [filter.key]: [] } }),
+    })
+  }
+  return chips
+}
+
 /**
  * Period (presets or a custom range), comparison, group-by and the report's own filters. Every change is
  * a navigation, so the URL is the state (docs/04-domain/reporting.md §Report page behaviour).
@@ -44,6 +118,7 @@ export function ParameterBar({
     value: dimension.key,
     label: dimension.label,
   }))
+  const chips = parameterChips(definition, params, filterChoices, periodApplies, onChange)
   const activeFilters =
     Object.values(params.filters).filter((values) => values.length > 0).length +
     (params.range || params.period !== DEFAULT_PERIOD ? 1 : 0) +
@@ -53,6 +128,7 @@ export function ParameterBar({
   return (
     <section aria-label={text.parameters} className="print:hidden">
       <FilterBar
+        chips={chips}
         activeCount={activeFilters}
         onClear={() =>
           onChange({

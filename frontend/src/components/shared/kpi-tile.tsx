@@ -18,10 +18,22 @@ export interface KpiTileProps {
   noChange?: string
   /** A link or action under the value, for example "Open the full report". */
   footer?: ReactNode
+  /** A small trend under the value (`Sparkline`), only where the API returns the series. */
+  sparkline?: ReactNode
+  /** Tighter padding and a smaller value, for a dashboard row of many tiles. */
+  compact?: boolean
   /** The tile's heading level; `h3` under a section `h2` by default. */
   headingLevel?: 'h2' | 'h3'
   className?: string
 }
+
+/**
+ * For a tile that is itself the link to its detail (roadmap M4-08): wrap the tile in the router's `Link`
+ * with this class. The whole tile is the target, the focus ring sits on its edge, and hover lifts the
+ * border, so no "Open the full report" line is needed under every number.
+ */
+export const kpiTileLinkClassName =
+  'block rounded-lg outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&>[data-slot=kpi-tile]]:transition-colors hover:[&>[data-slot=kpi-tile]]:border-ring motion-reduce:[&>[data-slot=kpi-tile]]:transition-none'
 
 const ICONS = { up: ArrowUpRightIcon, down: ArrowDownRightIcon, flat: ArrowRightIcon } as const
 
@@ -37,6 +49,8 @@ export function KpiTile({
   change,
   noChange,
   footer,
+  sparkline,
+  compact = false,
   headingLevel = 'h3',
   className,
 }: KpiTileProps) {
@@ -47,12 +61,22 @@ export function KpiTile({
     <section
       aria-labelledby={headingId}
       data-slot="kpi-tile"
-      className={cn('flex flex-col gap-1 rounded-lg border border-border bg-surface p-4', className)}
+      className={cn(
+        'flex h-full flex-col gap-1 rounded-lg border border-border bg-surface',
+        compact ? 'p-3' : 'p-4',
+        className,
+      )}
     >
       <Heading id={headingId} className="text-sm font-medium text-muted-foreground">
         {label}
       </Heading>
-      <p className="text-3xl font-semibold tabular-nums tracking-tight">{value}</p>
+      {/* The sparkline sits beside the value, so a tile with a trend is no taller than one without. */}
+      <div className="flex items-end justify-between gap-3">
+        <p className={cn('font-semibold tabular-nums tracking-tight', compact ? 'text-2xl' : 'text-3xl')}>
+          {value}
+        </p>
+        {sparkline ? <div className="mb-1.5 w-24 min-w-0 shrink">{sparkline}</div> : null}
+      </div>
       {change || noChange ? (
         <p className="flex items-center gap-1 text-sm text-muted-foreground">
           <Icon aria-hidden="true" className="size-4 shrink-0" />

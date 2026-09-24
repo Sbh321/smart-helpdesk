@@ -8,6 +8,20 @@ compatibility policy are in [versioning.md](versioning.md); the reference is gen
 Each entry lists what changed for integrators. The OpenAPI document (`backend/openapi.json`, also a CI
 artifact) is the authority for shapes; this page is the human summary.
 
+## Unreleased
+
+**Added**
+
+- `GET /v1/tickets/{ticket}/assignment` (session only, `tickets.assign`): the latest assignment row of a
+  ticket with the explanation stored when it was decided. `404 not_found` when the ticket was never
+  assigned. Additive; no existing shape changed.
+- `GET /v1/dashboard`: each tile has `trend_series` (a series key or `null`), each series has
+  `section` (`trend` or `breakdown`), and three series joined (`by_channel`, `open_by_team`,
+  `ageing`); the series are now ordered trends first. Additive.
+- Report definitions (`GET /v1/reports`, `GET /v1/reports/{report}`): `chart_measures` (the measures
+  the chart draws by default; the parts of a `stacked_bar`) and `period_applies`. `chart` may now be
+  `stacked_bar` (SLA compliance, assignment behaviour, duplicates). Additive.
+
 ## 1.0.0 — 2026-09-21
 
 First release of the MVP surface: 147 operations, 29 of them open to API clients.

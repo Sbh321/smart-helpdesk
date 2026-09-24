@@ -31,6 +31,7 @@ export function TicketDetailRealtime({ tenantId, ticketId }: { tenantId: string;
     queryKeys.tickets.detail(tenantId, ticketId),
     queryKeys.tickets.history(tenantId, ticketId),
     queryKeys.sla.ticket(tenantId, ticketId),
+    queryKeys.assignment.latest(tenantId, ticketId),
   ]
   const comments = [
     queryKeys.tickets.comments(tenantId, ticketId),

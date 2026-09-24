@@ -20,6 +20,7 @@ export { useEntityTabs } from './components/entity-tabs'
 export { ExportControls } from './components/export-controls'
 export { ReportScreen } from './components/report-screen'
 export { ReportsScreen } from './components/reports-screen'
+export { useRecordNames } from './components/use-record-names'
 export { canViewHistory } from './entity-history'
 export {
   DEFAULT_PERIOD,

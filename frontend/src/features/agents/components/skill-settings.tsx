@@ -22,7 +22,15 @@ import {
   updateSkill,
 } from '../api/agent-queries'
 import { type SkillFormValues, skillFormSchema } from '../schemas'
-import { type Editing, FORM_CLASS, FormActions, Saved, Section, useDirectory } from './directory-shared'
+import {
+  type Editing,
+  FORM_CLASS,
+  FormActions,
+  RowsSkeleton,
+  Saved,
+  Section,
+  useDirectory,
+} from './directory-shared'
 import { DirectoryTable } from './directory-table'
 
 export function slugify(name: string): string {
@@ -147,7 +155,7 @@ export function SkillSettings() {
   const [saved, setSaved] = useState(false)
   if (!allowed) return <ForbiddenState />
   return (
-    <Section title={copy.settings.skills}>
+    <Section title={copy.settings.skills} description={copy.settings.descriptions.skills}>
       {canManage ? (
         <Button
           onClick={() => {
@@ -171,7 +179,7 @@ export function SkillSettings() {
         />
       ) : null}
       {result.isPending ? (
-        <p aria-busy="true">{copy.settings.loading}</p>
+        <RowsSkeleton />
       ) : result.isError ? (
         <ErrorState error={result.error} onRetry={() => void result.refetch()} />
       ) : (

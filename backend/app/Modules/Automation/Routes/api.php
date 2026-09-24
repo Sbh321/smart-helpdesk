@@ -17,6 +17,10 @@ Route::post('/settings/automation/priority/preview', [PriorityPreviewController:
     ->middleware('can:settings.manage')->name('settings.priority.preview');
 Route::get('/tickets/{ticket}/assignment-candidates', [TicketAssignmentController::class, 'candidates'])
     ->middleware('can:tickets.assign')->name('tickets.assignment-candidates');
+// The stored explanation of the latest assignment: same permission as the candidates, whose ranking
+// (every agent's open tickets, capacity and load) it repeats.
+Route::get('/tickets/{ticket}/assignment', [TicketAssignmentController::class, 'latest'])
+    ->middleware('can:tickets.assign')->name('tickets.assignment');
 Route::post('/tickets/{ticket}/assign', [TicketAssignmentController::class, 'assign'])
     ->middleware('can:tickets.assign')->name('tickets.assign');
 Route::post('/tickets/{ticket}/auto-assign', [TicketAssignmentController::class, 'autoAssign'])

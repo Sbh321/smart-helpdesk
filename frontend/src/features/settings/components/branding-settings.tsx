@@ -1,11 +1,12 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SaveBar, UnsavedChangesGuard } from '@/components/shared/save-bar'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { FieldLegend, FieldSet } from '@/components/ui/field'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { mergeMessages } from '@/lib/forms/messages'
 import { useServerErrors } from '@/lib/forms/use-server-errors'
@@ -72,6 +73,7 @@ function BrandingForm({ tenantId, values }: LoadedSection<'branding'>) {
           logo_dark_media_id: value.logo_dark_media_id,
         })
         setSaved(primary)
+        form.reset(value)
         toast.success(text.saved)
       } catch (error) {
         server.capture(error)
@@ -189,13 +191,19 @@ function BrandingForm({ tenantId, values }: LoadedSection<'branding'>) {
           />
         )}
       </form.Field>
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
-          <div>
-            <Button type="submit" disabled={isSubmitting || uploads > 0}>
-              {isSubmitting ? text.saving : text.save}
-            </Button>
-          </div>
+      <form.Subscribe
+        selector={(state) => ({ dirty: !state.isDefaultValue, submitting: state.isSubmitting })}
+      >
+        {({ dirty, submitting }) => (
+          <>
+            <SaveBar
+              dirty={dirty}
+              submitting={submitting || uploads > 0}
+              saveLabel={text.save}
+              onDiscard={() => form.reset()}
+            />
+            <UnsavedChangesGuard dirty={dirty} />
+          </>
         )}
       </form.Subscribe>
     </form>

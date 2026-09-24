@@ -37,11 +37,11 @@ export function CommandPalette({ workspace }: { workspace: string }) {
         size="sm"
         onClick={() => setOpen(true)}
         aria-label={copy.shell.commandPalette.open}
-        className="gap-2 text-muted-foreground"
+        className="w-full justify-start gap-2 text-muted-foreground"
       >
         <SearchIcon aria-hidden="true" />
         <span className="hidden sm:inline">{copy.shell.commandPalette.open}</span>
-        <KbdGroup className="hidden sm:inline-flex">
+        <KbdGroup className="ms-auto hidden sm:inline-flex">
           <Kbd>Ctrl</Kbd>
           <Kbd>K</Kbd>
         </KbdGroup>

@@ -31,6 +31,7 @@ import {
   FORM_CLASS,
   FormActions,
   PICKER_PAGE,
+  RowsSkeleton,
   Saved,
   Section,
   useDirectory,
@@ -175,7 +176,7 @@ export function CategorySettings() {
   const [saved, setSaved] = useState(false)
   if (!allowed) return <ForbiddenState />
   return (
-    <Section title={copy.settings.categories}>
+    <Section title={copy.settings.categories} description={copy.settings.descriptions.categories}>
       {canManage ? (
         <Button
           onClick={() => {
@@ -199,7 +200,7 @@ export function CategorySettings() {
         />
       ) : null}
       {categories.isPending ? (
-        <p aria-busy="true">{copy.settings.loading}</p>
+        <RowsSkeleton />
       ) : categories.isError ? (
         <ErrorState error={categories.error} onRetry={() => void categories.refetch()} />
       ) : categories.data.length === 0 ? (

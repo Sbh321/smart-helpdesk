@@ -24,9 +24,9 @@ test('a public reply is sent as public and says who will see it', async () => {
   const { screen, panel, ticket } = await openComments()
   await expect.element(panel.getByRole('radio', { name: 'Public reply' })).toBeChecked()
   await expect.element(panel.getByText('This reply will be emailed to the Contact.')).toBeVisible()
-  await expect.element(panel.getByRole('button', { name: 'Send comment' })).toBeDisabled()
+  await expect.element(panel.getByRole('button', { name: 'Send reply to the Contact' })).toBeDisabled()
   await panel.getByRole('textbox', { name: 'Message' }).fill('We have **reset** your password.')
-  await panel.getByRole('button', { name: 'Send comment' }).click()
+  await panel.getByRole('button', { name: 'Send reply to the Contact' }).click()
   await expect.element(screen.getByText('Comment added.')).toBeVisible()
   await expect.element(panel.getByText('reset', { exact: true })).toBeVisible()
   await expect.element(panel.getByRole('textbox', { name: 'Message' })).toHaveValue('')
@@ -38,7 +38,7 @@ test('an internal note is marked as internal in the request and in the list', as
   await panel.getByRole('radio', { name: 'Internal note' }).click()
   await expect.element(panel.getByText('Only Workspace staff can see this note.')).toBeVisible()
   await panel.getByRole('textbox', { name: 'Message' }).fill('Customer called twice.')
-  await panel.getByRole('button', { name: 'Send comment' }).click()
+  await panel.getByRole('button', { name: 'Save internal note' }).click()
   await expect
     .element(panel.getByRole('listitem').filter({ hasText: 'Customer called twice.' }))
     .toMatchTextContent(/Internal note/)
@@ -50,8 +50,11 @@ test('an internal note is marked as internal in the request and in the list', as
 
 test('without comments.internal only a public reply can be written', async () => {
   const { panel } = await openComments(['tickets.view', 'tickets.update'])
-  await expect.element(panel.getByRole('radio', { name: 'Public reply' })).toBeVisible()
+  // Without the permission there is nothing to choose, so M4-05 drops the switch entirely and the
+  // button says who will read it.
   expect(panel.getByRole('radio', { name: 'Internal note' }).query()).toBeNull()
+  expect(panel.getByRole('radio', { name: 'Public reply' }).query()).toBeNull()
+  await expect.element(panel.getByRole('button', { name: 'Send reply to the Contact' })).toBeVisible()
 })
 
 test('a viewer reads comments but gets no composer', async () => {
@@ -71,7 +74,7 @@ test('an uploaded file travels with the comment and is listed on it', async () =
     new File([new Uint8Array(1024)], 'error.png', { type: 'image/png' }),
   )
   await expect.element(panel.getByRole('list', { name: 'Files to attach' }).getByText('Ready')).toBeVisible()
-  await panel.getByRole('button', { name: 'Send comment' }).click()
+  await panel.getByRole('button', { name: 'Send reply to the Contact' }).click()
   await expect
     .element(panel.getByRole('listitem').filter({ hasText: 'Screenshot attached.' }))
     .toMatchTextContent(/error\.png/)
@@ -84,7 +87,7 @@ test('a comment body is rendered as text: markup in it stays inert', async () =>
   await panel
     .getByRole('textbox', { name: 'Message' })
     .fill('<img src=x onerror="window.__xss = 1"> [x](javascript:alert(1))')
-  await panel.getByRole('button', { name: 'Send comment' }).click()
+  await panel.getByRole('button', { name: 'Send reply to the Contact' }).click()
   await expect.element(panel.getByRole('listitem').filter({ hasText: '<img src=x' })).toBeVisible()
   expect(panel.element().querySelector('ol img, ol a[href^="javascript"]')).toBeNull()
   expect((window as { __xss?: number }).__xss).toBeUndefined()
@@ -98,7 +101,7 @@ test('a failed comment keeps the draft and explains the failure', async () => {
   )
   const { panel } = await openComments()
   await panel.getByRole('textbox', { name: 'Message' }).fill('Still there?')
-  await panel.getByRole('button', { name: 'Send comment' }).click()
+  await panel.getByRole('button', { name: 'Send reply to the Contact' }).click()
   await expect.element(panel.getByRole('alert')).toMatchTextContent(/Try again shortly\./)
   await expect.element(panel.getByRole('textbox', { name: 'Message' })).toHaveValue('Still there?')
 })

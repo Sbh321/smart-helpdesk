@@ -12,6 +12,7 @@ import {
 } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { copy, fill } from '@/copy/en'
@@ -207,13 +208,7 @@ export function AuditSettings() {
     )
 
   return (
-    <section className="space-y-4" aria-labelledby="settings-audit-heading">
-      <div>
-        <h2 id="settings-audit-heading" className="text-lg font-semibold">
-          {text.title}
-        </h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">{fill(text.intro, { timezone: timeZone })}</p>
-      </div>
+    <SettingsPage title={text.title} description={fill(text.intro, { timezone: timeZone })}>
       <DataTable
         id="settings-audit"
         label={text.tableLabel}
@@ -290,6 +285,6 @@ export function AuditSettings() {
           {entries.isFetchingNextPage ? text.loadingOlder : text.loadOlder}
         </Button>
       ) : null}
-    </section>
+    </SettingsPage>
   )
 }

@@ -85,3 +85,13 @@ Also written, outside the list above: `user.invitation_accepted`, `user.logged_i
 **Viewer.** Settings → Audit log in the SPA (`features/audit`), and audit entries in the History tab of a
 record for viewers with `audit.view` ([frontend.md](../03-architecture/frontend.md) §M3-03). Platform
 entries have no viewer in the SPA yet (`/platform-api/audit-logs` stays planned).
+
+## Presentation and secrets (M4-11)
+
+The audit log (Settings → Audit) and a record's History tab render recorded changes through the shared
+formatter (`lib/format/record-values.ts`, M4-03): each entry folds to "N changes" and opens as field,
+old → new, with names instead of ids and labels instead of stored values. No audited action records a
+secret: API clients record their name and scopes, webhooks their name, URL and events, and a secret
+rotation only that it happened (`webhook.secret_rotated`, no value). The one-time secrets of API clients
+and webhooks live only in the dialog's local state; browser tests assert they are absent from the page,
+the query cache and the mutation cache once the dialog closes, including after navigating away.

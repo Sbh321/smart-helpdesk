@@ -521,6 +521,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tickets/{ticket}/assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Show why the ticket went to its agent
+         * @description The latest assignment attempt as it was recorded, with the strategy's explanation: the ranking,
+         *     the exclusions and, for a manual choice, the override (roadmap M4-06). 404 when the ticket was
+         *     never assigned. The explanation is the stored one; nothing is recomputed.
+         *
+         *     Requires permission `tickets.assign`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["tickets.assignment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tickets/{ticket}/assign": {
         parameters: {
             query?: never;
@@ -3065,11 +3089,13 @@ export interface components {
                 previous: number | null;
                 report: string;
                 measure: string;
+                trend_series: string | null;
             }[];
             series: {
                 key: string;
                 title: string;
                 chart: string;
+                section: string;
                 report: string;
                 report_title: string;
                 parameters: {
@@ -3739,6 +3765,10 @@ export interface components {
             description: string;
             group: string;
             chart: string;
+            /** @description The measures the chart draws by default; for `stacked_bar`, the parts of a whole. */
+            chart_measures: string[] | null;
+            /** @description False for a report of the present: the period and comparison do not apply. */
+            period_applies: boolean;
             default_dimension: string;
             drill_down_to: string | null;
             periods: string[];
@@ -5920,6 +5950,43 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["AssignmentPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tickets.assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket ID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `TicketAssignmentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TicketAssignmentResource"];
                     };
                 };
             };

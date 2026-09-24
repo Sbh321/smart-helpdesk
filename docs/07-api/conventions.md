@@ -209,6 +209,7 @@ Agent PATCH accepts partial fields, including availability alone. A manager can 
 | POST | `/v1/tickets/{ticket}/assign` | S | `tickets.assign` | `{ team_id?, agent_id? }`; returns ranking explanation |
 | POST | `/v1/tickets/{ticket}/auto-assign` | S | `tickets.assign` | re-runs the assigner |
 | GET | `/v1/tickets/{ticket}/assignment-candidates` | S | `tickets.assign` | ranked eligible and excluded Agents |
+| GET | `/v1/tickets/{ticket}/assignment` | S | `tickets.assign` | latest assignment row with its stored explanation; 404 when never assigned |
 | POST | `/v1/tickets/{ticket}/unassign` | S | `tickets.assign` | returns ticket; records assignment history |
 | POST | `/v1/tickets/{ticket}/priority` | S | `tickets.update` | `{ level, reason }` override; `{ level: null }` clears |
 | POST | `/v1/tickets/{ticket}/mark-duplicate` | S | `tickets.update`, `tickets.close` | `{ candidate_ticket_id }`; open Ticket only |

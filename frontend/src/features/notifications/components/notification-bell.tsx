@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { BellIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -12,6 +11,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useSession } from '@/lib/auth'

@@ -1,6 +1,6 @@
 import { LogOutIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { AppearanceMenu } from '@/components/shared/appearance-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -30,9 +30,12 @@ function initials(name: string): string {
 }
 
 /**
- * The `header` landmark: breadcrumbs on the left, palette, live-update status, bell, theme and account
- * menu on the right.
- * `actions` and `notifications` are slots the route fills with feature-owned controls (the Agent
+ * The `header` landmark (roadmap M4-02): breadcrumbs, then search in the prime central slot, then the
+ * status and account controls. Theme and density moved into the account menu (`AppearanceMenu`), which
+ * gives search the width it deserves as the fastest route to any record
+ * (docs/06-design-system/ux-review.md G7).
+ *
+ * `actions` and `notifications` are slots the route fills with feature-owned controls (the agent
  * availability control, the notification bell): the shell may not import features.
  */
 export function Topbar({
@@ -47,14 +50,17 @@ export function Topbar({
   const { session, signOut } = useSession()
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-4 py-2 print:hidden">
-      <Breadcrumbs workspace={workspace} />
-      <div className="flex items-center gap-2">
-        {actions}
+    <header className="flex items-center gap-3 border-border border-b bg-surface px-4 py-2 print:hidden">
+      <div className="hidden min-w-0 shrink lg:block">
+        <Breadcrumbs workspace={workspace} />
+      </div>
+      <div className="min-w-0 flex-1 md:max-w-md lg:mx-auto">
         <CommandPalette workspace={workspace} />
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5">
+        {actions}
         <ConnectionIndicator />
         {notifications}
-        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -65,16 +71,20 @@ export function Topbar({
               <AvatarFallback>{initials(session?.user.name ?? '')}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-60">
             {/* Base UI requires a group around a group label, so the account details label the menu. */}
             <DropdownMenuGroup>
               <DropdownMenuLabel>
                 <span className="block truncate font-medium">{session?.user.name}</span>
-                <span className="block truncate text-xs font-normal text-muted-foreground">
+                <span className="block truncate font-normal text-muted-foreground text-xs">
                   {session?.user.email}
                 </span>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <AppearanceMenu />
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => void signOut()}>
                 <LogOutIcon aria-hidden="true" />
                 {copy.auth.signOut}

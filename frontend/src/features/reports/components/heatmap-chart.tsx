@@ -1,6 +1,6 @@
+import type { ChartMeasure, ChartRow } from '@/components/shared/charts/series-chart'
 import { copy } from '@/copy/en'
-import { formatMeasure } from '../format'
-import type { ChartMeasure, ChartRow } from './series-chart'
+import { formatMeasure } from '@/lib/format/measure'
 
 export interface HeatmapChartProps {
   /** Rows keyed `<ISO weekday>-<hour>` (`1-09` is Monday 09:00), as `rpt-t11` groups by `weekday_hour`. */
@@ -49,7 +49,7 @@ export function HeatmapChart({ rows, measure, label }: HeatmapChartProps) {
                     key={hour}
                     data-value={value ?? 0}
                     title={`${copy.reports.weekdays[dayIndex]} ${hour}:00 — ${formatMeasure(value ?? 0, measure.unit)}`}
-                    className="h-6 rounded-[3px]"
+                    className="h-6 rounded-xs"
                     style={{ backgroundColor: shade(value) }}
                   />
                 )
@@ -64,7 +64,7 @@ export function HeatmapChart({ rows, measure, label }: HeatmapChartProps) {
           <span
             key={step}
             aria-hidden="true"
-            className="size-3 rounded-[3px]"
+            className="size-3 rounded-xs"
             style={{
               backgroundColor: `color-mix(in oklch, var(--chart-1) ${Math.round(15 + 85 * step)}%, var(--surface))`,
             }}

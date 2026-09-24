@@ -1,13 +1,11 @@
 import { copy, fill } from '@/copy/en'
-import { formatInZone } from '@/lib/datetime/format'
+import { attributeLabel, formatRecordValue, shortId } from '@/lib/format/record-values'
 import type { AuditEntry } from './api/audit-queries'
 
 const text = copy.audit
 
-/** The last eight characters of an id, for a record without a name ("…a1b2c3d4"). */
-export function shortId(id: string): string {
-  return `…${id.slice(-8)}`
-}
+// The value vocabulary is shared with the ticket timeline and the entity History tab (M4-03).
+export { shortId }
 
 function humanise(words: string): string {
   const spaced = words.replace(/_/g, ' ')
@@ -104,32 +102,22 @@ export function auditChanges(changes: Record<string, unknown>): AuditChange[] {
   return lines
 }
 
-const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-/** A recorded value as text: lists joined, instants in the workspace zone, ids shortened. */
+/**
+ * A recorded value as text, spelling out lists and nested objects because the audit detail is the point
+ * (`structured: 'join'`). Empty reads in the audit's own words.
+ */
 export function auditValue(value: unknown, timeZone: string): string {
-  if (value === null || value === undefined || value === '') return text.changes.empty
-  if (typeof value === 'boolean') return value ? copy.entity360.values.yes : copy.entity360.values.no
-  if (Array.isArray(value)) {
-    return value.length === 0
-      ? text.changes.empty
-      : value.map((item) => auditValue(item, timeZone)).join(', ')
-  }
-  if (isRecord(value)) {
-    const entries = Object.entries(value)
-    return entries.length === 0
-      ? text.changes.empty
-      : entries.map(([key, item]) => `${humanise(key)}: ${auditValue(item, timeZone)}`).join('; ')
-  }
-  const raw = String(value)
-  if (ISO_INSTANT.test(raw)) return formatInZone(raw, timeZone, 'd MMM yyyy, HH:mm:ss')
-  if (UUID.test(raw)) return shortId(raw)
-  return raw
+  const empty =
+    value === null ||
+    value === undefined ||
+    value === '' ||
+    (Array.isArray(value) && value.length === 0) ||
+    (isRecord(value) && Object.keys(value).length === 0)
+  return empty ? text.changes.empty : formatRecordValue(value, timeZone, { structured: 'join' })
 }
 
 export function fieldLabel(field: string): string {
-  return field === '' ? text.changes.value : humanise(field.replace(/_id$/, ''))
+  return field === '' ? text.changes.value : attributeLabel(field)
 }
 
 /** The Entity 360 history type → the audit subject type of the same record, where one exists. */

@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { UserPlusIcon, UsersIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import {
   DataTable,
@@ -14,7 +13,9 @@ import {
 import { EmptyState } from '@/components/shared/empty-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useCan, useSession } from '@/lib/auth'
@@ -102,19 +103,16 @@ export function UsersSettings() {
     )
 
   return (
-    <section className="space-y-4" aria-labelledby="settings-users-heading">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="settings-users-heading" className="text-lg font-semibold">
-            {text.title}
-          </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground">{text.intro}</p>
-        </div>
+    <SettingsPage
+      title={text.title}
+      description={text.intro}
+      actions={
         <Button onClick={() => setInviting(true)}>
           <UserPlusIcon aria-hidden="true" />
           {text.invite}
         </Button>
-      </div>
+      }
+    >
       {rowAction.error ? <FormErrorBanner title={text.actionFailed} error={rowAction.error} /> : null}
       <DataTable
         id="settings-users"
@@ -174,6 +172,6 @@ export function UsersSettings() {
           toast.success(fill(text.disabled, { name: disabling.name }))
         }}
       />
-    </section>
+    </SettingsPage>
   )
 }

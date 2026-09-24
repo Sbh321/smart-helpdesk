@@ -6,6 +6,7 @@ import {
   DataTable,
   DateRangeFilter,
   FilterBar,
+  type FilterChip,
   type FilterOption,
   MultiSelectFilter,
   SearchFilter,
@@ -107,6 +108,69 @@ export function TicketList({ workspace }: { workspace: string }) {
     ],
     [directory.teams],
   )
+  const chips = useMemo<FilterChip[]>(() => {
+    const labels = copy.tickets.list
+    const named = (options: readonly FilterOption[], value: string) =>
+      options.find((option) => option.value === value)?.label ?? value
+    const multi = (
+      key: keyof TicketFilters,
+      label: string,
+      options: readonly FilterOption[],
+    ): FilterChip[] => {
+      const values = list.params.filters[key]
+      if (!Array.isArray(values) || values.length === 0) return []
+      return [
+        {
+          key,
+          label,
+          value: values.map((value) => named(options, value)).join(', '),
+          onRemove: () => list.setFilter(key, undefined),
+        },
+      ]
+    }
+
+    return [
+      ...(list.params.search
+        ? [
+            {
+              key: 'search',
+              label: labels.searchLabel,
+              value: list.params.search,
+              onRemove: () => list.setSearch(undefined),
+            },
+          ]
+        : []),
+      ...multi('status', labels.statusFilter, STATUS_OPTIONS),
+      ...multi('priority', labels.priorityFilter, PRIORITY_OPTIONS),
+      ...multi('assignee_id', labels.assigneeFilter, agentOptions),
+      ...multi('team_id', labels.teamFilter, teamOptions),
+      ...multi('category_id', labels.categoryFilter, categoryOptions),
+      ...multi('tag', labels.tagFilter, tags.data ?? NO_OPTIONS),
+      ...multi('organization_id', labels.organizationFilter, organizations.data ?? NO_OPTIONS),
+      ...multi('sla_state', labels.slaFilter, SLA_OPTIONS),
+      ...(list.params.filters.has_duplicate_suggestion === 'true'
+        ? [
+            {
+              key: 'has_duplicate_suggestion',
+              label: labels.duplicateFilter,
+              value: labels.duplicateSuggested,
+              onRemove: () => list.setFilter('has_duplicate_suggestion', undefined),
+            },
+          ]
+        : []),
+      ...(list.params.filters.created_between
+        ? [
+            {
+              key: 'created_between',
+              label: labels.createdFilter,
+              value: `${list.params.filters.created_between.from} – ${list.params.filters.created_between.to}`,
+              onRemove: () => list.setFilter('created_between', undefined),
+            },
+          ]
+        : []),
+    ]
+  }, [list, agentOptions, teamOptions, categoryOptions, tags.data, organizations.data])
+
   const quickViews = useMemo(
     () => QUICK_VIEWS.filter((view) => view.id !== 'mine' || hasAgentProfile),
     [hasAgentProfile],
@@ -180,7 +244,7 @@ export function TicketList({ workspace }: { workspace: string }) {
         defaultColumnVisibility={TICKET_HIDDEN_COLUMNS}
         {...(canBulk ? { selection, bulkActions: () => <TicketBulkButtons onOpen={setBulkMode} /> } : {})}
         toolbar={
-          <FilterBar activeCount={list.activeFilterCount} onClear={list.clearFilters}>
+          <FilterBar chips={chips} activeCount={list.activeFilterCount} onClear={list.clearFilters}>
             <SearchFilter
               label={copy.tickets.list.searchLabel}
               placeholder={copy.tickets.list.searchPlaceholder}

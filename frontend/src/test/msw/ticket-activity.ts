@@ -50,9 +50,40 @@ export function assignmentPreview(ticket: TicketResource): AssignmentPreview {
   }
 }
 
-function assign(ticket: TicketResource, agentId: string): Response {
+/** Stores the row the backend's `AssignTicket` writes: the strategy's explanation plus what was done. */
+function record(ticket: TicketResource, agentId: string | null, reason: string): void {
+  const preview = assignmentPreview(ticket)
+  db.assignments[ticket.id] = {
+    id: nextId(0xa1),
+    reason,
+    team_id: ticket.team_id,
+    agent_id: agentId,
+    previous_agent_id: null,
+    assigned_by_user_id: reason === 'auto' ? null : 'user-1',
+    explanation: {
+      ...preview,
+      ranking: preview.ranking.map((row, index) => ({
+        rank: index + 1,
+        agent_id: row.agent_id,
+        open_tickets: row.open_tickets,
+        capacity: row.capacity,
+        load: row.load,
+        last_assigned_at: row.last_assigned_at,
+      })),
+      recommended_agent_id: preview.agent_id,
+      agent_id: agentId,
+      selection: reason === 'auto' ? 'automatic' : 'manual',
+      outcome: agentId === null ? (reason === 'unassign' ? 'unassigned' : 'no_eligible_agent') : 'assigned',
+      ...(reason === 'manual' ? { manual_override: false } : {}),
+    },
+    created_at: NOW,
+  }
+}
+
+function assign(ticket: TicketResource, agentId: string, reason = 'manual'): Response {
   const agent = db.agents.find((row) => row.id === agentId)
   if (!agent) return validationFailed({ agent_id: ['The selected agent id is invalid.'] })
+  record(ticket, agentId, reason)
   ticket.assigned_agent_id = agent.id
   ticket.team_id = agent.teams[0]?.id ?? ticket.team_id
   if (ticket.status === 'open') ticket.status = 'assigned'
@@ -171,15 +202,20 @@ export const ticketActivityHandlers = [
       return problem(409, 'already_assigned', { detail: 'This ticket already has an Agent.' })
     const preview = assignmentPreview(ticket)
     return preview.agent_id
-      ? assign(ticket, preview.agent_id)
+      ? assign(ticket, preview.agent_id, 'auto')
       : problem(422, 'no_eligible_agent', {
           detail: 'No agent is eligible for this ticket. Assign it manually or change the team.',
           meta: { ticket_id: ticket.id, team_id: ticket.team_id, exclusions: preview.excluded },
         })
   }),
+  http.get(apiUrl('/tickets/{ticket}/assignment'), ({ params }) => {
+    const row = db.assignments[String(params.ticket)]
+    return row ? HttpResponse.json({ data: row }) : notFound()
+  }),
   http.post(apiUrl('/tickets/{ticket}/unassign'), ({ params }) => {
     const ticket = findTicket(params.ticket)
     if (!ticket) return notFound()
+    record(ticket, null, 'unassign')
     const agent = db.agents.find((row) => row.id === ticket.assigned_agent_id)
     if (agent) agent.active_ticket_count = Math.max(0, agent.active_ticket_count - 1)
     ticket.assigned_agent_id = null

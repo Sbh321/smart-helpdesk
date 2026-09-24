@@ -62,9 +62,54 @@ test('Branding previews the colour at once and reverts it when the page is left 
   expect(document.documentElement.hasAttribute(TENANT_ATTRIBUTE)).toBe(true)
   await expect.element(screen.getByText(text.brandingForm.unsaved)).toBeVisible()
 
-  await router.navigate({ to: '/$workspace/settings/general', params: { workspace: 'acme' } })
+  // Leaving with unsaved changes asks first (M4-12); leaving discards them and the preview.
+  void router.navigate({ to: '/$workspace/settings/general', params: { workspace: 'acme' } })
+  const leave = screen.getByRole('alertdialog', { name: copy.settingsPage.leaveTitle })
+  await leave.getByRole('button', { name: copy.settingsPage.leave }).click()
+  await expect.poll(() => router.state.location.pathname).toBe('/acme/settings/general')
   await expect.poll(brandStyle).toBeNull()
   expect(document.documentElement.hasAttribute(TENANT_ATTRIBUTE)).toBe(false)
+})
+
+test('a dirty settings form says so, can be discarded, and staying keeps the edits (M4-12)', async () => {
+  signedIn()
+  const { screen, router } = await renderApp('/acme/settings/general')
+  const name = screen.getByRole('textbox', { name: text.generalForm.name })
+  await expect.element(name).toBeVisible()
+  const original = (name.element() as HTMLInputElement).value
+  // Clean: nothing to save.
+  await expect.element(screen.getByRole('button', { name: text.save })).toBeDisabled()
+
+  await name.fill('Acme Support Desk')
+  await expect.element(screen.getByText(copy.settingsPage.unsaved)).toBeVisible()
+  await expect.element(screen.getByRole('button', { name: text.save })).toBeEnabled()
+
+  // Staying keeps the edit.
+  void router.navigate({ to: '/$workspace/settings/branding', params: { workspace: 'acme' } })
+  const leave = screen.getByRole('alertdialog', { name: copy.settingsPage.leaveTitle })
+  await leave.getByRole('button', { name: copy.confirm.cancel }).click()
+  await expect.element(leave).not.toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/acme/settings/general')
+  await expect.element(name).toHaveValue('Acme Support Desk')
+
+  // Discard returns to what is saved; the page is clean and leaves without asking.
+  await screen.getByRole('button', { name: copy.settingsPage.discard }).click()
+  await expect.element(name).toHaveValue(original)
+  expect(screen.getByText(copy.settingsPage.unsaved).query()).toBeNull()
+  await router.navigate({ to: '/$workspace/settings/branding', params: { workspace: 'acme' } })
+  expect(router.state.location.pathname).toBe('/acme/settings/branding')
+})
+
+test('saving makes the form clean again', async () => {
+  signedIn()
+  const { screen } = await renderApp('/acme/settings/general')
+  const name = screen.getByRole('textbox', { name: text.generalForm.name })
+  await name.fill('Acme Helpdesk')
+  await screen.getByRole('button', { name: text.save }).click()
+  await expect.element(screen.getByText(text.saved)).toBeVisible()
+  // The saved values are the form's new baseline once the section is read back.
+  await expect.element(screen.getByText(copy.settingsPage.unsaved)).not.toBeInTheDocument()
+  await expect.element(screen.getByRole('button', { name: text.save })).toBeDisabled()
 })
 
 test('Branding blocks a colour without readable text and saves a readable one', async () => {

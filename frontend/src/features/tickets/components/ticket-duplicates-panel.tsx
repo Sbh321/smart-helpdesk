@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { ErrorState } from '@/components/shared/error-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { hasProblemCode, problemMessage } from '@/lib/api/problem-messages'
 import { queryKeys } from '@/lib/api/query-keys'
@@ -84,13 +85,41 @@ export function TicketDuplicatesPanel({
                 >
                   {fill(copy.tickets.number, { number: item.candidate.number })} {item.candidate.title}
                 </Link>
-                <p className="text-muted-foreground">
-                  {fill(copy.tickets.duplicates.score, { score: Math.round(item.score * 100) })}
-                </p>
-                <p className="text-muted-foreground">
-                  {fill(copy.tickets.duplicates.shared, {
-                    words: Array.isArray(item.shared_words) ? item.shared_words.join(', ') : '',
-                  })}
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <StatusBadge status={item.candidate.status} />
+                  <span className="text-muted-foreground tabular-nums">
+                    {fill(copy.tickets.duplicates.score, { score: Math.round(item.score * 100) })}
+                  </span>
+                </div>
+                {/* The match details (roadmap M4-06): the words both tickets share are the whole
+                    reason for the score, so they read as tokens, not a comma list. */}
+                {item.shared_words.length > 0 ? (
+                  <div className="mt-2">
+                    <p className="text-muted-foreground">
+                      {fill(copy.tickets.duplicates.sharedCount, { count: item.shared_words.length })}
+                    </p>
+                    <ul
+                      aria-label={copy.tickets.duplicates.sharedLabel}
+                      className="mt-1 flex flex-wrap gap-1"
+                    >
+                      {item.shared_words.map((word) => (
+                        <li
+                          key={word}
+                          className="rounded-control border border-border bg-muted px-1.5 font-mono text-xs"
+                        >
+                          {word}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {item.strategy === 'manual'
+                    ? copy.tickets.duplicates.byHand
+                    : fill(copy.tickets.duplicates.foundBy, {
+                        name: item.strategy,
+                        version: item.strategy_version ?? '',
+                      })}
                 </p>
               </div>
               <span className="text-xs text-muted-foreground">

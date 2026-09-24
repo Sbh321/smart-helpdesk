@@ -49,7 +49,13 @@ final class Duplicates extends SqlReport
 
     public function chart(): string
     {
-        return 'line';
+        return 'stacked_bar';
+    }
+
+    /** The parts of the whole, which do not overlap (M4-09). */
+    public function chartMeasures(): array
+    {
+        return ['accepted', 'dismissed', 'pending'];
     }
 
     public function drillDownTo(): string

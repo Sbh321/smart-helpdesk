@@ -1,6 +1,6 @@
+import type { ChartMeasure, ChartRow } from '@/components/shared/charts/series-chart'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatMeasure } from '../format'
-import type { ChartMeasure, ChartRow } from './series-chart'
+import { formatMeasure } from '@/lib/format/measure'
 
 export interface ChartTableProps {
   caption: string

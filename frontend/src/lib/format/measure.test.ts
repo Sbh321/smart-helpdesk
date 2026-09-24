@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { describeChange, formatDuration, formatMeasure } from './format'
+import { describeChange, formatDuration, formatMeasure } from './measure'
 
 describe('formatMeasure', () => {
   test.each([

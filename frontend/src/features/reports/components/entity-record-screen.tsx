@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
 import { BackLink } from '@/components/shared/back-link'
+import { DetailTabs } from '@/components/shared/detail-tabs'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { NotFoundState } from '@/components/shared/not-found-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { RecordLayout } from '@/components/shared/record-layout'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { copy } from '@/copy/en'
 import { isApiError } from '@/lib/api/errors'
 import { useCan, useSession } from '@/lib/auth'
@@ -41,9 +41,10 @@ export function EntityRecordScreen({
 }) {
   const text = copy.entity360
   const allowed = useCan(OVERVIEW_PERMISSION[entity])
-  const tenantId = useSession().session?.tenant.id ?? ''
+  const { session } = useSession()
+  const tenantId = session?.tenant.id ?? ''
+  const timeZone = session?.tenant.timezone ?? 'UTC'
   const tabs = useEntityTabs(entity, id, workspace)
-  const [tab, setTab] = useState('overview')
   const overview = useQuery({
     ...entityQueries.overview(tenantId, entity, id),
     enabled: allowed && tenantId !== '',
@@ -81,26 +82,15 @@ export function EntityRecordScreen({
   }
 
   return (
-    <>
-      <PageHeader
-        eyebrow={back}
-        title={overview.data.title}
-        description={`${text.entities[entity]} · ${text.readOnlyDetail}`}
-      />
-      <Tabs value={tab} onValueChange={(next) => setTab(String(next))}>
-        <TabsList aria-label={text.tabs}>
-          {tabs.map((item) => (
-            <TabsTrigger key={item.value} value={item.value}>
-              {item.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {tabs.map((item) => (
-          <TabsContent key={item.value} value={item.value} className="pt-4">
-            {item.content}
-          </TabsContent>
-        ))}
-      </Tabs>
-    </>
+    <RecordLayout
+      eyebrow={back}
+      kind={text.entities[entity]}
+      title={overview.data.title}
+      description={text.readOnlyDetail}
+      timeZone={timeZone}
+      history={tabs.find((tab) => tab.value === 'history')?.content}
+    >
+      <DetailTabs label={text.tabs} tabs={tabs} />
+    </RecordLayout>
   )
 }

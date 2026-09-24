@@ -51,7 +51,7 @@ abstract class SqlReport implements ReportDefinition
     }
 
     /** False for a report about "now" (ageing, at-risk): no period clause and no comparison. */
-    protected function periodApplies(): bool
+    public function periodApplies(): bool
     {
         return true;
     }
@@ -90,6 +90,11 @@ abstract class SqlReport implements ReportDefinition
     public function chart(): string
     {
         return 'bar';
+    }
+
+    public function chartMeasures(): ?array
+    {
+        return null;
     }
 
     public function filters(): array

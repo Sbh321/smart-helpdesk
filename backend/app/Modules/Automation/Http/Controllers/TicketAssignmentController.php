@@ -11,6 +11,7 @@ use App\Modules\Automation\Domain\Exceptions\NoEligibleAgentFound;
 use App\Modules\Automation\Http\Requests\AssignTicketRequest;
 use App\Modules\Automation\Http\Resources\AssignedTicketResource;
 use App\Modules\Automation\Http\Resources\AssignmentPreviewResource;
+use App\Modules\Automation\Http\Resources\TicketAssignmentResource;
 use App\Modules\Automation\Queries\AssignmentCandidates;
 use App\Modules\Tickets\Http\Resources\TicketResource;
 use App\Modules\Tickets\Models\Ticket;
@@ -22,6 +23,21 @@ use Illuminate\Http\Request;
 final class TicketAssignmentController
 {
     private const TICKET_RELATIONS = ['contact', 'organization', 'category', 'tags'];
+
+    /**
+     * Show why the ticket went to its agent.
+     *
+     * The latest assignment attempt as it was recorded, with the strategy's explanation: the ranking,
+     * the exclusions and, for a manual choice, the override (roadmap M4-06). 404 when the ticket was
+     * never assigned. The explanation is the stored one; nothing is recomputed.
+     */
+    public function latest(Ticket $ticket): TicketAssignmentResource
+    {
+        $assignment = $ticket->latestAssignment()->first();
+        abort_if($assignment === null, 404);
+
+        return new TicketAssignmentResource($assignment);
+    }
 
     /** Preview the assignment of a ticket. */
     public function candidates(Ticket $ticket, AssignmentCandidates $candidates, AssignmentStrategy $strategy): AssignmentPreviewResource

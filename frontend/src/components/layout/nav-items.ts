@@ -12,6 +12,9 @@ export type NavTo =
   | '/$workspace/reports'
   | '/$workspace/settings'
 
+/** The bands the sidebar groups items into (roadmap M4-02); `work` carries no heading. */
+export type NavGroup = 'work' | 'records' | 'insight' | 'admin'
+
 export interface NavItem {
   key: string
   label: string
@@ -20,6 +23,7 @@ export interface NavItem {
   to: NavTo
   /** Hidden unless the session holds this permission, or any one of a list; `undefined` means always visible. */
   permission?: string | readonly string[]
+  group: NavGroup
 }
 
 /**
@@ -27,12 +31,13 @@ export interface NavItem {
  * (roadmap M1-09) `/v1/me` returns an empty list, so only the dashboard shows.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { key: 'dashboard', label: copy.nav.dashboard, icon: GaugeIcon, to: '/$workspace' },
+  { key: 'dashboard', label: copy.nav.dashboard, icon: GaugeIcon, to: '/$workspace', group: 'work' },
   {
     key: 'tickets',
     label: copy.nav.tickets,
     icon: TicketIcon,
     to: '/$workspace/tickets',
+    group: 'work',
     permission: 'tickets.view',
   },
   {
@@ -40,6 +45,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: copy.nav.contacts,
     icon: UsersIcon,
     to: '/$workspace/contacts',
+    group: 'records',
     permission: 'contacts.view',
   },
   {
@@ -47,6 +53,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: copy.nav.organizations,
     icon: Building2Icon,
     to: '/$workspace/organizations',
+    group: 'records',
     permission: 'contacts.view',
   },
   {
@@ -54,6 +61,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: copy.nav.reports,
     icon: BarChart3Icon,
     to: '/$workspace/reports',
+    group: 'insight',
     permission: 'reports.view',
   },
   {
@@ -61,6 +69,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: copy.nav.settings,
     icon: SettingsIcon,
     to: '/$workspace/settings',
+    group: 'admin',
     // Settings holds pages for several kinds of administrator, not only workspace settings.
     permission: [
       'settings.manage',
@@ -74,6 +83,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
       'media.manage',
     ],
   },
+]
+
+/** The groups in sidebar order, with the heading each one shows (`work` shows none). */
+export const NAV_GROUPS: readonly { group: NavGroup; label?: string }[] = [
+  { group: 'work' },
+  { group: 'records', label: copy.nav.groups.records },
+  { group: 'insight', label: copy.nav.groups.insight },
+  { group: 'admin', label: copy.nav.groups.admin },
 ]
 
 /** Items the session may see. Permissions, never roles (CLAUDE.md). */

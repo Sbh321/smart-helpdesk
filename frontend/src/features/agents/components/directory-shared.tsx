@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { copy } from '@/copy/en'
 import { useSession } from '@/lib/auth'
 
@@ -9,12 +11,38 @@ export const PICKER_PAGE = { page: 1, per_page: 100, sort: 'name' }
 
 export const FORM_CLASS = 'flex max-w-lg flex-col gap-4 rounded-lg border border-border p-4'
 
-export function Section({ title, children }: { title: string; children: ReactNode }) {
+/** A directory settings page (skills, teams, categories, agents, shifts) in the shared frame (M4-12). */
+export function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: ReactNode
+}) {
   return (
-    <section className="space-y-4">
-      <h2 className="text-lg font-semibold">{title}</h2>
+    <SettingsPage title={title} description={description}>
       {children}
-    </section>
+    </SettingsPage>
+  )
+}
+
+/**
+ * The loading state of a directory list (M4-13): the shape of the rows it will show, not a bare
+ * "Loading…" line; the words stay for screen readers.
+ */
+export function RowsSkeleton({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="flex flex-col gap-2" aria-busy="true">
+      <p role="status" className="sr-only">
+        {copy.settings.loading}
+      </p>
+      {Array.from({ length: rows }, (_, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: placeholder rows have no identity
+        <Skeleton key={index} className="h-12 w-full" />
+      ))}
+    </div>
   )
 }
 

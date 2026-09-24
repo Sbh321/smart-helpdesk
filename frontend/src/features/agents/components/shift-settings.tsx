@@ -17,7 +17,7 @@ import { mergeMessages } from '@/lib/forms/messages'
 import { useServerErrors } from '@/lib/forms/use-server-errors'
 import { type AgentShift, type AgentShiftInput, agentQueries, replaceAgentShifts } from '../api/agent-queries'
 import { type ShiftsFormValues, shiftsFormSchema } from '../schemas'
-import { PICKER_PAGE, Rows, Saved, Section, useDirectory } from './directory-shared'
+import { PICKER_PAGE, Rows, RowsSkeleton, Saved, Section, useDirectory } from './directory-shared'
 
 type ShiftRow = ShiftsFormValues['shifts'][number]
 
@@ -289,7 +289,7 @@ function ShiftSchedule() {
   const shifts = useQuery({ ...agentQueries.shifts(tenantId, agentId), enabled: allowed && agentId !== '' })
   if (!allowed) return <ForbiddenState />
   return (
-    <Section title={copy.settings.shifts}>
+    <Section title={copy.settings.shifts} description={copy.settings.descriptions.shifts}>
       <p className="text-sm text-muted-foreground">
         {fill(copy.settings.shiftZone, { zone: session?.tenant.timezone ?? 'UTC' })}
       </p>
@@ -306,7 +306,7 @@ function ShiftSchedule() {
         </div>
       ) : null}
       {agentId === '' ? null : shifts.isPending ? (
-        <p aria-busy="true">{copy.settings.loading}</p>
+        <RowsSkeleton />
       ) : shifts.isError ? (
         <ErrorState error={shifts.error} onRetry={() => void shifts.refetch()} />
       ) : canManage ? (

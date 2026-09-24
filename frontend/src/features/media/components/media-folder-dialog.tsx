@@ -1,6 +1,5 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
@@ -12,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useSession } from '@/lib/auth'

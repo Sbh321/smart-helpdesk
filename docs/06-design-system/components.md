@@ -28,9 +28,9 @@ The primary Button keeps its opaque semantic background on hover. A translucent 
 | `input`, `textarea`, `label`, `field` | `Input`, `Field`, `Fieldset` | forms with TanStack Form | `input`, `label`, `field` installed (M1-12); `textarea` and `input-group` installed (M1-14) as dependencies of `combobox` |
 | `select` | `Select` | short enumerations (status, priority, tier) | installed (M1-14): the DataTable page-size selector; `SelectField`, `SelectFilter` (M1-15) |
 | `combobox` | `Combobox` / `Autocomplete` | **all searchable pickers**: agent, contact, organisation, category, tags (multi), team | installed (M1-14): `MultiSelectFilter`; `EntityCombobox` and `TagInput` (M1-15) |
-| `checkbox`, `radio-group`, `switch` | `Checkbox`, `Radio`, `Switch` | settings, row selection | `checkbox` installed (M1-14): DataTable row selection; the others not yet |
-| `dialog`, `alert-dialog`, `sheet` | `Dialog`, `AlertDialog` | forms, confirmations, side panels | `dialog` installed (M1-12); the others not yet |
-| `popover`, `tooltip`, `dropdown-menu`, `menubar` | `Popover`, `Tooltip`, `Menu`, `Menubar` | explanations, row actions | `popover`, `dropdown-menu` installed (M1-12); `tooltip`, `menubar` not yet |
+| `checkbox`, `radio-group`, `switch` | `Checkbox`, `Radio`, `Switch` | settings, row selection | `checkbox` (M1-14) and `switch` installed; `radio-group` not installed: the composer's Public/Internal switch and the Appearance menu use native radios and `DropdownMenuRadioGroup` |
+| `dialog`, `alert-dialog`, `sheet` | `Dialog`, `AlertDialog` | forms, confirmations, side panels | `dialog` (M1-12), `alert-dialog` (`ConfirmDialog`), `sheet` (M4-13, on Base UI `Dialog`: the ticket context below 1280 px) installed |
+| `popover`, `tooltip`, `dropdown-menu`, `menubar` | `Popover`, `Tooltip`, `Menu`, `Menubar` | explanations, row actions | `popover`, `dropdown-menu` installed (M1-12), `tooltip` (M4-02, wrap uses in `TooltipProvider`); `menubar` not yet |
 | `tabs`, `card`, `badge`, `separator`, `skeleton`, `scroll-area`, `avatar`, `progress` | `Tabs`, `Separator`, `ScrollArea`, `Avatar`, `Progress` | layout and feedback | `card`, `badge`, `separator`, `skeleton`, `avatar` installed (M1-12); `tabs` added on Base UI (M2-06); `scroll-area`, `progress` not yet |
 | `table`, `pagination` | plain elements | `DataTable` base | `table` installed (M1-14); `pagination` **not** installed: it is a list of page-number links, and a server-mode table with `meta.total` needs first/previous/next/last buttons and a range, which `DataTablePagination` draws with `Button` |
 | `sonner` | (sonner) | toasts | installed (M1-12); rewritten to read our `ThemeProvider` instead of `next-themes` |
@@ -46,31 +46,25 @@ Two Base UI constraints found while wiring the shell, both easy to trip over aga
 
 Each composition is one kebab-case file in `src/components/shared/` (`empty-state.tsx`, not `EmptyState/index.tsx`) and ships with loading, empty and error states where it renders data. Shell pieces live in `src/components/layout/`. Props are sketches; TypeScript types are the source of truth.
 
-| Composition | File | Status |
+| Composition | File | Purpose |
 |---|---|---|
-| `PageHeader` | `shared/page-header.tsx` | built (M1-12); `tabs` variant not yet |
-| `EmptyState` | `shared/empty-state.tsx` | built (M1-12) |
-| `ErrorState` | `shared/error-state.tsx` | built (M1-12) |
-| `ForbiddenState` | `shared/forbidden-state.tsx` | built (M1-12) |
-| `NotFoundState` | `shared/not-found-state.tsx` | built (M1-12) |
-| `TextField` | `shared/text-field.tsx` | built (M1-12); labelled input with `aria-describedby`/`aria-invalid` wiring, used by every auth form |
-| `SkipLink` | `shared/skip-link.tsx` | built (M1-12); owns `MAIN_CONTENT_ID` |
-| `ThemeToggle` | `shared/theme-toggle.tsx` | built (M1-11) |
-| `AppShell`, `Sidebar`, `Topbar`, `Breadcrumbs` | `layout/` | built (M1-12) |
-| `AuthLayout` | `layout/auth-layout.tsx` | built (M1-12); the card frame of the pre-authentication pages |
-| `NotificationBell` | `features/notifications/components/notification-bell.tsx` | built (M2-09): polled unread badge, latest ten with mark read, "View all"; mounted by the route through the `Topbar` `notifications` slot |
-| `CommandPalette` | `layout/command-palette.tsx` | shell (M1-12): ⌘K/Ctrl+K opens a dialog listing the permitted routes; search and actions with the ticket list (M2-10) |
-| `DataTable`, `FilterBar`, `SearchFilter`, `MultiSelectFilter`, `DateRangeFilter`, `SelectFilter` | `shared/data-table/` | built (M1-14; `SelectFilter` M1-15); a folder rather than one file, because the table, its footer, its column menu, its keyboard hook, its storage helper and the filter primitives are eleven files behind one `index.ts` |
-| `FormField`, `SelectField`, `TextareaField` | `shared/form-field.tsx`, `select-field.tsx`, `textarea-field.tsx` | built (M1-15): the label/description/error frame of `TextField` for any control, and the two controls the forms needed |
-| `EntityCombobox` | `shared/entity-combobox.tsx` | built (M1-15): searchable single picker fed by the API (organisation in the contact form, contact in the ticket dialog) |
-| `TagInput` | `shared/tag-input.tsx` | built (M1-15): chips in a multiple `Combobox`, suggestions from `GET /v1/tags?search=`, unknown names offered as "Add …" |
-| `FormErrorBanner` | `shared/form-error-banner.tsx` | built (M1-15): a failed save that is not about one field (403, 409, 5xx, offline), with the request id |
-| `BackLink` | `shared/back-link.tsx` | built (M1-15): "← Back to …" in the `PageHeader` eyebrow of detail pages |
-| `StatusBadge`, `PriorityBadge` | `shared/status-badge.tsx`, `priority-badge.tsx` | built (M1-17) without the explanation popover and the "manual" marker (M2) |
-| `ConfirmDialog` | `shared/confirm-dialog.tsx` | built (M2) on `ui/alert-dialog.tsx` (Base UI `AlertDialog`): holiday, Media item trash/purge and folder delete |
-| `KpiTile`, `ChartCard` | `shared/kpi-tile.tsx`, `shared/chart-card.tsx` | built (M3-01): dashboard and report tiles; a chart with its always-present table alternative |
-| `SlaBadge`, `ExplanationPanel`, `Timeline`, `CommentComposer`, `AttachmentUploader` | — | not yet (M2, M3) |
-| `DensityToggle` | — | not yet |
+| `PageHeader`, `BackLink` | `shared/page-header.tsx`, `back-link.tsx` | page title, description, eyebrow and actions |
+| `RecordLayout`, `DetailTabs`, `SidePanelSection` | `shared/record-layout.tsx`, `detail-tabs.tsx`, `side-panel-section.tsx` | the record page frame, its URL-backed sections and the collapsible context panel; historical view with `?as_of=` (M4-05, M4-10) |
+| `SettingsPage`, `SaveBar`, `UnsavedChangesGuard` | `shared/settings-page.tsx`, `save-bar.tsx` | the settings frame, the save state of a form and the leave guard (M4-12) |
+| `FilterChips` | `data-table/filter-chips.tsx` | the filters in force as removable chips under a `FilterBar` (M4-04; the report toolbar since M4-09) |
+| `DataTable`, `FilterBar`, `SearchFilter`, `MultiSelectFilter`, `DateRangeFilter`, `SelectFilter` | `shared/data-table/` | server- or client-side tables and their filters (M1-14, M1-15) |
+| `EmptyState`, `ErrorState`, `ForbiddenState`, `NotFoundState` | `shared/*-state.tsx` | the non-data states ([§States](#states)) |
+| `TextField`, `FormField`, `SelectField`, `TextareaField`, `TimeZoneField`, `EntityCombobox`, `TagInput`, `FormErrorBanner` | `shared/` | form fields with label, description and error wiring; a banner for failures that are not about one field |
+| `ConfirmDialog` | `shared/confirm-dialog.tsx` | the question before an irreversible action |
+| `StatusBadge`, `PriorityBadge`, `SlaIndicator`, `PriorityExplanation` | `shared/` | ticket state, priority, SLA timer (M4-07) and the priority explanation (M4-06) |
+| `KpiTile`, `ChartCard`, `SeriesChart`, `Sparkline` | `shared/kpi-tile.tsx`, `chart-card.tsx`, `charts/` | key figures and charts ([data visualisation](data-visualization.md)) |
+| `CodeBlock` | `shared/code-block.tsx` | machine text to read and copy (webhook payloads, M4-11) |
+| `AppearanceMenu`, `ThemeToggle` | `shared/appearance-menu.tsx`, `theme-toggle.tsx` | theme and density in the account menu (M4-02) |
+| `SkipLink` | `shared/skip-link.tsx` | owns `MAIN_CONTENT_ID` |
+| `AppShell`, `Sidebar`, `Topbar`, `Breadcrumbs`, `CommandPalette`, `ConnectionIndicator`, `AuthLayout` | `layout/` | the shell; the sidebar is an icon rail below 1280 px (M4-13) |
+| `NotificationBell` | `features/notifications/components/notification-bell.tsx` | reaches the shell through the `Topbar` `notifications` slot |
+
+Composition is checked by the lint gate: features may not import a vendor directly or another feature's internals (Biome `noRestrictedImports`, M4-01), and `scripts/check-design-tokens.ts` rejects literal colours, radii and layers.
 
 ### DataTable
 
@@ -110,6 +104,35 @@ interface DataTableProps<TRow, TSort extends string> {
 
 `useListParams(schema)` (`lib/list-params/`) is the other half: `defineListSchema({ sortFields, defaultSort, filters })` describes an endpoint, its `searchSchema` is the route's `validateSearch`, and the hook returns `params` (validated, defaults filled in), `apiQuery` (the object for openapi-fetch, `filter[key]` keys and comma lists), `activeFilterCount`, `setPage`, `setPerPage`, `setSort`, `setSearch`, `setFilter`, `clearFilters` and `update(patch)`. Filters are `multiFilter(item)` (comma list, OR), `dateRangeFilter()` (`YYYY-MM-DD,YYYY-MM-DD`) and, since M1-15, `choiceFilter(values)` (exactly one value, for `filter[archived]=true|all`; absent means the API's default). Sorts are one field, or two comma-separated fields when that is the schema's default or the schema sets `multiSort: true` (M1-17). Every change is a router navigation, so reload, a shared link and back/forward all restore the list; any change except the page itself resets `page` to 1; default values are left out of the URL; search params that belong to someone else are kept. Invalid values — an unknown sort field, `per_page=7`, a malformed date range, an item that fails the filter's Zod schema — fall back to the default instead of failing the route.
 
+### SlaIndicator
+
+`components/shared/sla-indicator.tsx` (M4-04 as `SlaHealth`, generalised in M4-07). One SLA timer in one line, the same component in the ticket queue, the ticket header and the SLA panel. Props: `{ state, dueAt, timeZone, now?, kind?: 'first_response' | 'resolution', compact?, className? }`.
+
+| State | Icon | Word | Time part |
+|---|---|---|---|
+| `running` | clock | On track | "3 hours left" |
+| `warning` | triangle | Due soon | "20 minutes left" |
+| `breached` | octagon | Breached | "2 hours overdue" |
+| `paused` | pause bars | Paused | none: a countdown would imply the clock runs |
+| `met` | tick | Met | none |
+| `cancelled` / no timer | — | "—" | — |
+
+Every state has its own icon shape, colour and word, so they stay apart in greyscale (tested). The full form reads "Due soon · 20 minutes left"; `compact` (the queue) shows only the time and keeps the word for screen readers; `kind` prefixes "Response" or "Resolution". The exact due time is in the tooltip. `slaRemaining()` is the pure time-in-words rule. The same state words label the queue's SLA filter.
+
+The ticket feature composes it twice (`features/sla`): `TicketSlaSummary` in the header lists the current cycle's timers whose clock matters (running, due soon, breached, paused), each labelled; `TicketSlaPanel` shows each timer kind with its indicator, the moment that matters (due, paused since, met), a pending hint on a paused timer, and a "Policy and calendar" disclosure with the policy name and the version the timer started with, the Business calendar (or 24×7), the target in working time, the warning time, paused time so far and the strategy. A polite live region holds only the states, so a screen reader hears a change once and never the 30-second tick.
+
+### FilterChips
+
+`components/shared/data-table/filter-chips.tsx` (M4-04). The filters in force, each removable, rendered by `FilterBar` under its controls. A list can carry ten filters behind menus, so without the chips the only sign that a view is filtered is a count.
+
+### AppearanceMenu
+
+`components/shared/appearance-menu.tsx`. Theme and density as two radio groups inside the account menu (M4-02). Replaces the three-button theme control that used to sit in the top bar, and gives density its first control although the tokens have supported it since milestone 1. Changes are announced politely; the menu stays open while choosing. The login and platform layouts, which have no account menu, keep `ThemeToggle`.
+
+### SidePanelSection
+
+`components/shared/side-panel-section.tsx`. One collapsible block of a record page's context panel, built on `details`/`summary`: open and close work with the keyboard and are announced without ARIA of our own. `summary` shows a one-line value while closed, `defaultOpen` opens on first render, `static` renders an always-open section with no control. At most two sections open by default (progressive disclosure, principle D5).
+
 ### PageHeader
 
 `{ title, description?, eyebrow?: ReactNode, actions?: ReactNode }` — renders the page's single `h1`, an optional eyebrow slot and right-aligned actions (`gap-2`). As built (M1-12) the breadcrumb trail lives in the `Topbar`, not in the header, so `breadcrumbs` is the `eyebrow` slot; `tabs` arrives with the first tabbed route.
@@ -137,41 +160,19 @@ Forms (TanStack Form + Zod) validate on submit and, after a failed submit, again
 
 Three local changes to the generated `ui/combobox.tsx`, all accessible names axe asked for: `ComboboxChip` takes `removeLabel` for its icon-only remove button, and `ComboboxInput` takes `triggerLabel` and `clearLabel` for its open and clear buttons (the open button is also taken out of the tab order: the input already opens the list).
 
-### StatusBadge, PriorityBadge, SlaBadge
+### StatusBadge, PriorityBadge
 
-| Component | Props | Rendering |
+`StatusBadge { status }` and `PriorityBadge { level }` on the `--status-*` / `--priority-*` tokens: an icon plus the word (`Open`, `P1 Critical`), never colour alone; an unknown value is shown as plain text. The SLA timer has its own component, [`SlaIndicator`](#slaindicator); the manual-override marker sits beside the badge in the ticket header, and the explanation is `PriorityExplanation` ([§Explanations](#explanations)).
+
+### Explanations
+
+There is no generic `ExplanationPanel` (M4-06): each decision has its own small component, because the three strategy outputs share nothing but "strategy + version". All three follow one pattern: a sentence first, a visual second, the raw numbers behind a `<details>` last, and never a recomputation.
+
+| Decision | Component | Shows |
 |---|---|---|
-| `StatusBadge` | `{ status: TicketStatus; size?: 'sm' \| 'md' }` | tinted badge with status icon (`Circle`, `UserCheck`, `Loader`, `Clock`, `CheckCircle`, `Archive`) and label |
-| `PriorityBadge` | `{ level: 'P1'…'P4'; score?: number; explanation?: PriorityExplanation; overridden?: boolean }` | solid badge `P1 Critical`; with `explanation` it becomes a `Popover` trigger opening `ExplanationPanel`; overridden shows a pencil icon and "manual" tooltip |
-| `SlaBadge` | `{ timer: SlaTimerSummary; now?: Date; variant: 'badge' \| 'countdown' }` | state colour + icon; countdown variant shows remaining/overdue duration updating every 30 s, announced through `aria-live="polite"` only on state change, not every tick |
-
-As built (M1-17): `StatusBadge` `{ status }` and `PriorityBadge` `{ level }` on the `--status-*` / `--priority-*` tokens, text always written out (`Open`, `P1 Critical`), unknown values rendered as plain text. `score`, `explanation` and `overridden` wait for the ticket page (M2).
-
-M2-06 progress: the detail header pairs these badges with a separate `PriorityExplanation`
-popover and a visible manual-override marker. The popover validates the stored strategy result
-shape and shows strategy/version and the `name`, `value`, `weight`, `contribution` factor table;
-it never recalculates priority. Empty or unrecognised explanations have an explicit empty state.
-The broader assignment/duplicate `ExplanationPanel` remains with the integration tasks.
-
-The ticket screen now uses Base UI tabs for Timeline, Comments, Attachments and Duplicates.
-Timeline reads cursor pages and offers “Load older events”; the other tabs are integration
-states until their owning tasks land. The screen supports edit (`e` outside text controls),
-server-supplied transition actions, resolution-comment validation, close confirmation,
-optimistic status changes with rollback, and mutation error feedback. Assignment, priority
-The M2-05 candidate-ranking and assignment dialog (including the `a` shortcut) is implemented but unverified. An M2-03 ticket SLA panel now reads persisted timers, shows state/deadline and strategy metadata, polls every 30 seconds, and announces remaining time politely; it awaits the Week 2 accessibility and browser pass. The M2-04 priority override dialog is also implemented but unverified.
-
-Settings → SLA policies and Business calendars now have initial editors for per-priority targets, zone/weekly windows and holidays. They are implementation-in-progress until form validation, mutation feedback, typed route generation and axe/browser checks run at the Week 2 gate.
-
-The ticket Comments tab now has a paginated public-reply/internal-note composer, `r` shortcut and a restricted Markdown renderer. Raw HTML is never parsed; it is rendered as escaped React text. The tab needs axe, sanitisation and Mailpit checks before M2-07 is Done.
-
-Ticket creation is available at `/{workspace}/tickets/new` as well as the list dialog. Both
-reuse the same form, with inline contact creation using `ContactForm`, organisation display,
-impact/urgency help and tags. Attachment and duplicate sections are explicitly unavailable
-until M2-08/M2-10. No new package was added.
-
-### ExplanationPanel
-
-`{ kind: 'priority' | 'assignment' | 'duplicate'; data: Explanation }` — renders the factor table (`factor`, `raw`, `normalized`, `weight`, `contribution`) with a horizontal contribution bar per row, the settings version, and for assignment the ranked shortlist with exclusion reasons; for duplicates the per-channel breakdown. This is the academic demonstration surface and is reused in the settings live preview.
+| Priority | `PriorityExplanation` (shared) | sentence naming the deciding factors; one bar per factor (`aria-hidden`, the points beside it are the accessible value); "Show the calculation" with the factor table and strategy/version; the manual override reason when set |
+| Assignment | `AssignmentReason` (automation feature) | "Why this Agent" sentence (automatic, by hand with or without the strategy's agreement, override with the broken rule, no eligible Agent, unassigned); decision time; "Show the ranking" with the ranked Agents, the exclusions and strategy/version |
+| Duplicate | `TicketDuplicatesPanel` (tickets feature) | candidate number, title and status; similarity; shared words as tokens; "Found by {strategy} · {version}" or "Marked by hand" |
 
 ### CommandPalette
 
@@ -197,19 +198,23 @@ As built (M1-14) it is a container plus three primitives, composed by the page r
 | `DateRangeFilter` | `{ label, value: { from, to } \| undefined, onChange }` | `Popover` + shadcn `calendar` (react-day-picker 10) in range mode; the first click picks one end, the second the other; values are inclusive `YYYY-MM-DD` calendar days (the API's `filter[created_between]` form); "Clear dates" in the popover footer |
 | `SelectFilter` | `{ label, options, value, defaultValue, onChange }` | one-of-several `Select` (M1-15, the contact list's "Hide / Only / Include archived"); choosing the default option removes the filter from the URL |
 
-Not built: chips for active filters (the trigger's count badge carries it), the SLA-state select (with SLA timers in M2) and saved views (V1). `DateRangeFilter` is used by the ticket list's "Created" filter since M1-17.
+Since M4-04 the filters in force also appear as removable `FilterChips` under the bar, and the ticket list has an SLA filter; saved views stay V1. `DateRangeFilter` is used by the ticket list's "Created" filter since M1-17.
 
-### Timeline
+### Record values (shared vocabulary)
 
-`{ events: TicketEvent[] }` — vertical list of history entries (status, priority, assignment, SLA warning/breach/met, comment markers) with actor avatar, relative time, and old → new values; SLA and priority entries link to their explanation.
+`lib/format/record-values.ts` (M4-03). One implementation of "what does this stored value say": `formatRecordValue(value, timeZone, {attribute, names, structured})` and `readableChanges(changes, …)`, plus `attributeLabel` and `shortId`. Rules in order — nothing → "Empty", booleans → Yes/No, lists and objects either joined (`structured: 'join'`, audit detail) or counted (`'count'`, timelines), `*_seconds` → duration, a known relation id → the record's name via `NameLookup`, a known enumeration → its label, an instant → the workspace zone, and only an unnameable id → its last eight characters. The ticket timeline, the entity History tab and the audit log all read through it; the names come from `useRecordNames` (exported by `@/features/reports`), which reuses option queries already in the cache.
 
-### CommentComposer
+### Ticket timeline
 
-Tabs `Public reply` / `Internal note` (internal styled with `--warning` eyebrow), Markdown textarea, attachment drop zone (`AttachmentUploader`), submit with `Ctrl+Enter`, optional "Set status after sending" select.
+The Timeline tab of a ticket lists its history newest first with the actor and each change in words, through the shared record-value formatter (M4-03, [§Record values](#record-values-shared-vocabulary)): names instead of ids, labels instead of stored values. The History tab (all records) adds the recorded changes, audit entries and the historical view ([page patterns §Record page](page-patterns.md#record-page)).
+
+### Comment composer
+
+`features/tickets/components/comments-panel.tsx` (M4-05): the conversation and its composer. Messages are told apart by an edge, an icon and a label (customer, public reply, internal note), never by a tinted surface. The composer's Public reply / Internal note switch, its edge and the send button ("Send reply to the Contact" / "Save internal note") all name the audience; without `comments.internal` the switch is absent. Markdown is rendered by a restricted renderer (`safe-comment-markdown.tsx`) that never parses HTML. `r` focuses the composer.
 
 ### AttachmentUploader
 
-`{ ticketId; max: 10; onChange(ids: string[]) }` — drag-and-drop + file input; per-file progress via `XMLHttpRequest` PUT to the presigned URL; states: queued, uploading (progress), verifying (complete call), ready, failed (retry); rejected types shown before upload ([storage](../03-architecture/storage.md)).
+`features/media/components/attachment-uploader.tsx`: files go straight to object storage with a presigned PUT, with a state per file (uploading with progress, ready, failed with retry) and the type and size checked before upload ([storage](../03-architecture/storage.md)). The ticket's Attachments section and the composer use it; "Pick from library" reuses Media items.
 
 ### NotificationBell
 
@@ -217,25 +222,41 @@ Unread count badge (from session, polled/realtime), `Popover` list of the latest
 
 As built (M2-09): the count is polled every 30 s (`meta.total` of the unread list, the session value until the first answer); the popover lists the latest ten, unread first, each with its ticket link (opening marks it read) and a "Mark as read" button named after the notification; "Mark all as read" and "View all notifications" close it. Only a rise after the first reading is announced ("n new notifications"), so signing in does not read out the backlog. It lives in the notifications feature and reaches the shell through a slot, because `components/` may not import features.
 
-### ThemeToggle / DensityToggle
+### AppearanceMenu / ThemeToggle
 
-`ThemeToggle` is a `<fieldset>` of three `Button`s with `aria-pressed` (Light / Dark / System); described in [themes.md](themes.md). `DensityToggle` (two options) is not built yet.
+Theme (Light, Dark, System) and density (Comfortable, Compact) are two radio groups in the account menu (`AppearanceMenu`, M4-02), stored per browser ([themes](themes.md)). `ThemeToggle`, a `<fieldset>` of three `Button`s with `aria-pressed`, remains for the pages without the account menu (sign-in).
 
 ### KpiTile
 
-`{ label, value, change?: { direction: 'up' | 'down' | 'flat', text } | null, noChange?, footer?, headingLevel? }` — a `section` named by its heading, the value in `text-3xl tabular-nums`, the change against the previous period **in words** ("Up 12% from 40", "Up 2.5 pp from 90%") with a decorative arrow, and an optional footer link. As built (M3-01) there is no sparkline and no intent colour: whether "up" is good depends on the measure (resolved vs breaches), so colour would mislead. The value arrives formatted (`features/reports/format.ts`: counts, durations as "3h 20m", percentages, ratios, bytes).
+`{ label, value, change?: { direction: 'up' | 'down' | 'flat', text } | null, noChange?, footer?, headingLevel? }` — a `section` named by its heading, the value in `text-3xl tabular-nums`, the change against the previous period **in words** ("Up 12% from 40", "Up 2.5 pp from 90%") with a decorative arrow, and an optional footer link. As built (M3-01) there is no sparkline and no intent colour: whether "up" is good depends on the measure (resolved vs breaches), so colour would mislead. The value arrives formatted (`lib/format/measure.ts`: counts, durations as "3h 20m", percentages, ratios, bytes).
+
+M4-08: `compact` (tighter padding, `text-2xl` value) for dashboard rows, and `sparkline` (a `Sparkline` from `components/shared/charts/sparkline.tsx`, plain SVG, `aria-hidden`, gaps for missing points) beside the value so tiles keep one height. A tile that is itself a link is wrapped in the router's `Link` with `kpiTileLinkClassName` (focus ring on the tile edge, border lifts on hover) instead of a footer link. Sparklines appear only where the API names the series (`trend_series`).
 
 ### ChartCard and the report charts
 
-`ChartCard { title, description?, actions?, children, table, showTableLabel, hideTableLabel }` (shared) frames a chart with its accessible table: the table is always rendered, visually hidden (`sr-only`) until the toggle (`aria-expanded`) shows it, and printed. The charts themselves are feature-owned in `features/reports/components/`: `SeriesChart` (line, area, horizontal bar, histogram over shadcn `ChartContainer`; `--chart-1..6` in series order, `accessibilityLayer`, values formatted by unit on the axis and in the tooltip, a legend only for two or more series, never two value axes), `HeatmapChart` (weekday × hour CSS grid, one hue mixed into the surface with `color-mix`, `role="img"`), `ChartTable` (the plain table). The six named compositions planned here (`TicketsOverTimeChart`, …) were not built: the dashboard's six series come from the API with their report and measures, so one generic `SeriesChart` draws them all. Status and priority bars use the series colours, not the badge tints: `--priority-p4` and the status surfaces are below 3:1 on the surface.
+`ChartCard { title, description?, actions?, children, table, showTableLabel, hideTableLabel }` (shared) frames a chart with its accessible table: the table is always rendered, visually hidden (`sr-only`) until the toggle (`aria-expanded`) shows it, and printed. `SeriesChart` is shared (`components/shared/charts/`, moved there in M4-01): line, area, bar (horizontal across categories, upright over time, grouped), stacked bar and histogram over shadcn `ChartContainer`; `--chart-1..6` in series order, `accessibilityLayer`, values formatted by unit, a legend on every chart in series order, never two value axes ([data visualisation](data-visualization.md), M4-09). Feature-owned in `features/reports/components/`: `HeatmapChart` (weekday × hour CSS grid, one hue mixed into the surface with `color-mix`, `role="img"`), `ChartTable` (the plain table). The six named compositions planned here (`TicketsOverTimeChart`, …) were not built: the dashboard's six series come from the API with their report and measures, so one generic `SeriesChart` draws them all. Status and priority bars use the series colours, not the badge tints: `--priority-p4` and the status surfaces are below 3:1 on the surface.
 
 ## Feature-owned components
 
 Feature folders own screens and forms (`TicketForm`, `TicketDetail`, `AssignmentDialog`, `SlaPolicyForm`, `AutomationSettingsForm`, `WebhookForm`, `RoleEditor`), composed from the shared set above. They never import primitives for anything the shared set covers.
 
+## States
+
+Every asynchronous view has five states, each in its own words (M4-13):
+
+| State | Shown as | Example |
+|---|---|---|
+| Loading | a skeleton of the real layout (rows, tiles, cards) with a screen-reader status; never a bare "Loading…" line or spinner for a view | `RowsSkeleton` in the directory settings |
+| Refreshing | the previous data stays, the container carries `aria-busy` | ticket queue, dashboard tiles |
+| Empty | "nothing here yet", with the first action when there is one | "No tickets yet", "No entries yet." |
+| No results | "nothing matches", naming the filter or search, with a way to clear it | "No tickets match these filters", "Nothing matches “zzzz”" + Clear search |
+| Error / forbidden | `ErrorState` with the reason and Retry; `ForbiddenState`, or the section is not offered at all | |
+
+Spinners are for actions in progress (an export being prepared, a reconnecting socket), not for views. Forms validate on submit first and then as each field changes (`revalidateLogic({ mode: 'submit', modeAfterSubmission: 'change' })` everywhere, including the sign-in forms since M4-13); a field shows an error before it was submitted only when the server said so.
+
 ## States checklist (Definition of Done)
 
-Every route/composition renders: loading (skeleton matching final layout), empty (with a primary action), error (with retry and request id), forbidden (no data), and, for mutations, pending/disabled + success toast + error mapping to fields. Reviewed via the dev-only `/dev/components` gallery route that renders each composition in each state.
+Every route/composition renders: loading (skeleton matching final layout), empty (with a primary action), error (with retry and request id), forbidden (no data), and, for mutations, pending/disabled + success toast + error mapping to fields. Checked by the browser tests of each feature (there is no component gallery: Storybook was dropped in favour of the redesign, see the M4 decision in [ux-review](ux-review.md)).
 
 ## Distribution (V1)
 

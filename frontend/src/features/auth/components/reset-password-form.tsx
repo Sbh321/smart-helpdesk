@@ -1,12 +1,12 @@
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { CheckCircle2Icon } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { TextField } from '@/components/shared/text-field'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
+import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
 import { mergeMessages } from '@/lib/forms/messages'
 import { requestPasswordReset, resetPassword } from '../api/auth-requests'
@@ -38,7 +38,9 @@ export function RequestPasswordResetForm({ workspace }: { workspace: string }) {
 
   const form = useForm({
     defaultValues: { email: '' },
-    validators: { onSubmit: forgotPasswordSchema },
+    // Checked on submit, then again as each field changes (the app-wide form timing, M4-13).
+    validationLogic: revalidateLogic({ mode: 'submit', modeAfterSubmission: 'change' }),
+    validators: { onDynamic: forgotPasswordSchema },
     onSubmit: async ({ value }) => {
       setBanner(null)
       setServerErrors({})
@@ -134,7 +136,9 @@ export function SetNewPasswordForm({
 
   const form = useForm({
     defaultValues: { email: email ?? '', password: '', password_confirmation: '' },
-    validators: { onSubmit: resetPasswordSchema },
+    // Checked on submit, then again as each field changes (the app-wide form timing, M4-13).
+    validationLogic: revalidateLogic({ mode: 'submit', modeAfterSubmission: 'change' }),
+    validators: { onDynamic: resetPasswordSchema },
     onSubmit: async ({ value }) => {
       setBanner(null)
       setServerErrors({})

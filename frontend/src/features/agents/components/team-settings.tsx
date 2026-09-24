@@ -31,6 +31,7 @@ import {
   FORM_CLASS,
   FormActions,
   PICKER_PAGE,
+  RowsSkeleton,
   Saved,
   Section,
   useDirectory,
@@ -175,7 +176,7 @@ export function TeamSettings() {
   const [saved, setSaved] = useState(false)
   if (!allowed) return <ForbiddenState />
   return (
-    <Section title={copy.settings.teams}>
+    <Section title={copy.settings.teams} description={copy.settings.descriptions.teams}>
       {canManage ? (
         <Button
           onClick={() => {
@@ -199,7 +200,7 @@ export function TeamSettings() {
         />
       ) : null}
       {teams.isPending ? (
-        <p aria-busy="true">{copy.settings.loading}</p>
+        <RowsSkeleton />
       ) : teams.isError ? (
         <ErrorState error={teams.error} onRetry={() => void teams.refetch()} />
       ) : (

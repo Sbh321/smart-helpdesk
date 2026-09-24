@@ -99,7 +99,32 @@ const DELIVERY_FIXTURES: Delivery[] = [
     last_attempted_at: '2026-09-17T20:00:00Z',
     created_at: '2026-09-17T07:00:00Z',
   }),
+  // Failed on its second attempt, with the third scheduled: "Retrying" in the UI (M4-11).
+  delivery(3, fixtureId(WEBHOOK_KIND, 1), {
+    event_type: 'ticket.assigned',
+    state: 'failed',
+    attempt: 2,
+    response_status: null,
+    response_excerpt: null,
+    error: 'timeout',
+    duration_ms: 10000,
+    next_attempt_at: '2026-09-18T09:00:00Z',
+    last_attempted_at: '2026-09-18T08:25:00Z',
+    created_at: '2026-09-18T08:20:00Z',
+  }),
 ]
+
+/** The payload a delivery carries, as the backend's `WebhookPayload` shapes it (id, type, data). */
+export function deliveryPayload(item: Delivery) {
+  return {
+    id: item.event_id,
+    type: item.event_type,
+    api_version: 'v1',
+    created_at: item.created_at,
+    tenant_id: fixtureId(1, 1),
+    data: { ticket: { id: fixtureId(2, 1), number: 1001, title: 'VPN drops every hour', status: 'open' } },
+  }
+}
 
 const clone = <T>(value: T): T => structuredClone(value)
 
@@ -231,16 +256,23 @@ export const webhookHandlers = [
     webhookDb.deliveries.unshift(ping)
     return HttpResponse.json({ data: ping }, { status: 202 })
   }),
-  http.get(apiUrl('/webhooks/{webhook}/deliveries'), ({ params }) => {
+  http.get(apiUrl('/webhooks/{webhook}/deliveries'), ({ params, request }) => {
     if (!findWebhook(params.webhook)) return problem(404, 'not_found', { title: 'Not found' })
+    const state = new URL(request.url).searchParams.get('filter[state]')
     const data = webhookDb.deliveries
       .filter((item) => item.subscription_id === params.webhook)
+      .filter((item) => state === null || item.state === state)
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
     return HttpResponse.json({
       data,
       links: { first: null, last: null, prev: null, next: null },
       meta: { path: null, per_page: 25, next_cursor: null, prev_cursor: null },
     })
+  }),
+  http.get(apiUrl('/webhook-deliveries/{delivery}'), ({ params }) => {
+    const item = webhookDb.deliveries.find((candidate) => candidate.id === params.delivery)
+    if (!item) return problem(404, 'not_found', { title: 'Not found' })
+    return HttpResponse.json({ data: { ...item, payload: deliveryPayload(item) } })
   }),
   http.post(apiUrl('/webhook-deliveries/{delivery}/retry'), ({ params }) => {
     const item = webhookDb.deliveries.find((candidate) => candidate.id === params.delivery)

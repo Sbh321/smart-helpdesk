@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/components/ui/sonner'
 import { Switch } from '@/components/ui/switch'
 import { copy } from '@/copy/en'
 import { isApiError } from '@/lib/api/errors'

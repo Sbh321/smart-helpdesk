@@ -1,3 +1,4 @@
+import axe from 'axe-core'
 import { HttpResponse, http } from 'msw'
 import { expect, test } from 'vitest'
 import { copy, fill } from '@/copy/en'
@@ -171,4 +172,79 @@ test('an unknown record page says it does not exist', async () => {
   signIn()
   const { screen } = await renderApp(`/acme/teams/${fixtureId(9, 99)}`)
   await expect.element(screen.getByRole('heading', { name: copy.states.notFound.title })).toBeVisible()
+})
+
+test('a historical view cannot be mistaken for the live record: banner, no write actions, back to now (M4-10)', async () => {
+  signIn()
+  const app = await openContactHistory()
+  const { screen } = app
+  // Live: the record's own action and form are there.
+  await expect.element(screen.getByRole('button', { name: copy.contacts.detail.archive })).toBeVisible()
+
+  const asOf = screen.getByRole('region', { name: text.asOf.title })
+  await asOf.getByLabelText(text.asOf.label).fill('2026-09-12T10:00')
+  await asOf.getByRole('button', { name: text.asOf.show }).click()
+
+  // The whole page is now the record as it was.
+  const banner = screen.getByRole('region', { name: copy.recordLayout.bannerLabel })
+  await expect.element(banner).toBeVisible()
+  await expect.element(banner).toMatchTextContent(/as it was on 12 Sep 2026, 10:00:00/)
+  expect(app.currentLocation().search).toMatchObject({ tab: 'history', as_of: '2026-09-12T04:15:00.000Z' })
+  expect(screen.getByRole('button', { name: copy.contacts.detail.archive }).query()).toBeNull()
+  expect(screen.getByRole('tab', { name: text.details }).query()).toBeNull()
+  expect(screen.getByRole('textbox', { name: copy.contacts.form.name }).query()).toBeNull()
+  await expect.element(screen.getByRole('heading', { level: 1, name: 'Aarav Adhikari' })).toBeVisible()
+  await expect.element(screen.getByText(/Contact · .* · as it was on 12 Sep 2026/)).toBeVisible()
+
+  // Differences from now are marked in the full state, in words as well as by colour.
+  await expect.poll(() => screen.container.querySelector('[data-changed]')).not.toBeNull()
+  const changed = screen.container.querySelector('[data-changed]')
+  expect(changed?.textContent).toMatch(/Organisation\s*Initech\s*\(now: Acme Corporation\)/)
+
+  // One click back to the live record, on the section the reader came from.
+  await banner.getByRole('button', { name: copy.recordLayout.backToNow }).click()
+  await expect.element(banner).not.toBeInTheDocument()
+  expect(app.currentLocation().search).not.toHaveProperty('as_of')
+  await expect
+    .element(screen.getByRole('tab', { name: text.history }))
+    .toHaveAttribute('aria-selected', 'true')
+  await expect.element(screen.getByRole('button', { name: copy.contacts.detail.archive })).toBeVisible()
+})
+
+test('a ticket opened at an instant from a link shows no ticket actions, composer or panel (M4-10)', async () => {
+  signIn([...MANAGER, 'tickets.update', 'tickets.resolve', 'tickets.close', 'tickets.assign'])
+  const ticket = TICKET_FIXTURES[2]
+  if (!ticket) throw new Error('Missing ticket fixture')
+  const { screen } = await renderApp(`/acme/tickets/${ticket.id}?as_of=2026-09-12T04:15:00.000Z`)
+  await expect.element(screen.getByRole('region', { name: copy.recordLayout.bannerLabel })).toBeVisible()
+  await expect.element(screen.getByRole('region', { name: text.asOf.title })).toBeVisible()
+  for (const name of ['Edit ticket', 'Resolve ticket', 'Assignment', 'Override priority']) {
+    expect(screen.getByRole('button', { name, exact: true }).query(), name).toBeNull()
+  }
+  expect(screen.getByRole('textbox', { name: 'Message' }).query()).toBeNull()
+  expect(screen.getByRole('complementary', { name: copy.tickets.detail.context }).query()).toBeNull()
+})
+
+test('an instant that is not a date in the URL is ignored: the live record opens', async () => {
+  signIn()
+  const { screen } = await renderApp(`/acme/contacts/${HISTORY_CONTACT_ID}?as_of=yesterday`)
+  await expect.element(screen.getByRole('heading', { level: 1, name: 'Aarav Adhikari' })).toBeVisible()
+  expect(screen.getByRole('region', { name: copy.recordLayout.bannerLabel }).query()).toBeNull()
+  await expect.element(screen.getByRole('button', { name: copy.contacts.detail.archive })).toBeVisible()
+})
+
+test('the historical view has no serious axe findings', async () => {
+  signIn()
+  const { screen } = await renderApp(
+    `/acme/contacts/${HISTORY_CONTACT_ID}?tab=history&as_of=2026-09-12T04:15:00.000Z`,
+  )
+  await expect.element(screen.getByRole('table', { name: text.asOf.differences })).toBeVisible()
+  const results = await axe.run(screen.container, {
+    runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] },
+  })
+  expect(
+    results.violations
+      .filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')
+      .map((violation) => `${violation.id}: ${violation.nodes.map((node) => node.html).join(' | ')}`),
+  ).toEqual([])
 })

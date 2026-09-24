@@ -43,7 +43,10 @@ test('a number drills down to its tickets, and a ticket shows its state as of th
     .getByRole('button', { name: /^View the records behind [1-9]\d*: .+, Created$/ })
     .last()
   const label = (await number.getAttribute('aria-label')) ?? ''
-  const [, value, day] = label.match(/behind (\d+): (\d{4}-\d{2}-\d{2}), Created$/) ?? []
+  // Days read as dates in words since M4-09 ("Wed 23 Sep 2026"), never as ISO keys.
+  const [, value, day] =
+    label.match(/behind (\d+): ([A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2} \d{4}), Created$/) ?? []
+  expect(day, label).toBeDefined()
   await number.click()
   const records = page.getByRole('dialog', { name: `Records: ${day}, Created` })
   // The drill-down lists exactly the tickets that measure counts, not every record of the day.

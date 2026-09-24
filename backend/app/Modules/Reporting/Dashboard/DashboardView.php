@@ -8,8 +8,8 @@ namespace App\Modules\Reporting\Dashboard;
 final readonly class DashboardView
 {
     /**
-     * @param  list<array{key: string, label: string, unit: string, value: int|float|null, previous: int|float|null, report: string, measure: string}>  $kpis
-     * @param  list<array{key: string, title: string, chart: string, report: string, report_title: string, parameters: array{period: string, group: string, measures: list<string>}, measures: list<array{key: string, label: string, unit: string}>, rows: list<array{key: string, label: string, values: array<string, int|float|null>}>, truncated: bool}>  $series
+     * @param  list<array{key: string, label: string, unit: string, value: int|float|null, previous: int|float|null, report: string, measure: string, trend_series: string|null}>  $kpis
+     * @param  list<array{key: string, title: string, chart: string, section: string, report: string, report_title: string, parameters: array{period: string, group: string, measures: list<string>}, measures: list<array{key: string, label: string, unit: string}>, rows: list<array{key: string, label: string, values: array<string, int|float|null>}>, truncated: bool}>  $series
      */
     public function __construct(
         public string $period,

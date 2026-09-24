@@ -12,6 +12,7 @@ final readonly class ReportDescription
      * @param  list<array{key: string, label: string, is_time: bool}>  $dimensions
      * @param  list<array{key: string, label: string, unit: string}>  $measures
      * @param  list<array{key: string, label: string, type: string, labels: string|null}>  $filters
+     * @param  list<string>|null  $chartMeasures
      */
     public function __construct(
         public string $key,
@@ -19,6 +20,8 @@ final readonly class ReportDescription
         public string $description,
         public string $group,
         public string $chart,
+        public ?array $chartMeasures,
+        public bool $periodApplies,
         public string $defaultDimension,
         public ?string $drillDownTo,
         public array $periods,
@@ -35,6 +38,8 @@ final readonly class ReportDescription
             $report->description(),
             $report->group(),
             $report->chart(),
+            $report->chartMeasures(),
+            $report->periodApplies(),
             $report->defaultDimension(),
             $report->drillDownTo(),
             ReportRunner::PERIODS,

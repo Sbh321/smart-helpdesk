@@ -2,12 +2,12 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRoundIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
+import { SettingsPage } from '@/components/shared/settings-page'
 import { TextField } from '@/components/shared/text-field'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog'
 import { FieldGroup } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from '@/components/ui/sonner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { copy, fill } from '@/copy/en'
 import { CheckboxGroup } from '@/features/users'
@@ -196,22 +197,27 @@ function CreateApiClientDialog({ open, onClose }: { open: boolean; onClose: () =
 function ClientRow({
   client,
   timeZone,
+  scopeDescriptions,
   onRevoke,
 }: {
   client: ApiClient
   timeZone: string
+  /** `tickets:read` → "Read tickets, their history and public comments" (from `GET /api-clients/scopes`). */
+  scopeDescriptions: ReadonlyMap<string, string>
   onRevoke: (client: ApiClient) => void
 }) {
   return (
     <TableRow>
       <TableCell className="font-medium">{client.name}</TableCell>
-      <TableCell>
-        <ul className="flex flex-wrap gap-1" aria-label={fill(text.scopesOf, { name: client.name })}>
+      <TableCell className="whitespace-normal">
+        {/* Each scope as the code an integrator requests and what it allows, in words (M4-11). */}
+        <ul className="flex flex-col gap-1" aria-label={fill(text.scopesOf, { name: client.name })}>
           {client.scopes.map((scope) => (
-            <li key={scope}>
-              <Badge variant="outline" className="font-mono">
-                {scope}
-              </Badge>
+            <li key={scope} className="flex flex-col">
+              <code className="w-fit rounded-xs bg-muted px-1 font-mono text-xs">{scope}</code>
+              {scopeDescriptions.get(scope) ? (
+                <span className="text-xs text-muted-foreground">{scopeDescriptions.get(scope)}</span>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -252,25 +258,24 @@ export function ApiClientsSettings() {
   const allowed = useCan('integrations.manage')
   const queryClient = useQueryClient()
   const clients = useQuery({ ...apiClientQueries.list(tenantId), enabled: allowed && tenantId !== '' })
+  const scopes = useQuery({ ...apiClientQueries.scopes(tenantId), enabled: allowed && tenantId !== '' })
+  const scopeDescriptions = new Map((scopes.data ?? []).map((scope) => [scope.scope, scope.description]))
   const [creating, setCreating] = useState(false)
   const [revoking, setRevoking] = useState<ApiClient | null>(null)
 
   if (!allowed) return <ForbiddenState />
 
   return (
-    <section className="space-y-6" aria-labelledby="settings-api-clients-heading">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="settings-api-clients-heading" className="text-lg font-semibold">
-            {text.title}
-          </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground">{text.intro}</p>
-        </div>
+    <SettingsPage
+      title={text.title}
+      description={text.intro}
+      actions={
         <Button onClick={() => setCreating(true)}>
           <PlusIcon aria-hidden="true" />
           {text.create}
         </Button>
-      </div>
+      }
+    >
       {clients.isPending ? (
         <Skeleton className="h-48 w-full" />
       ) : clients.isError ? (
@@ -291,7 +296,13 @@ export function ApiClientsSettings() {
           </TableHeader>
           <TableBody>
             {clients.data.map((client) => (
-              <ClientRow key={client.id} client={client} timeZone={timeZone} onRevoke={setRevoking} />
+              <ClientRow
+                key={client.id}
+                client={client}
+                timeZone={timeZone}
+                scopeDescriptions={scopeDescriptions}
+                onRevoke={setRevoking}
+              />
             ))}
           </TableBody>
         </Table>
@@ -314,6 +325,6 @@ export function ApiClientsSettings() {
           toast.success(fill(text.revokedToast, { name: revoking.name }))
         }}
       />
-    </section>
+    </SettingsPage>
   )
 }

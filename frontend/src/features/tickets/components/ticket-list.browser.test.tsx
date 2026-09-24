@@ -48,17 +48,22 @@ async function openTickets(
   return { ...app, table: app.screen.getByRole('table', { name: copy.tickets.list.label }) }
 }
 
-test('the list opens on the two-field default order and embeds contact and category', async () => {
+test('a row carries what decides the next pick: state, priority, SLA, channel, requester and age', async () => {
   const { table } = await openTickets()
   const first = TICKET_FIXTURES[0]
+  const row = table.getByRole('row').nth(1)
 
-  await expect.element(table.getByRole('row').nth(1)).toMatchTextContent(new RegExp(`#${first?.number}`))
+  await expect.element(row).toMatchTextContent(new RegExp(`#${first?.number}`))
   await expect
     .element(table.getByRole('columnheader', { name: copy.tickets.columns.priority }))
     .toHaveAttribute('aria-sort', 'descending')
-  await expect.element(table.getByRole('row').nth(1)).toMatchTextContent(/P1 Critical/)
-  await expect.element(table.getByRole('row').nth(1)).toMatchTextContent(/Aarav Adhikari/)
-  await expect.element(table.getByRole('row').nth(1)).toMatchTextContent(/Billing/)
+  await expect.element(row).toMatchTextContent(/P1 Critical/)
+  // The requester rides with the subject (M4-04), so the Contact column is off by default.
+  await expect.element(row).toMatchTextContent(/Aarav Adhikari/)
+  for (const column of [copy.tickets.columns.channel, copy.tickets.columns.sla, copy.tickets.columns.age]) {
+    await expect.element(table.getByRole('columnheader', { name: column })).toBeVisible()
+  }
+  expect(table.getByRole('columnheader', { name: copy.tickets.columns.category }).query()).toBeNull()
   const request = requests.at(-1)
   expect(request?.searchParams.get('sort')).toBe('-priority_score,-created_at')
   expect(request?.searchParams.get('include')).toBe('contact,category')
@@ -93,9 +98,13 @@ test('status (with the active alias), priority, category and date filters round-
   let request = requests.at(-1)
   expect(request?.searchParams.get('filter[category_id]')).toBe(billing)
   expect(request?.searchParams.get('filter[created_between]')).toBe('2026-09-01,2026-09-06')
+  // The date filter's own trigger; the chip beside it (M4-04) carries the same words.
   await expect
-    .element(screen.getByRole('button', { name: /Created.*2026/ }))
+    .element(screen.getByRole('button', { name: /Created.*2026/, exact: false }).first())
     .toMatchTextContent(/1 Sept? 2026 – 6 Sept? 2026/)
+  await expect
+    .element(screen.getByRole('list', { name: copy.filters.active }))
+    .toMatchTextContent(/2026-09-01 – 2026-09-06/)
 
   await screen.getByRole('combobox', { name: copy.tickets.list.statusFilter }).click()
   await screen.getByRole('option', { name: copy.tickets.list.activeOption }).click()
@@ -142,6 +151,8 @@ test('Enter on a row opens the ticket with its fields and history', async () => 
     .element(screen.getByRole('heading', { level: 1, name: `#${first?.number} ${first?.title}` }))
     .toBeVisible()
   expect(currentPath()).toBe(`/acme/tickets/${first?.id}`)
+  // The conversation is the default view since M4-05; the timeline is one tab away.
+  await screen.getByRole('tab', { name: copy.tickets.detail.timeline }).click()
   await expect
     .element(screen.getByRole('heading', { level: 2, name: copy.tickets.detail.history }))
     .toBeVisible()
@@ -326,4 +337,18 @@ test('the SLA due column can be shown from the column menu and sorts by the reso
   await expect
     .element(table.getByRole('row').nth(1))
     .toMatchTextContent(new RegExp(`#${running.at(-1)?.number}`))
+})
+
+test('a filter in force shows as a chip that removes it (M4-04)', async () => {
+  const { screen, currentLocation } = await openTickets('/acme/tickets?status=open,pending&priority=P1')
+  await expect.element(screen.getByRole('list', { name: copy.filters.active })).toBeVisible()
+
+  const chips = screen.getByRole('list', { name: copy.filters.active })
+  await expect.element(chips).toMatchTextContent(/Status:\s*Open, Pending/)
+  await expect.element(chips).toMatchTextContent(/Priority:\s*P1 Critical/)
+
+  await chips.getByRole('button', { name: new RegExp(`${copy.tickets.list.priorityFilter}`) }).click()
+
+  await expect.poll(() => currentLocation().search).not.toHaveProperty('priority')
+  await expect.poll(() => currentLocation().search).toHaveProperty('status', 'open,pending')
 })

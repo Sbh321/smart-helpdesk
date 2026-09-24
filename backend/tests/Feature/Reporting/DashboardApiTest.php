@@ -25,7 +25,8 @@ it('shows the numbers of the corresponding catalogue report runs', function (): 
         ->and($data['timezone'])->toBe('Asia/Kathmandu')
         ->and($data['from'])->toBe('2026-08-22T18:15:00Z')
         ->and(array_column($data['kpis'], 'key'))->toBe(['created', 'resolved', 'open_now', 'first_response_median', 'resolution_median', 'sla_compliance', 'sla_breaches', 'reopen_rate'])
-        ->and(array_column($data['series'], 'key'))->toBe(['volume', 'backlog', 'response_by_priority', 'sla_compliance', 'agent_workload', 'time_in_status']);
+        ->and(array_column($data['series'], 'key'))->toBe(['volume', 'backlog', 'sla_compliance', 'by_channel', 'response_by_priority', 'open_by_team', 'ageing', 'agent_workload', 'time_in_status'])
+        ->and(array_count_values(array_column($data['series'], 'section')))->toBe(['trend' => 3, 'breakdown' => 6]);
 
     foreach ($data['kpis'] as $kpi) {
         $run = $this->postJson("/v1/reports/{$kpi['report']}/run", ['period' => 'last_30d', 'compare' => true])->assertOk()->json('data');
@@ -43,6 +44,19 @@ it('shows the numbers of the corresponding catalogue report runs', function (): 
             ->and(array_column($series['measures'], 'key'))->toBe($series['parameters']['measures']);
     }
     expect(array_sum(array_map(fn (array $row): int => (int) $row['values']['created'], $data['series'][0]['rows'])))->toBe($created['value']);
+
+    // A tile's sparkline series carries the tile's own measure of the same report (M4-08).
+    $series = collect($data['series'])->keyBy('key');
+    foreach ($data['kpis'] as $kpi) {
+        if ($kpi['trend_series'] === null) {
+            continue;
+        }
+        $trend = $series[$kpi['trend_series']];
+        expect($trend['report'])->toBe($kpi['report'], $kpi['key'])
+            ->and($trend['parameters']['measures'])->toContain($kpi['measure'])
+            ->and($trend['section'])->toBe('trend');
+    }
+    expect(collect($data['kpis'])->whereNotNull('trend_series')->pluck('key')->all())->toBe(['created', 'resolved', 'sla_compliance']);
 });
 
 it('takes the period from the query and rejects an unknown one', function (): void {

@@ -63,6 +63,16 @@ final class TicketBacklog implements ReportDefinition
         return null;
     }
 
+    public function chartMeasures(): ?array
+    {
+        return null;
+    }
+
+    public function periodApplies(): bool
+    {
+        return true;
+    }
+
     public function dimensions(): array
     {
         return [
