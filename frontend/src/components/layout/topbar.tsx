@@ -14,20 +14,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { copy } from '@/copy/en'
 import { useSession } from '@/lib/auth'
+import { initials } from '@/lib/format/initials'
 import { Breadcrumbs } from './breadcrumbs'
 import { CommandPalette } from './command-palette'
 import { ConnectionIndicator } from './connection-indicator'
-
-function initials(name: string): string {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? '')
-      .join('') || '?'
-  )
-}
 
 /**
  * The `header` landmark (roadmap M4-02): breadcrumbs, then search in the prime central slot, then the

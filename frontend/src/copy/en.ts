@@ -1879,6 +1879,10 @@ export const copy = {
       plan: 'Plan',
       created: 'Created',
     },
+    tableLabel: 'Workspaces',
+    loading: 'Loading the workspaces…',
+    statuses: { active: 'Active', suspended: 'Suspended', archived: 'Archived' },
+    plans: { standard: 'Standard', premium: 'Premium', enterprise: 'Enterprise' },
   },
   /** Entity 360 pages: overview and history tabs (roadmap M3-21, docs/04-domain/reporting.md §Entity 360). */
   entity360: {

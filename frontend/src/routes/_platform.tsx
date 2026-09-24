@@ -1,12 +1,23 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Outlet, redirect, useNavigate } from '@tanstack/react-router'
 import { LogOutIcon, ShieldIcon } from 'lucide-react'
+import { AppearanceMenu } from '@/components/shared/appearance-menu'
 import { MAIN_CONTENT_ID, SkipLink } from '@/components/shared/skip-link'
-import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { copy, fill } from '@/copy/en'
 import { ensurePlatformSession, platformLogout, platformSessionQuery } from '@/features/platform'
 import { queryKeys } from '@/lib/api/query-keys'
+import { initials } from '@/lib/format/initials'
 
 /**
  * Platform administration ([ADR-0021](docs/adr/0021-host-layout-and-tenant-resolution.md)): served from
@@ -45,18 +56,42 @@ function PlatformLayout() {
           <ShieldIcon aria-hidden="true" className="size-5 text-primary" />
           {copy.platform.heading}
         </span>
-        <div className="flex items-center gap-2">
-          {admin ? (
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              {fill(copy.platform.signedInAs, { name: admin.name })}
-            </span>
-          ) : null}
-          <ThemeToggle />
-          <Button variant="outline" size="sm" onClick={() => void signOut()}>
-            <LogOutIcon aria-hidden="true" />
-            {copy.platform.signOut}
-          </Button>
-        </div>
+        {/* The account menu of the workspace shell (M4-02): who is signed in, theme and density, sign-out.
+            The bar itself carries no appearance controls (docs/06-design-system/ux-review.md G7). */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm" aria-label={copy.nav.account} className="rounded-full" />
+            }
+          >
+            <Avatar className="size-7">
+              <AvatarFallback>{initials(admin?.name ?? '')}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <span className="block truncate font-medium">
+                  {admin ? fill(copy.platform.signedInAs, { name: admin.name }) : copy.platform.heading}
+                </span>
+                {admin ? (
+                  <span className="block truncate font-normal text-muted-foreground text-xs">
+                    {admin.email}
+                  </span>
+                ) : null}
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <AppearanceMenu />
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => void signOut()}>
+                <LogOutIcon aria-hidden="true" />
+                {copy.platform.signOut}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
       <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex flex-1 flex-col gap-6 p-6 outline-none">
         <Outlet />
