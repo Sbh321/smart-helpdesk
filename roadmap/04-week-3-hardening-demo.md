@@ -198,7 +198,7 @@ Work runs on four parallel tracks (see [12-schedule.md](12-schedule.md)): **A** 
 - **Docs:** demo-plan.md timings updated.
 
 ### `[ ]` M3-15 Documentation and report artefacts — M
-- **Do:** final consistency pass over docs vs code (module map, endpoint inventory, settings keys, versions used), export Mermaid diagrams (`report/tools/export-figures.js`), take screenshots, fill Chapter 4 tables and Chapter 5 results in `report/university/`, rebuild both reports with `report/build.sh --final` once names are filled, collect test counts/coverage table, paste experiment tables, update ADR statuses/outcomes (e.g., Passport result, Table v9 result), write `docs/12-academic/implementation-notes.md` (module-by-module summary for Chapter 4), update README with deployment instructions.
+- **Do:** final consistency pass over docs vs code (module map, endpoint inventory, settings keys, versions used), export Mermaid diagrams (`report/tools/export-figures.js`), take screenshots, fill Chapter 4 tables and Chapter 5 results in `report/university/`, rebuild the Project III report with `report/build.sh --final` once names are filled, collect test counts/coverage table, paste experiment tables, update ADR statuses/outcomes (e.g., Passport result, Table v9 result), write `docs/12-academic/implementation-notes.md` (module-by-module summary for Chapter 4), update README with deployment instructions.
 - **Acceptance:** [06-documentation-plan.md](06-documentation-plan.md) checklist complete.
 - **Depends:** M3-10, M3-12
 - **Track:** C

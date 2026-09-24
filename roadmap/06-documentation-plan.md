@@ -82,5 +82,5 @@ Policy: when a page is updated, its first line keeps a `Last verified: <date>, t
 
 ## Reports (added 2026-09-17)
 
-The university report and the internship report are built from `report/` ([report-generation.md](../docs/12-academic/report-generation.md)). Chapters 1–3 are drafted now; each milestone updates the report sources it affects (M1: tools table; M2: module descriptions and unit-test tables; M3: system tests, result tables, screenshots, conclusion). The report is never generated from `docs/`, and `docs/` never copies report prose.
+The Project III report is built from `report/` ([report-generation.md](../docs/12-academic/report-generation.md)). Chapters 1–3 are drafted now; each milestone updates the report sources it affects (M1: tools table; M2: module descriptions and unit-test tables; M3: system tests, result tables, screenshots, conclusion). The report is never generated from `docs/`, and `docs/` never copies report prose.
 

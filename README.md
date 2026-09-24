@@ -10,7 +10,7 @@
 
 A multi-tenant support-ticket management system with automated prioritisation, agent assignment, duplicate detection, SLA monitoring, integrations and analytics. Final-year BCA project engineered as the foundation of a real SaaS/on-premise product.
 
-**Status:** implementation in progress (milestone 1). Planning completed on 2026-09-17. The repository contains the platform documentation (`docs/`), the track-based roadmap (`roadmap/`), and the university and internship report sources (`report/`).
+**Status:** implementation in progress (milestone 1). Planning completed on 2026-09-17. The repository contains the platform documentation (`docs/`), the track-based roadmap (`roadmap/`), and the Project III report sources (`report/`).
 
 | Start here | |
 |---|---|

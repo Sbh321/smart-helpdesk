@@ -6,7 +6,7 @@
  * page numbers bottom centre: none on the cover, roman from the certificate to the lists,
  * arabic from Chapter 1; IEEE numbered citations.
  *
- * Usage: node tools/build-docx.js university|internship [--final]
+ * Usage: node tools/build-docx.js university [--final]
  * Sources: <target>/NN-*.md in name order. Files named 00-*.md form the front matter.
  * Markdown subset: # / ## / ### / #### headings, paragraphs, - and 1. lists, pipe tables,
  * fenced code, ![Figure x.y: caption](figures/file.png), "Table x.y: caption" lines before a table,

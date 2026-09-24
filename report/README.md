@@ -1,11 +1,10 @@
 # Report sources
 
-Two Word documents are built from this folder, separately from the platform documentation in `../docs/`:
+The CACS452 Project III report (Word) is built from this folder, separately from the platform documentation in `../docs/`:
 
 | Document | Sources | Output |
 |---|---|---|
 | CACS452 Project III report | `university/` | `out/smart-helpdesk-project-report.docx` |
-| Internship report (basic template) | `internship/` | `out/internship-report.docx` |
 
 Pipeline rules and the chapter mapping: `../docs/12-academic/report-generation.md`, `../docs/12-academic/report-mapping.md`.
 
@@ -13,7 +12,7 @@ Pipeline rules and the chapter mapping: `../docs/12-academic/report-generation.m
 
 ```bash
 cd report
-./build.sh                 # both documents (draft: warns about unfilled <<fields>>)
+./build.sh                 # the report (draft: warns about unfilled <<fields>>)
 ./build.sh university --final   # refuses to build while any <<field>> remains
 node tools/export-figures.js    # extract Mermaid diagrams from ../docs into university/figures/*.mmd (renders PNG if mmdc is installed)
 ```

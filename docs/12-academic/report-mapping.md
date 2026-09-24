@@ -67,10 +67,6 @@ Also for Chapter 3: ER diagram and database design ([data.md](../03-architecture
 
 References: IEEE numbered, from `report/university/references.bib` (every URL/paper cited in the algorithm and research pages). Bibliography: consulted but uncited sources. Appendices: screenshots (demo script order), selected source code (the four algorithm classes, the state machines, the RLS migration), API excerpt, test reports, experiment datasets README, ADR index.
 
-## Internship report
-
-A separate, basic internship report is prepared in `report/internship/` ([report-generation.md](report-generation.md) §Internship report); it reuses only the tools/technology descriptions and the module summaries, in a different structure.
-
 ## Evidence available after milestone 1 (2026-09-18)
 
 Material that already exists for the report chapters, so it does not have to be recreated at the end.

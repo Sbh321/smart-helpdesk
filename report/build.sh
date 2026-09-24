@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
-# Build report DOCX files. Usage: ./build.sh [university|internship|all] [--final]
+# Build the Project III report DOCX. Usage: ./build.sh [university] [--final]
 set -euo pipefail
 cd "$(dirname "$0")"
 [ -d node_modules/docx ] || npm install --no-audit --no-fund
-target="${1:-all}"; shift || true
-if [ "$target" = all ]; then
-  node tools/build-docx.js university "$@"
-  node tools/build-docx.js internship "$@"
-else
-  node tools/build-docx.js "$target" "$@"
-fi
+# The report is the only target; "university" is accepted for the older invocation.
+if [ "${1:-}" = university ]; then shift; fi
+node tools/build-docx.js university "$@"

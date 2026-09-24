@@ -41,5 +41,5 @@ just setup          # first run
 just up / just down
 just test / just lint / just types
 just plan           # ready tasks and dates
-just report         # rebuild the university and internship reports
+just report         # rebuild the Project III report
 ```

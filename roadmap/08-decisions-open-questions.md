@@ -33,12 +33,12 @@
 | D26 | Hosting on any VM; Ansible is the tested path; OpenTofu providers optional | [ADR-0017](../docs/adr/0017-cloud-agnostic-deployment.md) |
 | D27 | Tenant business calendars in the MVP; agent shifts as Should-have | [ADR-0020](../docs/adr/0020-business-calendars.md) |
 | D28 | Integrations use Passport client credentials, time-boxed, Sanctum-token fallback (owner asked for a recommendation) | [ADR-0007](../docs/adr/0007-authentication-and-oauth.md) |
-| D29 | University report (DOCX) and internship report are generated from `report/`, separate from the platform docs | [report-generation.md](../docs/12-academic/report-generation.md) |
+| D29 | The Project III report (DOCX) is generated from `report/`, separate from the platform docs | [report-generation.md](../docs/12-academic/report-generation.md) |
 | D30 | Licence postponed to a future version | — |
 | D31 | Ticket statuses confirmed: one `open` status with a "New" badge; `pending` added (owner, 2026-09-17) | [tickets.md](../docs/04-domain/tickets.md) |
 | D32 | Platform domain `shp.subhambhandari.com.np` with `app`, `api`, `admin`, `monitor`, `docs`, `files`, `mail` hosts; tenants are workspaces in the app path; tenant fixed at login | [ADR-0021](../docs/adr/0021-host-layout-and-tenant-resolution.md) |
 | D33 | The owner is the only human developer; coding agents run the parallel tracks under owner review | [12-schedule.md](12-schedule.md) |
-| D34 | Report and internship personal details stay as placeholders for now | `report/` |
+| D34 | Report personal details stay as placeholders for now | `report/` |
 | D35 | Detailed reporting module: database change capture, derived read models, report catalogue for every entity, entity 360 with as-of history, CSV/XLSX export | [ADR-0022](../docs/adr/0022-reporting-and-history.md) |
 | D37 | All four algorithms sit behind replaceable strategy contracts and are deprecated after the defence | [ADR-0023](../docs/adr/0023-minimal-replaceable-algorithms.md) |
 | D36 | Sprint schedule: whole roadmap in about one week of continuous sessions (4 tracks, 16 h/day, every day) | [schedule.yaml](schedule.yaml) |

@@ -1,6 +1,6 @@
 # Report generation pipeline
 
-Produces the university report (DOCX) and the internship report (DOCX) from Markdown sources in `report/`, enforcing the CACS452 format standards. The platform documentation in `docs/` is a separate artefact and is never generated from, or into, the report.
+Produces the CACS452 Project III report (DOCX) from Markdown sources in `report/`, enforcing the CACS452 format standards. The platform documentation in `docs/` is a separate artefact and is never generated from, or into, the report.
 
 ## Sources
 
@@ -15,11 +15,10 @@ report/
 │   ├── references.json         key → IEEE-formatted entry; cited with [@key]
 │   ├── metadata.json           names, dates, college; replaces {{key}} placeholders
 │   └── figures/                manifest.yaml, exported diagrams, screenshots, plots
-├── internship/                 same layout, basic template
 ├── tools/
 │   ├── build-docx.js           Markdown subset → DOCX with the CACS452 format rules
 │   └── export-figures.js       extracts Mermaid blocks from ../docs; renders with mmdc if installed
-├── build.sh                    wrapper: ./build.sh [university|internship|all] [--final]
+├── build.sh                    wrapper: ./build.sh [--final]
 └── out/                        generated .docx (git-ignored)
 ```
 
@@ -50,8 +49,4 @@ report/
 
 ## Draft status
 
-First drafts exist: `out/smart-helpdesk-project-report.docx` (Chapters 1–3 complete with 19 rendered diagrams, Chapter 4 tables with pending cells, Chapter 5 drafted, front-matter fields open) and `out/internship-report.docx` (template with generic prose). Rebuild after every milestone so the supervisor can review early.
-
-## Internship report
-
-A basic internship report is prepared under `report/internship/` following the common TU BCA internship structure (introduction; organisation details and literature review; internship activities with weekly log; conclusion and learning outcomes). Check it against the department's internship guideline, which was not provided. The following inputs are needed from the owner before it can be completed: organisation name and address, supervisor names (organisation and college), internship duration and dates, the internship course code and any prescribed format. Until then the draft uses `<<field>>` markers and reuses the technology and module descriptions of this project as the "work performed" material only where the internship actually concerned this system.
+First drafts exist: `out/smart-helpdesk-project-report.docx` (Chapters 1–3 complete with 19 rendered diagrams, Chapter 4 tables with pending cells, Chapter 5 drafted, front-matter fields open). Rebuild after every milestone so the supervisor can review early.
