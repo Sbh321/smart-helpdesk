@@ -19,7 +19,7 @@ report/
 │   ├── build-docx.js           Markdown subset → DOCX with the CACS452 format rules
 │   └── export-figures.js       extracts Mermaid blocks from ../docs; renders with mmdc if installed
 ├── build.sh                    wrapper: ./build.sh [--final]
-└── out/                        generated .docx (git-ignored)
+└── (output)                  ../college/report/Project-III-Report-Smart-Helpdesk.docx (metadata `output`, `output_dir`)
 ```
 
 ## Tooling
@@ -40,13 +40,14 @@ report/
 
 ## Writing rules for the report
 
-- Past tense, first person plural avoided ("the system computes…"), contextualised to Smart Helpdesk (the syllabus forbids basic definitions).
-- Every figure and table captioned (`Figure 3.4: …` below figures, `Table 4.2: …` above tables) and referenced in text before it appears.
+- Past tense, impersonal in the chapters ("the system computes…"; the acknowledgement speaks for both authors), contextualised to Smart Helpdesk (the syllabus forbids basic definitions).
+- Every figure and table captioned (`Figure 3.4: …` below figures, `Table 4.2: …` above tables; appendices use their letter, `Figure C.1`) and referenced in text before it appears. Captions carry the `Figure Caption` and `Table Caption` styles that feed the lists.
+- Layout directives: `<!-- pagebreak -->`, `<!-- same-page -->` (next chapter-level heading stays on the page), `<!-- table: plain -->` (borderless signature table), `::: center`.
 - Cite with `[@runeson2007]`; the builder numbers references in IEEE order of first citation.
 - Numbers come from `experiments/results/` and CI reports; never typed by hand.
 - Screenshots follow the demo script order, light theme, 1440 px wide, PNG.
 - Abbreviations are added to `abbreviations.md` on first use.
 
-## Draft status
+## Status
 
-First drafts exist: `out/smart-helpdesk-project-report.docx` (Chapters 1–3 complete with 19 rendered diagrams, Chapter 4 tables with pending cells, Chapter 5 drafted, front-matter fields open). Rebuild after every milestone so the supervisor can review early.
+Final: `./build.sh --final` builds `college/report/Project-III-Report-Smart-Helpdesk.docx` (44 figures, 22 tables, 54 references) with every field filled. The `college/` folder also holds the syllabus and the earlier project reports used for structure only.

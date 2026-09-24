@@ -1,33 +1,37 @@
 ::: center
+![](figures/tu-logo.png =110)
+
 **Tribhuvan University**
 
 **Faculty of Humanities and Social Sciences**
 
-<!-- logo: place figures/tu-logo.png here if the college template requires it -->
+**A PROJECT REPORT**
 
-A Project Report
+**ON**
 
-On
+**{{short_title}}**
 
-**{{title}}**
+**A Multi-Tenant Support Ticket Management System with Automated Prioritization, Agent Assignment, Duplicate Detection, SLA Monitoring, Integrations, and Analytics**
 
 Submitted to
 
-Department of Computer Application
+{{department}}
 
 {{college}}
 
 {{college_address}}
 
-In partial fulfillment of the requirements for the Bachelor in Computer Application (BCA), Course CACS452 Project III
+In partial fulfillment of the requirements for the Bachelor in Computer Application (CACS452 Project III)
 
 Submitted by
 
-**{{author}}** ({{roll}})
+{{author}}, {{roll}}
+
+{{author2}}, {{roll2}}
+
+{{semester}}
 
 Under the Supervision of
 
 **{{supervisor}}**
-
-{{month_year}}
 :::

@@ -16,13 +16,13 @@ Table 3.1: Functional requirements by module
 
 | Module | Requirement |
 |---|---|
-| Tenancy | Create, suspend and reactivate tenants; resolve the tenant of every request from its host; seed default roles, categories, SLA policy, calendar and settings |
+| Tenancy | Create, suspend and reactivate tenants; take the tenant of every request from the signed-in session or API client, never from the host name or a header; seed default roles, categories, SLA policy, calendar and settings |
 | Identity | Log in with email and password; invite users; assign tenant-scoped roles made of granular permissions; enforce a permission on every endpoint |
 | Contacts | Manage contacts and organisations with customer tier, tags and external identifiers |
 | Agents | Manage teams, skills with levels, categories with required skills, agent capacity, availability and shifts |
 | Tickets | Create tickets; move them through the lifecycle; add public replies and internal notes; attach files; record history; list, filter, sort and search |
 | Automation | Score priority; assign agents; suggest duplicates; show an explanation for every automatic decision |
-| SLA | Define policies and business calendars; run first-response and resolution timers; pause while pending; warn, detect breaches and escalate |
+| SLA | Define policies and business calendars; run first-response and resolution timers; pause while pending; warn before and detect breaches, notifying the assignee and managers |
 | Media | Store every file in a tenant library with folders, tags, thumbnails and a storage quota |
 | Email | Send DKIM-signed notification emails; convert customer replies into comments and new emails into tickets |
 | Notifications | In-app and email notifications for assignment, replies, SLA warnings and breaches |
@@ -83,89 +83,97 @@ Table 3.6: Non-functional requirements
 
 ### 3.1.2 Feasibility Analysis
 
-**i. Technical feasibility.** All components are mature open-source software: Laravel 13 on PHP 8.5 [@laravel13], React 19 with the TanStack libraries [@react; @tanstack], PostgreSQL 18, Valkey, RustFS object storage and the Stalwart mail server. They run together in Docker Compose on one virtual machine with two virtual CPUs and 4 GB of memory, which was confirmed during development.
+**i. Technical feasibility.** All components are mature open-source software: Laravel 13 on PHP 8.5 [@laravel13], React 19 with the TanStack libraries [@react; @tanstack], PostgreSQL 18, Valkey, RustFS object storage and the Stalwart mail server. They run together in Docker Compose on one virtual machine; the live deployment uses an Amazon Web Services t3.small instance with two virtual CPUs, 2 GB of memory and 4 GB of swap, provisioned with OpenTofu and configured with Ansible.
 
 **ii. Operational feasibility.** The system follows the workflow support teams already use and adds explanations to every automatic decision so that agents can trust or override it. Administrators configure the algorithms through forms with live previews rather than code.
 
-**iii. Economic feasibility.** No software licence is required. A single virtual machine of the required size costs roughly US$8–35 per month depending on the provider, and on-premise installations use existing hardware. Development used free tools.
+**iii. Economic feasibility.** No software licence is required. A single virtual machine of the required size costs roughly US$8–35 per month depending on the provider, and on-premise installations use existing hardware. The demonstration deployment runs on cloud credits, outbound mail uses a free relay plan, and development used free tools.
 
-**iv. Schedule feasibility.** The work was divided into 57 tasks across three milestones with an explicit dependency graph. With four parallel development tracks and continuous sessions of about sixteen hours a day, the plan computes to about seven working days plus buffer; a documented cut list protects the deadline if the estimates prove optimistic.
+**iv. Schedule feasibility.** The work was planned as tasks with an explicit dependency graph on four parallel tracks (backend platform, frontend, infrastructure and quality, algorithms and reporting), grouped into four milestones that each ended with a working, tested system; a documented cut list protected the deadline. Table 3.7 and Figure 3.3 show the schedule as it was executed, taken from the project's version-control history.
 
-Table 3.7: Schedule of milestones
+Table 3.7: Project schedule
 
-| Milestone | Effort (days) | Main risk | Mitigation |
-|---|---|---|---|
-| 1 Foundation | <<pending>> | tenancy integration | isolation test suite from the first day |
-| 2 Core product | <<pending>> | algorithm complexity | algorithms built as pure classes with tests first |
-| 3 Hardening and evaluation | <<pending>> | deployment and mail setup | time boxes and fallbacks |
+| S.N. | Phase | Start | End | Duration (days) |
+|---|---|---|---|---|
+| 1 | Research, requirement analysis and feasibility | 17 Sep 2026 | 17 Sep 2026 | 1 |
+| 2 | Architecture, system design and task planning | 17 Sep 2026 | 17 Sep 2026 | 1 |
+| 3 | Milestone 1: foundation (tenancy, identity, design system) | 18 Sep 2026 | 18 Sep 2026 | 1 |
+| 4 | Milestone 2: core product and the four algorithms | 18 Sep 2026 | 21 Sep 2026 | 4 |
+| 5 | Milestone 3: hardening, integrations, mail and deployment | 21 Sep 2026 | 22 Sep 2026 | 2 |
+| 6 | Milestone 4: user experience redesign | 23 Sep 2026 | 24 Sep 2026 | 2 |
+| 7 | Algorithm experiments and result analysis | 21 Sep 2026 | 21 Sep 2026 | 1 |
+| 8 | End-to-end testing and demonstration rehearsal | 22 Sep 2026 | 24 Sep 2026 | 3 |
+| 9 | Report drafting and finalisation | 17 Sep 2026 | 25 Sep 2026 | 9 |
+
+![Figure 3.3: Gantt chart of the project schedule](figures/gantt.png)
 
 ### 3.1.3 Object Modelling using Class and Object Diagrams
 
-The domain model (Figure 3.3) is centred on **Ticket**. A Ticket belongs to one Tenant, is requested by one Contact (which may belong to an Organisation with a customer tier), is classified by one Category, and may be assigned to one Team and one AgentProfile. A Ticket has many Comments, many ticket events (history), many Assignments, two SlaTimers, many DuplicateSuggestions and many linked MediaItems. A Category requires Skills; an AgentProfile belongs to a User, holds Skills with a level, belongs to Teams and has Shifts. An SlaPolicy has SlaTargets per priority level and may use a BusinessCalendar with Holidays. A MediaItem lives in a MediaFolder and can be linked to tickets, comments or branding. Integration classes are WebhookSubscription, WebhookDelivery and ApiClient; InboundEmail records received messages. For reporting, EntityChange records every change of a reportable entity, TicketInterval describes a continuous period of a ticket's state, TicketFact summarises a ticket's lifecycle, DailySnapshot stores end-of-day values, and ReportDefinition describes a catalogue report.
+The domain model (Figure 3.4) is centred on **Ticket**. A Ticket belongs to one Tenant, is requested by one Contact (which may belong to an Organisation with a customer tier), is classified by one Category, and may be assigned to one Team and one AgentProfile. A Ticket has many Comments, many ticket events (history), many Assignments, two SlaTimers, many DuplicateSuggestions and many linked MediaItems. A Category requires Skills; an AgentProfile belongs to a User, holds Skills with a level, belongs to Teams and has Shifts. An SlaPolicy has SlaTargets per priority level and may use a BusinessCalendar with Holidays. A MediaItem lives in a MediaFolder and can be linked to tickets, comments or branding. Integration classes are WebhookSubscription, WebhookDelivery and ApiClient; InboundEmail records received messages. For reporting, EntityChange records every change of a reportable entity, TicketInterval describes a continuous period of a ticket's state, TicketFact summarises a ticket's lifecycle, DailySnapshot stores end-of-day values, and ReportDefinition describes a catalogue report.
 
-![Figure 3.3: Class diagram of the domain model](figures/class-domain.png)
+![Figure 3.4: Class diagram of the domain model](figures/class-domain.png)
 
-Figure 3.4 shows an object diagram for a seeded tenant "Acme": ticket #1042 requested by contact Ravi of organisation Globex (tier premium), in category Billing requiring skills billing and refunds, assigned to agent Asha of team Finance Support, with a resolution timer of 8 hours under the policy "Default" using the calendar "Kathmandu office hours".
+Figure 3.5 shows an object diagram for a seeded tenant "Acme": ticket #1042 requested by contact Ravi of organisation Globex (tier premium), in category Billing requiring skills billing and refunds, assigned to agent Asha of team Finance Support, with a resolution timer of 8 hours under the policy "Default" using the calendar "Kathmandu office hours".
 
-![Figure 3.4: Object diagram of a seeded ticket](figures/object-ticket.png)
+![Figure 3.5: Object diagram of a seeded ticket](figures/object-ticket.png)
 
 ### 3.1.4 Dynamic Modelling using State and Sequence Diagrams
 
-The ticket lifecycle (Figure 3.5) has six states. A new ticket is open; assignment moves it to assigned; work moves it to in progress; waiting for the customer moves it to pending; resolution requires a resolution comment; a resolved ticket is closed manually or automatically, and can be reopened within the reopen window. Any other transition is rejected by the server.
+The ticket lifecycle (Figure 3.6) has six states. A new ticket is open; assignment moves it to assigned; work moves it to in progress; waiting for the customer moves it to pending; resolution requires a resolution comment; a resolved ticket is closed manually or automatically, and can be reopened within the reopen window. Any other transition is rejected by the server.
 
-![Figure 3.5: State diagram of the ticket lifecycle](figures/state-ticket.png)
+![Figure 3.6: State diagram of the ticket lifecycle](figures/state-ticket.png)
 
-Each ticket also has SLA timers that run concurrently with the lifecycle (Figure 3.6). A timer is running, paused, in warning, breached, met or cancelled; the two state machines interact only through events such as "ticket became pending" and "first public reply".
+Each ticket also has SLA timers that run concurrently with the lifecycle (Figure 3.7). A timer is running, paused, in warning, breached, met or cancelled; the two state machines interact only through events such as "ticket became pending" and "first public reply".
 
-![Figure 3.6: State diagram of an SLA timer](figures/state-sla.png)
+![Figure 3.7: State diagram of an SLA timer](figures/state-sla.png)
 
-Figure 3.7 shows the sequence of creating a ticket, in which the create-ticket action calls the priority, SLA, duplicate and assignment strategies inside one database transaction and publishes events after commit. Figure 3.8 shows tenant resolution and login, Figure 3.9 the SLA sweep, Figure 3.10 webhook delivery with retries and Figure 3.11 processing of an inbound email.
+Figure 3.8 shows the sequence of creating a ticket, in which the create-ticket action calls the priority, SLA, duplicate and assignment strategies inside one database transaction and publishes events after commit. Figure 3.9 shows tenant resolution and login, Figure 3.10 the SLA sweep, Figure 3.11 webhook delivery with retries and Figure 3.12 processing of an inbound email.
 
-![Figure 3.7: Sequence diagram of ticket creation with automation](figures/seq-create-ticket.png)
+![Figure 3.8: Sequence diagram of ticket creation with automation](figures/seq-create-ticket.png)
 
-![Figure 3.8: Sequence diagram of login and tenant resolution](figures/seq-login.png)
+![Figure 3.9: Sequence diagram of login and tenant resolution](figures/seq-login.png)
 
-![Figure 3.9: Sequence diagram of the SLA evaluation sweep](figures/seq-sla-sweep.png)
+![Figure 3.10: Sequence diagram of the SLA evaluation sweep](figures/seq-sla-sweep.png)
 
-![Figure 3.10: Sequence diagram of webhook delivery](figures/seq-webhook.png)
+![Figure 3.11: Sequence diagram of webhook delivery](figures/seq-webhook.png)
 
-![Figure 3.11: Sequence diagram of inbound email processing](figures/seq-inbound-email.png)
+![Figure 3.12: Sequence diagram of inbound email processing](figures/seq-inbound-email.png)
 
 ### 3.1.5 Process Modelling using Activity Diagrams
 
-Figure 3.12 shows the agent assignment activity, including the case where no agent is eligible. Figure 3.13 shows duplicate detection from word extraction to the threshold decision. Figure 3.14 shows the hourly re-evaluation of open tickets, and Figure 3.15 the routing of an inbound email to a comment, a new ticket or rejection.
+Figure 3.13 shows the agent assignment activity, including the case where no agent is eligible. Figure 3.14 shows duplicate detection from word extraction to the threshold decision. Figure 3.15 shows the hourly re-evaluation of open tickets, and Figure 3.16 the routing of an inbound email to a comment, a new ticket or rejection.
 
-![Figure 3.12: Activity diagram of agent assignment](figures/act-assignment.png)
+![Figure 3.13: Activity diagram of agent assignment](figures/act-assignment.png)
 
-![Figure 3.13: Activity diagram of duplicate detection](figures/act-duplicates.png)
+![Figure 3.14: Activity diagram of duplicate detection](figures/act-duplicates.png)
 
-![Figure 3.14: Activity diagram of hourly priority re-evaluation](figures/act-reevaluate.png)
+![Figure 3.15: Activity diagram of hourly priority re-evaluation](figures/act-reevaluate.png)
 
-![Figure 3.15: Activity diagram of inbound email routing](figures/act-inbound.png)
+![Figure 3.16: Activity diagram of inbound email routing](figures/act-inbound.png)
 
 ## 3.2 System Design
 
 ### 3.2.1 Refinement of Class, Object, State, Sequence and Activity Diagrams
 
-The analysis classes were refined into implementation classes organised by module. Algorithms became strategy interfaces (`PriorityStrategy`, `AssignmentStrategy`, `DuplicateStrategy`, `SlaStrategy`) with baseline implementations (`BasicWeightedPriority`, `LeastLoadedAgent`, `JaccardDuplicates`, `SimpleSlaTimer`) and helper classes (`WorkingHoursCalendar`, `ReplyParser`) that receive plain input objects and return result objects containing an explanation. Write operations became single-purpose action classes (`CreateTicket`, `AssignTicket`, `TransitionTicket`, `AddComment`, `RegisterUpload`) that run inside transactions and publish events. The ticket state diagram became an enumeration with a transition table, and the SLA state diagram became a table-driven transition function. Figure 3.16 shows the refined class diagram of the automation module.
+The analysis classes were refined into implementation classes organised by module. Algorithms became strategy interfaces (`PriorityStrategy`, `AssignmentStrategy`, `DuplicateStrategy`, `SlaStrategy`) with baseline implementations (`BasicWeightedPriority`, `LeastLoadedAgent`, `JaccardDuplicates`, `SimpleSlaTimer`) and helper classes (`WorkingHoursCalendar`, `ReplyParser`) that receive plain input objects and return result objects containing an explanation. Write operations became single-purpose action classes (`CreateTicket`, `AssignTicket`, `TransitionTicket`, `AddComment`, `RegisterUpload`) that run inside transactions and publish events. The ticket state diagram became an enumeration with a transition table, and the SLA state diagram became a table-driven transition function. Figure 3.17 shows the refined class diagram of the automation module.
 
-![Figure 3.16: Replaceable algorithm strategies and their baseline implementations](figures/class-automation.png)
+![Figure 3.17: Replaceable algorithm strategies and their baseline implementations](figures/class-automation.png)
 
-The database design follows the refined classes (Figure 3.17). Every tenant-owned table has a `tenant_id` column and a row-level security policy; primary keys are UUID version 7; ticket numbers are allocated per tenant under a row lock; a generated full-text vector and trigram indexes support search and duplicate candidate retrieval.
+The database design follows the refined classes (Figure 3.18). Every tenant-owned table has a `tenant_id` column and a row-level security policy; primary keys are UUID version 7; ticket numbers are allocated per tenant under a row lock; a generated full-text vector and trigram indexes support search and duplicate candidate retrieval.
 
-![Figure 3.17: Entity relationship diagram](figures/er-full.png)
+![Figure 3.18: Entity relationship diagram](figures/er-full.png)
 
 ### 3.2.2 Component Diagrams
 
-The backend is a modular monolith (Figure 3.18): Platform, Tenancy, Identity, Contacts, Agents, Tickets, SLA, Automation, Media, Mail, Notifications, Integrations, Reporting and Audit. Dependencies point in one direction; notification, integration, analytics and audit components only react to events or read data. The frontend is a single-page application divided into feature components (tickets, contacts, agents, SLA, automation settings, media, reports, dashboard, integrations) on top of a shared design system.
+The backend is a modular monolith (Figure 3.19): Platform, Tenancy, Identity, Contacts, Agents, Tickets, SLA, Automation, Media, Mail, Notifications, Integrations, Reporting and Audit. Dependencies point in one direction; notification, integration, analytics and audit components only react to events or read data. The frontend is a single-page application divided into feature components (tickets, contacts, agents, SLA, automation settings, media, reports, dashboard, integrations) on top of a shared design system.
 
-![Figure 3.18: Component diagram](figures/component.png)
+![Figure 3.19: Component diagram](figures/component.png)
 
 ### 3.2.3 Deployment Diagrams
 
-Figure 3.19 shows the deployment on one virtual machine. The platform is published under shp.subhambhandari.com.np with separate hosts for the application (app), API (api), platform administration (admin), monitoring (monitor), documentation (docs), file storage (files) and mail (mail); organisations are workspaces within the application's address, and the organisation of each request is taken from the user's session or the API client, never from the address. A Caddy reverse proxy terminates TLS for the fixed application hosts (application, API, administration, monitoring, documentation, files and mail under shp.subhambhandari.com.np) and serves the application; the PHP application, queue workers and scheduler run from one container image; PostgreSQL, Valkey, RustFS and the Stalwart mail server run as separate containers on an internal network. The same arrangement is used on a developer workstation, on an organisation's own server and on a virtual machine from any cloud provider; Ansible configures the host.
+Figure 3.20 shows the deployment on one virtual machine. The platform is published under shp.subhambhandari.com.np with separate hosts for the application (app), API (api), platform administration (admin), monitoring (monitor), documentation (docs), file storage (files) and mail (mail); organisations are workspaces within the application's address, and the organisation of each request is taken from the user's session or the API client, never from the address. A Caddy reverse proxy terminates TLS for the fixed application hosts (application, API, administration, monitoring, documentation, files and mail under shp.subhambhandari.com.np) and serves the application; the PHP application, queue workers and scheduler run from one container image; PostgreSQL, Valkey, RustFS and the Stalwart mail server run as separate containers on an internal network. The same arrangement is used on a developer workstation, on an organisation's own server and on a virtual machine from any cloud provider; Ansible configures the host.
 
-![Figure 3.19: Deployment diagram](figures/deployment.png)
+![Figure 3.20: Deployment diagram](figures/deployment.png)
 
 ## 3.3 Algorithm Details
 
@@ -215,7 +223,7 @@ The cost is O(A log A) for A agents. For example, if Asha and Chen both have 3 o
 
 ### 3.3.3 Duplicate detection: Jaccard word overlap
 
-Following the first duplicate-report detectors, which compared the words of a new report with existing reports [@runeson2007], each ticket is reduced to a set of words: the title and description are lower-cased, split on characters other than letters, digits and hyphens, and stripped of stop words and words shorter than three characters. Two sets are compared with the Jaccard similarity [@manning2008]:
+Following the first duplicate-report detectors, which compared the words of a new report with existing reports [@runeson2007], each ticket is reduced to a set of words: the title and description are lower-cased, split on characters other than letters, digits and hyphens, and stripped of a fixed list of 117 stop words and of words shorter than three characters; hyphens are kept so that error codes such as `err-401` survive, and any Unicode letter counts, so Devanagari words stay whole. Two sets are compared with the Jaccard similarity [@manning2008]:
 
 ```text
 J(A, B) = |A ∩ B| ÷ |A ∪ B|
@@ -235,7 +243,7 @@ For "Cannot login after password reset" against "Login fails after resetting pas
 Each ticket has a first-response timer and a resolution timer, each a small state machine [@harel1987] with the states running, paused, warning, breached, met and cancelled. Deadlines are computed through a calendar that counts either all hours or only the organisation's working hours.
 
 ```text
-start:            due ← cal.add(now, target); warn ← cal.add(now, 0.75 × target)
+start:            due ← cal.add(now, target); warn ← cal.add(now, f × target)   // f: the policy's warning fraction, default 0.75
 enter pending:    paused_at ← now
 leave pending:    d ← cal.elapsed(paused_at, now); due ← cal.add(due, d); warn ← cal.add(warn, d)
 priority change:  due ← cal.add(started_at, new target + paused time)

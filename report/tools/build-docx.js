@@ -10,7 +10,9 @@
  * Sources: <target>/NN-*.md in name order. Files named 00-*.md form the front matter.
  * Markdown subset: # / ## / ### / #### headings, paragraphs, - and 1. lists, pipe tables,
  * fenced code, ![Figure x.y: caption](figures/file.png), "Table x.y: caption" lines before a table,
- * **bold**, *italic*, `code`, [@key] citations, <!-- pagebreak -->, ::: center ... ::: blocks.
+ * **bold**, *italic*, `code`, [@key] citations, <!-- pagebreak -->, ::: center ... ::: blocks,
+ * <!-- same-page --> (the next # heading does not start a new page) and <!-- table: plain --> (the next
+ * table has no borders, shading or header row: signature grids), `<br>` inside table cells.
  */
 const fs = require('fs');
 const path = require('path');
@@ -20,8 +22,6 @@ const target = process.argv[2] || 'university';
 const final = process.argv.includes('--final');
 const root = path.resolve(__dirname, '..');
 const srcDir = path.join(root, target);
-const outDir = path.join(root, 'out');
-fs.mkdirSync(outDir, { recursive: true });
 
 const FONT = 'Times New Roman';
 const PT = (n) => n * 2; // half-points
@@ -32,6 +32,9 @@ const files = fs.readdirSync(srcDir).filter((f) => /^\d\d-.*\.md$/.test(f)).sort
 if (!files.length) { console.error(`no sources in ${srcDir}`); process.exit(1); }
 const refs = JSON.parse(fs.readFileSync(path.join(srcDir, 'references.json'), 'utf8'));
 const meta = JSON.parse(fs.readFileSync(path.join(srcDir, 'metadata.json'), 'utf8'));
+// Where the .docx goes: `output_dir` in metadata.json (relative to report/), else report/out.
+const outDir = path.resolve(root, meta.output_dir || 'out');
+fs.mkdirSync(outDir, { recursive: true });
 
 let text = {};
 for (const f of files) text[f] = fs.readFileSync(path.join(srcDir, f), 'utf8');
@@ -99,14 +102,16 @@ let numCounter = 0;
 const figures = []; const tables = [];
 const CONTENT_WIDTH = 11906 - 1800 - 1440; // A4 width minus margins (DXA)
 
-function imageBlock(caption, rel) {
+function imageBlock(caption, target) {
+  // `![](figures/tu-logo.png =110)`: an optional width in pixels after the path.
+  const [rel, size] = target.split(/\s+=/);
   const file = path.join(srcDir, rel);
   const blocks = [];
   if (fs.existsSync(file) && /\.(png|jpe?g)$/i.test(file)) {
     const buf = fs.readFileSync(file);
     let w = 600, h = 400;
     if (/\.png$/i.test(file)) { w = buf.readUInt32BE(16); h = buf.readUInt32BE(20); }
-    const maxW = 560; const maxH = 760; const scale = Math.min(1, maxW / w, maxH / h);  // fits A4 content area with caption
+    const maxW = size ? Number(size) : 560; const maxH = 760; const scale = Math.min(maxW / w, maxH / h, size ? Infinity : 1);
     blocks.push(new d.Paragraph({ alignment: d.AlignmentType.CENTER, keepNext: true, children: [
       new d.ImageRun({ type: /\.png$/i.test(file) ? 'png' : 'jpg', data: buf,
         transformation: { width: Math.round(w * scale), height: Math.round(h * scale) } })] }));
@@ -118,30 +123,44 @@ function imageBlock(caption, rel) {
       children: [new d.TextRun({ text: `[Figure to be inserted: ${rel}]`, font: FONT, size: PT(11), italics: true, color: '555555' })],
     }));
   }
+  // An image without a caption (the university logo on the cover) is not a figure: no caption, no list entry.
+  if (!caption) return blocks;
   figures.push(caption);
-  blocks.push(new d.Paragraph({ alignment: d.AlignmentType.CENTER, spacing: { after: 240 },
+  blocks.push(new d.Paragraph({ style: 'FigureCaption', alignment: d.AlignmentType.CENTER, spacing: { after: 240 },
     children: runs(caption, { bold: true }) }));
   return blocks;
 }
 
-function tableBlock(rows) {
+function tableBlock(rows, { plain = false } = {}) {
   const cells = rows.map((r) => r.replace(/^\||\|$/g, '').split('|').map((c) => c.trim()));
+  // A plain table (signature grid) has no header row: every row is body, centred, without lines.
   const header = cells[0];
-  const body = cells.slice(2);
+  const body = plain ? [cells[0], ...cells.slice(2)] : cells.slice(2);
   const n = header.length;
+  // Column widths follow the longest text in each column (a narrow "S.N." next to a wide "Test"), each
+  // at least an eighth of the width, so wide tables stay readable without horizontal squeeze.
+  const textOf = (c) => c.replace(/\*\*|`|<br>/g, ' ');
+  const longest = Array.from({ length: n }, (_, k) => Math.max(4, ...cells.filter((r, idx) => idx !== 1).map((r) =>
+    Math.max(...textOf(r[k] || '').split(' ').map((w) => w.length), Math.min(textOf(r[k] || '').length, 40)))));
+  const total = longest.reduce((a, b) => a + b, 0);
+  const widths = longest.map((l) => Math.max(Math.floor(CONTENT_WIDTH / 8), Math.floor((CONTENT_WIDTH * l) / total)));
+  const scaleW = CONTENT_WIDTH / widths.reduce((a, b) => a + b, 0);
+  for (let k = 0; k < n; k++) widths[k] = Math.floor(widths[k] * scaleW);
   const colW = Math.floor(CONTENT_WIDTH / n);
-  const widths = Array(n).fill(colW);
-  const border = { style: d.BorderStyle.SINGLE, size: 4, color: '000000' };
-  const mk = (row, isHead) => new d.TableRow({ tableHeader: isHead, cantSplit: true, children: row.map((c) =>
+  const border = plain ? { style: d.BorderStyle.NONE, size: 0, color: 'FFFFFF' } : { style: d.BorderStyle.SINGLE, size: 4, color: '000000' };
+  const mk = (row, isHead) => new d.TableRow({ tableHeader: isHead, cantSplit: true, children: row.map((c, k) =>
     new d.TableCell({
-      width: { size: colW, type: d.WidthType.DXA },
+      width: { size: widths[k], type: d.WidthType.DXA },
       borders: { top: border, left: border, bottom: border, right: border },
       shading: isHead ? { type: d.ShadingType.CLEAR, fill: 'E7E6E6', color: 'auto' } : undefined,
       margins: { top: 40, bottom: 40, left: 80, right: 80 },
-      children: [new d.Paragraph({ children: runs(c, { size: PT(10), bold: isHead || undefined }), spacing: { line: 240 } })],
+      // `<br>` splits a cell into lines (the signature blocks of the approval letter).
+      children: c.split(/<br>/).map((line) => new d.Paragraph({ alignment: plain ? d.AlignmentType.CENTER : undefined,
+        children: runs(line.trim(), { size: PT(plain ? 12 : 11), bold: isHead || undefined }), spacing: { line: 276 } })),
     })) });
-  return new d.Table({ width: { size: colW * n, type: d.WidthType.DXA }, columnWidths: widths,
-    alignment: d.AlignmentType.CENTER, rows: [mk(header, true), ...body.filter((r) => r.length === n || r.length > 0).map((r) => {
+  void colW;
+  return new d.Table({ width: { size: widths.reduce((a, b) => a + b, 0), type: d.WidthType.DXA }, columnWidths: widths,
+    alignment: d.AlignmentType.CENTER, rows: [...(plain ? [] : [mk(header, true)]), ...body.filter((r) => r.length === n || r.length > 0).map((r) => {
       while (r.length < n) r.push(''); return mk(r.slice(0, n), false); })] });
 }
 
@@ -149,13 +168,15 @@ function tableBlock(rows) {
 function blocksFrom(md, { chapterBreaks = true } = {}) {
   const lines = md.split('\n');
   const out = [];
-  let i = 0; let firstH1 = true; let center = false;
+  let i = 0; let firstH1 = true; let center = false; let samePage = false; let plainTable = false;
   while (i < lines.length) {
     const line = lines[i];
     if (!line.trim()) { i++; continue; }
     if (line.trim() === '<!-- pagebreak -->') { out.push(new d.Paragraph({ children: [new d.PageBreak()] })); i++; continue; }
     if (line.startsWith('::: center')) { center = true; i++; continue; }
     if (line.startsWith(':::')) { center = false; i++; continue; }
+    if (line.trim() === '<!-- same-page -->') { samePage = true; i++; continue; }
+    if (line.trim() === '<!-- table: plain -->') { plainTable = true; i++; continue; }
     if (line.startsWith('<!--')) { while (i < lines.length && !lines[i].includes('-->')) i++; i++; continue; }
     const h = line.match(/^(#{1,4}) (.*)$/);
     if (h) {
@@ -163,12 +184,12 @@ function blocksFrom(md, { chapterBreaks = true } = {}) {
       const size = [16, 14, 12, 12][level - 1];
       const heading = [d.HeadingLevel.HEADING_1, d.HeadingLevel.HEADING_2, d.HeadingLevel.HEADING_3, d.HeadingLevel.HEADING_4][level - 1];
       out.push(new d.Paragraph({
-        heading, keepNext: true, pageBreakBefore: level === 1 && chapterBreaks && !firstH1,
+        heading, keepNext: true, pageBreakBefore: level === 1 && chapterBreaks && !firstH1 && !samePage,
         alignment: level === 1 ? d.AlignmentType.CENTER : d.AlignmentType.LEFT,
         spacing: { before: level === 1 ? 0 : 240, after: 120, line: LINE_15 },
         children: [new d.TextRun({ text: h[2], font: FONT, size: PT(size), bold: true, color: '000000' })],
       }));
-      if (level === 1) firstH1 = false;
+      if (level === 1) { firstH1 = false; samePage = false; }
       i++; continue;
     }
     if (line.startsWith('```')) {
@@ -182,16 +203,17 @@ function blocksFrom(md, { chapterBreaks = true } = {}) {
     }
     const img = line.match(/^!\[([^\]]*)\]\(([^)]+)\)\s*$/);
     if (img) { out.push(...imageBlock(img[1], img[2])); i++; continue; }
-    if (/^Table \d+(\.\d+)?:/.test(line.trim())) {
+    if (/^Table ([A-Z]\.)?\d+(\.\d+)?:/.test(line.trim())) {
       tables.push(line.trim());
-      out.push(new d.Paragraph({ alignment: d.AlignmentType.CENTER, keepNext: true, spacing: { before: 120, after: 60 },
+      out.push(new d.Paragraph({ style: 'TableCaption', alignment: d.AlignmentType.CENTER, keepNext: true, spacing: { before: 120, after: 60 },
         children: runs(line.trim(), { bold: true }) }));
       i++; continue;
     }
     if (line.startsWith('|')) {
       const rows = [];
       while (i < lines.length && lines[i].startsWith('|')) rows.push(lines[i++]);
-      out.push(tableBlock(rows));
+      out.push(tableBlock(rows, { plain: plainTable }));
+      plainTable = false;
       out.push(new d.Paragraph({ spacing: { after: 120 }, children: [] }));
       continue;
     }
@@ -211,7 +233,7 @@ function blocksFrom(md, { chapterBreaks = true } = {}) {
       continue;
     }
     const buf = [];
-    while (i < lines.length && lines[i].trim() && !/^(#|```|\||!\[|\s*- |\d+\. |:::|<!--)/.test(lines[i]) && !/^Table \d/.test(lines[i])) buf.push(lines[i++].trim());
+    while (i < lines.length && lines[i].trim() && !/^(#|```|\||!\[|\s*- |\d+\. |:::|<!--)/.test(lines[i]) && !/^Table ([A-Z]\.)?\d+(\.\d+)?:/.test(lines[i].trim())) buf.push(lines[i++].trim());
     out.push(para(runs(buf.join(' ')), center ? { alignment: d.AlignmentType.CENTER } : {}));
   }
   return out;
@@ -245,14 +267,18 @@ const listHeading = (t) => new d.Paragraph({ heading: d.HeadingLevel.HEADING_1, 
   children: [new d.TextRun({ text: t, font: FONT, size: PT(16), bold: true, color: '000000' })] });
 preBlocks.push(listHeading('Table of Contents'));
 preBlocks.push(new d.TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-3' }));
-preBlocks.push(new d.Paragraph({ children: [new d.TextRun({ text: 'Right-click the table and choose Update Field if page numbers are missing.', font: FONT, size: PT(9), italics: true, color: '777777' })] }));
+// No on-page hint to update fields: `updateFields` makes Word offer it on opening, and the hint would print.
+// The lists are Word fields over the caption styles, like the table of contents, so they carry page
+// numbers once Word updates the fields on opening (as the old reports' lists do).
 if (figures.length) {
   preBlocks.push(listHeading('List of Figures'));
-  figures.forEach((c) => preBlocks.push(new d.Paragraph({ spacing: { line: LINE_15, after: 0 }, children: runs(c) })));
+  preBlocks.push(new d.TableOfContents('List of Figures', { hyperlink: true,
+    stylesWithLevels: [new d.StyleLevel('Figure Caption', 1)] }));
 }
 if (tables.length) {
   preBlocks.push(listHeading('List of Tables'));
-  tables.forEach((c) => preBlocks.push(new d.Paragraph({ spacing: { line: LINE_15, after: 0 }, children: runs(c) })));
+  preBlocks.push(new d.TableOfContents('List of Tables', { hyperlink: true,
+    stylesWithLevels: [new d.StyleLevel('Table Caption', 1)] }));
 }
 const abbrevFile = path.join(srcDir, 'abbreviations.md');
 if (fs.existsSync(abbrevFile)) {
@@ -288,6 +314,11 @@ const doc = new d.Document({
         run: { font: FONT, size: PT(12), bold: true, color: '000000' }, paragraph: { outlineLevel: 2 } },
       { id: 'Heading4', name: 'Heading 4', basedOn: 'Normal', next: 'Normal', quickFormat: true,
         run: { font: FONT, size: PT(12), bold: true, italics: true, color: '000000' }, paragraph: { outlineLevel: 3 } },
+      // Captions: bold 12, centred (figure below, table above). Their own styles feed the two lists.
+      { id: 'FigureCaption', name: 'Figure Caption', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+        run: { font: FONT, size: PT(12), bold: true, color: '000000' }, paragraph: { alignment: d.AlignmentType.CENTER } },
+      { id: 'TableCaption', name: 'Table Caption', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+        run: { font: FONT, size: PT(12), bold: true, color: '000000' }, paragraph: { alignment: d.AlignmentType.CENTER } },
     ],
   },
   sections,
