@@ -33,10 +33,11 @@ report/
 
 ## Build steps
 
-1. `node tools/export-figures.js` writes each manifest diagram to `figures/<id>.mmd` (and PNG when `mmdc` exists); screenshots and plots are copied into `figures/` by their tasks.
+1. `./tools/render-diagrams.sh` renders the report's own diagrams (since the A4 revision they are simplified from the docs diagrams and no longer exported from `docs/`): Mermaid sources with `figures/mermaid.config.json`, the use case diagrams (`tools/usecase-diagrams.py`), the Gantt chart (`tools/gantt-diagram.py`) and the waterfall model (`tools/waterfall-diagram.py`) as SVG rendered by `tools/render-svg.js`; the script reports the printed text size of each. Screenshots (`app-*.png`) come from the demonstration workspace.
 2. `./build.sh` substitutes metadata, numbers citations in order of first use, builds front matter with lower-roman page numbers and chapters with arabic numbers, generates the lists of figures, tables and abbreviations, appends References, Bibliography (uncited entries) and Appendices.
 3. Missing figure files render as labelled placeholders; `--final` refuses to build while any `<<field>>` remains.
-4. Validation: the generated files pass the Office Open XML schema check used during development.
+4. `./tools/paginate.sh` lays the document out with LibreOffice (Docker image from `tools/lo`), records the page of every heading and caption in `university/pages.json` (`tools/measure-pages.py`) and rebuilds until stable, so the contents and lists are written out with page numbers and show in every editor.
+5. Validation: the generated files pass the Office Open XML schema check used during development.
 
 ## Writing rules for the report
 
@@ -44,10 +45,10 @@ report/
 - Every figure and table captioned (`Figure 3.4: …` below figures, `Table 4.2: …` above tables; appendices use their letter, `Figure C.1`) and referenced in text before it appears. Captions carry the `Figure Caption` and `Table Caption` styles that feed the lists.
 - Layout directives: `<!-- pagebreak -->`, `<!-- same-page -->` (next chapter-level heading stays on the page), `<!-- table: plain -->` (borderless signature table), `::: center`.
 - Cite with `[@runeson2007]`; the builder numbers references in IEEE order of first citation.
-- Numbers come from `experiments/results/` and CI reports; never typed by hand.
+- The university report describes testing as manual testing and gives no experiment data (owner decision, 2026-09-25); the experiments remain in `experiments/`.
 - Screenshots follow the demo script order, light theme, 1440 px wide, PNG.
 - Abbreviations are added to `abbreviations.md` on first use.
 
 ## Status
 
-Final: `./build.sh --final` builds `college/report/Project-III-Report-Smart-Helpdesk.docx` (44 figures, 22 tables, 54 references) with every field filled. The `college/` folder also holds the syllabus and the earlier project reports used for structure only.
+Final: `./tools/paginate.sh --final` builds `college/report/Project-III-Report-Smart-Helpdesk.docx`, 55 pages (34 figures, 11 tables, 8 references). The `college/` folder also holds the syllabus and the earlier project reports used for structure only.

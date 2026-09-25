@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="762" viewBox="0 0 900 762" font-family="Arial, 'Liberation Sans', 'DejaVu Sans', sans-serif" fill="#202124">
+<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8" fill="none" stroke="#5f6368" stroke-width="1.5"/></marker></defs>
+<rect x="0" y="0" width="900" height="762" fill="#ffffff"/>
+<rect x="230" y="30" width="470" height="682" rx="14" fill="#f8f9fa" stroke="#5f6368" stroke-width="1.5"/>
+<text x="465.0" y="56" text-anchor="middle" font-size="18" font-weight="bold">Ticket handling</text>
+<line x1="122" y1="140" x2="250.6" y2="121.2" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="140" x2="291.9" y2="253.5" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="420" x2="315.3" y2="141.9" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="420" x2="306.9" y2="226.9" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="420" x2="290.9" y2="310.2" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="420" x2="259.4" y2="385.5" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="420" x2="252.0" y2="441.5" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="420" x2="285.8" y2="512.9" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="420" x2="304.4" y2="595.4" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="480" x2="679.5" y2="465.1" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="480" x2="663.4" y2="519.0" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="650" x2="680.2" y2="636.3" stroke="#80868b" stroke-width="1.4"/>
+<line x1="435.0" y1="110.0" x2="495.0" y2="110.0" stroke="#5f6368" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+<line x1="407.5" y1="133.2" x2="522.5" y2="172.8" stroke="#5f6368" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+<line x1="382.8" y1="139.5" x2="547.2" y2="252.5" stroke="#5f6368" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+<text x="443.0" y="96" font-size="15" fill="#5f6368">«include»</text>
+<ellipse cx="340" cy="110" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="340" y="116.0" text-anchor="middle" font-size="18">Create ticket</text>
+<ellipse cx="340" cy="196" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="340" y="192.0" text-anchor="middle" font-size="18">View and filter</text>
+<text x="340" y="212.0" text-anchor="middle" font-size="18">tickets</text>
+<ellipse cx="340" cy="282" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="340" y="278.0" text-anchor="middle" font-size="18">Reply or add</text>
+<text x="340" y="298.0" text-anchor="middle" font-size="18">internal note</text>
+<ellipse cx="340" cy="368" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="340" y="374.0" text-anchor="middle" font-size="18">Attach file</text>
+<ellipse cx="340" cy="454" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="340" y="460.0" text-anchor="middle" font-size="18">Change status</text>
+<ellipse cx="340" cy="540" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="340" y="546.0" text-anchor="middle" font-size="18">Review duplicates</text>
+<ellipse cx="340" cy="626" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="340" y="622.0" text-anchor="middle" font-size="18">View history and</text>
+<text x="340" y="642.0" text-anchor="middle" font-size="18">SLA</text>
+<ellipse cx="590" cy="110" rx="95.0" ry="33.0" fill="#e6f4ea" stroke="#137333" stroke-width="2"/>
+<text x="590" y="116.0" text-anchor="middle" font-size="18">Score priority</text>
+<ellipse cx="590" cy="196" rx="95.0" ry="33.0" fill="#e6f4ea" stroke="#137333" stroke-width="2"/>
+<text x="590" y="202.0" text-anchor="middle" font-size="18">Auto-assign agent</text>
+<ellipse cx="590" cy="282" rx="95.0" ry="33.0" fill="#e6f4ea" stroke="#137333" stroke-width="2"/>
+<text x="590" y="288.0" text-anchor="middle" font-size="18">Detect duplicates</text>
+<ellipse cx="590" cy="454" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="590" y="460.0" text-anchor="middle" font-size="18">Assign or reassign</text>
+<ellipse cx="590" cy="540" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="590" y="546.0" text-anchor="middle" font-size="18">Override priority</text>
+<ellipse cx="590" cy="626" rx="95.0" ry="33.0" fill="#e6f4ea" stroke="#137333" stroke-width="2"/>
+<text x="590" y="622.0" text-anchor="middle" font-size="18">Evaluate SLA and</text>
+<text x="590" y="642.0" text-anchor="middle" font-size="18">notify</text>
+<circle cx="100" cy="112" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="123" x2="100" y2="153" stroke="#202124" stroke-width="2"/>
+<line x1="82" y1="134" x2="118" y2="134" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="153" x2="86" y2="174" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="153" x2="114" y2="174" stroke="#202124" stroke-width="2"/>
+<text x="100" y="194" text-anchor="middle" font-size="17" font-weight="bold">Contact (email)</text>
+<text x="100" y="214" text-anchor="middle" font-size="17" font-weight="bold">or external</text>
+<text x="100" y="234" text-anchor="middle" font-size="17" font-weight="bold">system</text>
+<circle cx="100" cy="392" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="403" x2="100" y2="433" stroke="#202124" stroke-width="2"/>
+<line x1="82" y1="414" x2="118" y2="414" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="433" x2="86" y2="454" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="433" x2="114" y2="454" stroke="#202124" stroke-width="2"/>
+<text x="100" y="474" text-anchor="middle" font-size="17" font-weight="bold">Support Agent</text>
+<circle cx="800" cy="452" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="463" x2="800" y2="493" stroke="#202124" stroke-width="2"/>
+<line x1="782" y1="474" x2="818" y2="474" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="493" x2="786" y2="514" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="493" x2="814" y2="514" stroke="#202124" stroke-width="2"/>
+<text x="800" y="534" text-anchor="middle" font-size="17" font-weight="bold">Support Manager</text>
+<circle cx="800" cy="622" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="633" x2="800" y2="663" stroke="#202124" stroke-width="2"/>
+<line x1="782" y1="644" x2="818" y2="644" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="663" x2="786" y2="684" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="663" x2="814" y2="684" stroke="#202124" stroke-width="2"/>
+<text x="800" y="704" text-anchor="middle" font-size="17" font-weight="bold">Scheduler</text>
+</svg>

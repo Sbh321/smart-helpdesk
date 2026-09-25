@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="522" viewBox="0 0 860 522" font-family="Arial, 'Liberation Sans', 'DejaVu Sans', sans-serif" fill="#202124">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 z" fill="#3c4043"/></marker></defs>
+<rect width="860" height="522" fill="#ffffff"/>
+<rect x="40" y="30" width="290" height="64" rx="8" fill="#8ab4f8" stroke="#3c4043" stroke-width="1.5"/>
+<text x="185.0" y="58" text-anchor="middle" font-size="19" font-weight="bold">Requirement Analysis</text>
+<text x="185.0" y="81" text-anchor="middle" font-size="16">requirements, use cases, feasibility</text>
+<path d="M330,62.0 L364,62.0 L364,119" fill="none" stroke="#3c4043" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="160" y="122" width="290" height="64" rx="8" fill="#81c995" stroke="#3c4043" stroke-width="1.5"/>
+<text x="305.0" y="150" text-anchor="middle" font-size="19" font-weight="bold">System Design</text>
+<text x="305.0" y="173" text-anchor="middle" font-size="16">UML models, database, architecture</text>
+<path d="M450,154.0 L484,154.0 L484,211" fill="none" stroke="#3c4043" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="280" y="214" width="290" height="64" rx="8" fill="#fdd663" stroke="#3c4043" stroke-width="1.5"/>
+<text x="425.0" y="242" text-anchor="middle" font-size="19" font-weight="bold">Implementation</text>
+<text x="425.0" y="265" text-anchor="middle" font-size="16">modules, algorithms, screens</text>
+<path d="M570,246.0 L604,246.0 L604,303" fill="none" stroke="#3c4043" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="400" y="306" width="290" height="64" rx="8" fill="#f6aea9" stroke="#3c4043" stroke-width="1.5"/>
+<text x="545.0" y="334" text-anchor="middle" font-size="19" font-weight="bold">Testing</text>
+<text x="545.0" y="357" text-anchor="middle" font-size="16">unit and system test cases</text>
+<path d="M690,338.0 L724,338.0 L724,395" fill="none" stroke="#3c4043" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="520" y="398" width="290" height="64" rx="8" fill="#c58af9" stroke="#3c4043" stroke-width="1.5"/>
+<text x="665.0" y="426" text-anchor="middle" font-size="19" font-weight="bold">Deployment and Maintenance</text>
+<text x="665.0" y="449" text-anchor="middle" font-size="16">live server, fixes, report</text>
+</svg>

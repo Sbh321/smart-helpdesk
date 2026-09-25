@@ -11,7 +11,7 @@
 
 **{{short_title}}**
 
-**A Multi-Tenant Support Ticket Management System with Automated Prioritization, Agent Assignment, Duplicate Detection, SLA Monitoring, Integrations, and Analytics**
+**A Multi-Tenant Support Ticket Management System**
 
 Submitted to
 

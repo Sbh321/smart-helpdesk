@@ -1,31 +1,25 @@
-# Figures referenced by the report. Mermaid sources live in ../../docs; render with
-#   pnpm dlx @mermaid-js/mermaid-cli -i <file>.mmd -o <id>.png -b white -s 2
-# (tools/export-figures.js extracts the blocks into .mmd files). Screenshots and plots are added by hand/pipeline.
+# Figures of the report. Since the A4 revision the diagrams are the report's own (source: report): they are
+# simplified from the docs/ diagrams so that their text prints at about 10 pt, and tools/export-figures.js
+# no longer overwrites them. Render everything with tools/render-diagrams.sh:
+#   - <id>.mmd with mermaid.config.json (report font and spacing)
+#   - uc-01, uc-02, gantt and waterfall from tools/usecase-diagrams.py, gantt-diagram.py and waterfall-diagram.py (SVG, rendered by tools/render-svg.js)
+# Screenshots (app-*.png) are captured from the demonstration workspace with the redesigned interface.
 figures:
-  - { id: uc-01, caption: "Use cases: ticket handling and automation", source: docs/02-product/use-cases.md, block: 0 }
-  - { id: uc-02, caption: "Use cases: administration, contacts and reporting", source: docs/02-product/use-cases.md, block: 1 }
-  - { id: class-domain, caption: "Class diagram of the domain model", source: docs/03-architecture/diagrams.md, block: 3 }
-  - { id: object-ticket, caption: "Object diagram of a seeded ticket", source: docs/03-architecture/diagrams.md, block: 5 }
-  - { id: state-ticket, caption: "Ticket lifecycle", source: docs/04-domain/tickets.md, block: 0 }
-  - { id: state-sla, caption: "SLA timer", source: docs/05-algorithms/sla-evaluation.md, block: 0 }
-  - { id: seq-create-ticket, caption: "Ticket creation", source: docs/02-product/user-flows.md, block: 2 }
-  - { id: seq-login, caption: "Login and tenant resolution", source: docs/02-product/user-flows.md, block: 1 }
-  - { id: seq-sla-sweep, caption: "SLA sweep", source: docs/02-product/user-flows.md, block: 3 }
-  - { id: seq-webhook, caption: "Webhook delivery", source: docs/07-api/webhooks.md, block: 0 }
-  - { id: seq-inbound-email, caption: "Inbound email", source: docs/04-domain/email.md, block: 1 }
-  - { id: act-assignment, caption: "Agent assignment", source: docs/05-algorithms/agent-assignment.md, block: 0 }
-  - { id: act-duplicates, caption: "Duplicate detection", source: docs/05-algorithms/duplicate-detection.md, block: 0 }
-  - { id: act-reevaluate, caption: "Hourly re-evaluation", source: docs/03-architecture/diagrams.md, block: 2 }
-  - { id: act-inbound, caption: "Inbound routing", source: docs/04-domain/email.md, block: 0 }
-  - { id: class-automation, caption: "Replaceable algorithm strategies", source: docs/03-architecture/diagrams.md, block: 4 }
-  - { id: er-full, caption: "Entity relationship diagram", source: docs/08-database/entities.md, block: 0 }
-  - { id: component, caption: "Component diagram", source: docs/03-architecture/overview.md, block: 2 }
-  - { id: deployment, caption: "Deployment diagram", source: docs/03-architecture/overview.md, block: 1 }
-  - { id: screen-ticket-list, caption: "Ticket list screen", source: screenshot }
-  - { id: screen-ticket-detail, caption: "Ticket detail", source: screenshot }
-  - { id: screen-automation-settings, caption: "Automation settings", source: screenshot }
-  - { id: screen-dashboard, caption: "Dashboard", source: screenshot }
-  - { id: plot-assignment-loads, caption: "Loads per agent", source: experiments/results/v1/e1-loads.png }
-  - { id: plot-load-spread, caption: "Load spread over time", source: experiments/results/v1/e1-spread.png }
-  - { id: plot-pr-curve, caption: "Precision-recall curve", source: experiments/results/v1/e2-pr-curve.png }
-  - { id: plot-ageing, caption: "Ageing curve", source: experiments/results/v1/e3-ageing.png }
+  - { id: waterfall, caption: "Waterfall model of the development", source: report }
+  - { id: uc-01, caption: "Use case diagram of ticket handling and automation", source: report }
+  - { id: uc-02, caption: "Use case diagram of administration, contacts and reporting", source: report }
+  - { id: gantt, caption: "Gantt chart of the project schedule", source: report }
+  - { id: class-domain, caption: "Class diagram of the domain model", source: report }
+  - { id: object-ticket, caption: "Object diagram of a seeded ticket", source: report }
+  - { id: state-ticket, caption: "State diagram of the ticket lifecycle", source: report }
+  - { id: state-sla, caption: "State diagram of an SLA timer", source: report }
+  - { id: seq-create-ticket, caption: "Sequence diagram of ticket creation", source: report }
+  - { id: seq-sla-sweep, caption: "Sequence diagram of the SLA check", source: report }
+  - { id: seq-inbound-email, caption: "Sequence diagram of inbound email processing", source: report }
+  - { id: act-assignment, caption: "Activity diagram of agent assignment", source: report }
+  - { id: act-duplicates, caption: "Activity diagram of duplicate detection", source: report }
+  - { id: act-inbound, caption: "Activity diagram of inbound email routing", source: report }
+  - { id: class-automation, caption: "Algorithm interfaces and their baseline implementations", source: report }
+  - { id: er-full, caption: "Entity relationship diagram", source: report }
+  - { id: component, caption: "Component diagram", source: report }
+  - { id: deployment, caption: "Deployment diagram", source: report }

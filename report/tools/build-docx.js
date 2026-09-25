@@ -99,7 +99,7 @@ const numbering = {
 let numCounter = 0;
 
 // ---------- figures and tables ----------
-const figures = []; const tables = [];
+const figures = []; const tables = []; const tocEntries = [];
 const CONTENT_WIDTH = 11906 - 1800 - 1440; // A4 width minus margins (DXA)
 
 function imageBlock(caption, target) {
@@ -111,7 +111,7 @@ function imageBlock(caption, target) {
     const buf = fs.readFileSync(file);
     let w = 600, h = 400;
     if (/\.png$/i.test(file)) { w = buf.readUInt32BE(16); h = buf.readUInt32BE(20); }
-    const maxW = size ? Number(size) : 560; const maxH = 760; const scale = Math.min(maxW / w, maxH / h, size ? Infinity : 1);
+    const maxW = size ? Number(size) : 600; const maxH = 800; const scale = Math.min(maxW / w, maxH / h, size ? Infinity : 1);
     blocks.push(new d.Paragraph({ alignment: d.AlignmentType.CENTER, keepNext: true, children: [
       new d.ImageRun({ type: /\.png$/i.test(file) ? 'png' : 'jpg', data: buf,
         transformation: { width: Math.round(w * scale), height: Math.round(h * scale) } })] }));
@@ -165,7 +165,7 @@ function tableBlock(rows, { plain = false } = {}) {
 }
 
 // ---------- block parsing ----------
-function blocksFrom(md, { chapterBreaks = true } = {}) {
+function blocksFrom(md, { chapterBreaks = true, collectToc = false, breakFirst = false } = {}) {
   const lines = md.split('\n');
   const out = [];
   let i = 0; let firstH1 = true; let center = false; let samePage = false; let plainTable = false;
@@ -183,8 +183,9 @@ function blocksFrom(md, { chapterBreaks = true } = {}) {
       const level = h[1].length;
       const size = [16, 14, 12, 12][level - 1];
       const heading = [d.HeadingLevel.HEADING_1, d.HeadingLevel.HEADING_2, d.HeadingLevel.HEADING_3, d.HeadingLevel.HEADING_4][level - 1];
+      if (level <= 3 && collectToc) tocEntries.push({ level, text: h[2] });
       out.push(new d.Paragraph({
-        heading, keepNext: true, pageBreakBefore: level === 1 && chapterBreaks && !firstH1 && !samePage,
+        heading, keepNext: true, pageBreakBefore: level === 1 && chapterBreaks && (!firstH1 || breakFirst) && !samePage,
         alignment: level === 1 ? d.AlignmentType.CENTER : d.AlignmentType.LEFT,
         spacing: { before: level === 1 ? 0 : 240, after: 120, line: LINE_15 },
         children: [new d.TextRun({ text: h[2], font: FONT, size: PT(size), bold: true, color: '000000' })],
@@ -246,8 +247,9 @@ const appendixFiles = files.filter((f) => f.startsWith('9'));
 const coverFile = front.find((f) => f.includes('cover'));
 const preFiles = front.filter((f) => f !== coverFile);
 
-const mainBlocks = main.flatMap((f) => blocksFrom(text[f]));
+const mainBlocks = main.flatMap((f, n) => blocksFrom(text[f], { collectToc: true, breakFirst: n > 0 }));
 // references
+tocEntries.push({ level: 1, text: 'References' });
 mainBlocks.push(new d.Paragraph({ heading: d.HeadingLevel.HEADING_1, pageBreakBefore: true, alignment: d.AlignmentType.CENTER,
   children: [new d.TextRun({ text: 'References', font: FONT, size: PT(16), bold: true, color: '000000' })] }));
 citeOrder.forEach((k, idx) => mainBlocks.push(new d.Paragraph({
@@ -261,29 +263,54 @@ if (unused.length) {
     children: runs(refs[k]) })));
 }
 
-for (const f of appendixFiles) mainBlocks.push(new d.Paragraph({ children: [new d.PageBreak()] }), ...blocksFrom(text[f]));
+for (const f of appendixFiles) mainBlocks.push(new d.Paragraph({ children: [new d.PageBreak()] }), ...blocksFrom(text[f], { collectToc: true }));
 const preBlocks = preFiles.flatMap((f) => blocksFrom(text[f]));
 const listHeading = (t) => new d.Paragraph({ heading: d.HeadingLevel.HEADING_1, pageBreakBefore: true, alignment: d.AlignmentType.CENTER,
   children: [new d.TextRun({ text: t, font: FONT, size: PT(16), bold: true, color: '000000' })] });
+// Table of contents and lists. With `pages.json` (written by tools/paginate.sh from a LibreOffice layout
+// of this document) they are written out in full with page numbers, so every editor shows them, OnlyOffice
+// included; without it they are Word fields that Word fills in when the document is opened.
+const pagesFile = path.join(srcDir, 'pages.json');
+const pages = fs.existsSync(pagesFile) ? JSON.parse(fs.readFileSync(pagesFile, 'utf8')) : null;
+const frontEntries = ["Supervisor's Recommendation", 'Letter of Approval', 'Acknowledgement', 'Abstract', 'List of Figures', 'List of Tables', 'List of Abbreviations'];
+const listLine = (label, page, { level = 1, bold = false } = {}) => new d.Paragraph({
+  tabStops: [{ type: d.TabStopType.RIGHT, position: CONTENT_WIDTH, leader: 'dot' }],
+  indent: { left: (level - 1) * 360 }, spacing: { line: 276, after: level === 1 ? 40 : 10 }, keepLines: true,
+  children: [new d.TextRun({ text: label, font: FONT, size: PT(12), bold }), new d.TextRun({ text: `\t${page ?? ''}`, font: FONT, size: PT(12), bold })],
+});
+fs.mkdirSync(path.join(root, '.build'), { recursive: true });
+fs.writeFileSync(path.join(root, '.build', 'entries.json'), JSON.stringify({
+  front: frontEntries, headings: tocEntries.map((e) => e.text),
+  captions: [...figures, ...tables].map((c) => c.replace(/\*\*/g, '')),
+}, null, 2));
 preBlocks.push(listHeading('Table of Contents'));
-preBlocks.push(new d.TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-3' }));
-// No on-page hint to update fields: `updateFields` makes Word offer it on opening, and the hint would print.
-// The lists are Word fields over the caption styles, like the table of contents, so they carry page
-// numbers once Word updates the fields on opening (as the old reports' lists do).
+if (pages) {
+  for (const t of frontEntries.filter((t) => t !== 'List of Figures' || figures.length).filter((t) => t !== 'List of Tables' || tables.length)) preBlocks.push(listLine(t, pages[t]));
+  for (const e of tocEntries) preBlocks.push(listLine(e.text, pages[e.text], { level: e.level, bold: e.level === 1 }));
+} else {
+  preBlocks.push(new d.TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-3' }));
+}
 if (figures.length) {
   preBlocks.push(listHeading('List of Figures'));
-  preBlocks.push(new d.TableOfContents('List of Figures', { hyperlink: true,
-    stylesWithLevels: [new d.StyleLevel('Figure Caption', 1)] }));
+  if (pages) for (const c of figures) preBlocks.push(listLine(c, pages[c]));
+  else preBlocks.push(new d.TableOfContents('List of Figures', { hyperlink: true, stylesWithLevels: [new d.StyleLevel('Figure Caption', 1)] }));
 }
 if (tables.length) {
   preBlocks.push(listHeading('List of Tables'));
-  preBlocks.push(new d.TableOfContents('List of Tables', { hyperlink: true,
-    stylesWithLevels: [new d.StyleLevel('Table Caption', 1)] }));
+  if (pages) for (const c of tables) preBlocks.push(listLine(c, pages[c]));
+  else preBlocks.push(new d.TableOfContents('List of Tables', { hyperlink: true, stylesWithLevels: [new d.StyleLevel('Table Caption', 1)] }));
 }
 const abbrevFile = path.join(srcDir, 'abbreviations.md');
 if (fs.existsSync(abbrevFile)) {
+  // A plain list, as in the earlier reports: the abbreviation, a tab, its meaning (no table).
   preBlocks.push(listHeading('List of Abbreviations'));
-  preBlocks.push(...blocksFrom(fs.readFileSync(abbrevFile, 'utf8').replace(/^# .*\n/, ''), { chapterBreaks: false }));
+  const rows = fs.readFileSync(abbrevFile, 'utf8').split('\n')
+    .filter((l) => l.startsWith('|') && !/^\|\s*-/.test(l) && !/^\|\s*Abbreviation\s*\|/.test(l))
+    .map((l) => l.replace(/^\||\|$/g, '').split('|').map((c) => c.trim()));
+  for (const [abbr, meaning] of rows) preBlocks.push(new d.Paragraph({
+    tabStops: [{ type: d.TabStopType.LEFT, position: 1800 }], spacing: { line: LINE_15, after: 0 },
+    children: [new d.TextRun({ text: abbr, font: FONT, size: PT(12) }), new d.TextRun({ text: `\t${meaning}`, font: FONT, size: PT(12) })],
+  }));
 }
 
 const pageProps = (fmt, start) => ({
@@ -301,7 +328,7 @@ sections.push({ properties: pageProps(d.NumberFormat.DECIMAL, 1), footers: foote
 const doc = new d.Document({
   creator: meta.author || 'Smart Helpdesk',
   title: meta.title,
-  features: { updateFields: true },
+  features: { updateFields: !pages },
   numbering,
   styles: {
     default: { document: { run: { font: FONT, size: PT(12) }, paragraph: { spacing: { line: LINE_15 } } } },

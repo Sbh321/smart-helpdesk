@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="676" viewBox="0 0 900 676" font-family="Arial, 'Liberation Sans', 'DejaVu Sans', sans-serif" fill="#202124">
+<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8" fill="none" stroke="#5f6368" stroke-width="1.5"/></marker></defs>
+<rect x="0" y="0" width="900" height="676" fill="#ffffff"/>
+<rect x="230" y="30" width="470" height="596" rx="14" fill="#f8f9fa" stroke="#5f6368" stroke-width="1.5"/>
+<text x="465.0" y="56" text-anchor="middle" font-size="18" font-weight="bold">Administration and reporting</text>
+<line x1="122" y1="100" x2="245.7" y2="106.1" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="360" x2="297.0" y2="225.4" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="360" x2="270.6" y2="304.5" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="360" x2="245.4" y2="364.8" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="360" x2="277.0" y2="429.3" stroke="#80868b" stroke-width="1.4"/>
+<line x1="122" y1="560" x2="247.6" y2="547.7" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="140" x2="677.9" y2="122.6" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="140" x2="665.4" y2="175.9" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="360" x2="654.9" y2="306.1" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="360" x2="684.4" y2="364.4" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="360" x2="648.2" y2="427.9" stroke="#80868b" stroke-width="1.4"/>
+<line x1="778" y1="560" x2="681.6" y2="548.7" stroke="#80868b" stroke-width="1.4"/>
+<ellipse cx="340" cy="110" rx="95.0" ry="33.0" fill="#fef7e0" stroke="#b06000" stroke-width="2"/>
+<text x="340" y="116.0" text-anchor="middle" font-size="18">Manage workspaces</text>
+<ellipse cx="340" cy="196" rx="95.0" ry="33.0" fill="#fef7e0" stroke="#b06000" stroke-width="2"/>
+<text x="340" y="192.0" text-anchor="middle" font-size="18">Manage users and</text>
+<text x="340" y="212.0" text-anchor="middle" font-size="18">roles</text>
+<ellipse cx="340" cy="282" rx="95.0" ry="33.0" fill="#fef7e0" stroke="#b06000" stroke-width="2"/>
+<text x="340" y="278.0" text-anchor="middle" font-size="18">Manage teams,</text>
+<text x="340" y="298.0" text-anchor="middle" font-size="18">skills and shifts</text>
+<ellipse cx="340" cy="368" rx="95.0" ry="33.0" fill="#fef7e0" stroke="#b06000" stroke-width="2"/>
+<text x="340" y="374.0" text-anchor="middle" font-size="18">Manage SLA policies</text>
+<ellipse cx="340" cy="454" rx="95.0" ry="33.0" fill="#fef7e0" stroke="#b06000" stroke-width="2"/>
+<text x="340" y="450.0" text-anchor="middle" font-size="18">Configure</text>
+<text x="340" y="470.0" text-anchor="middle" font-size="18">automation</text>
+<ellipse cx="340" cy="540" rx="95.0" ry="33.0" fill="#fef7e0" stroke="#b06000" stroke-width="2"/>
+<text x="340" y="536.0" text-anchor="middle" font-size="18">Manage API clients</text>
+<text x="340" y="556.0" text-anchor="middle" font-size="18">and webhooks</text>
+<ellipse cx="590" cy="110" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="590" y="106.0" text-anchor="middle" font-size="18">Manage contacts and</text>
+<text x="590" y="126.0" text-anchor="middle" font-size="18">organisations</text>
+<ellipse cx="590" cy="196" rx="95.0" ry="33.0" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+<text x="590" y="192.0" text-anchor="middle" font-size="18">Manage media</text>
+<text x="590" y="212.0" text-anchor="middle" font-size="18">library</text>
+<ellipse cx="590" cy="282" rx="95.0" ry="33.0" fill="#f3e8fd" stroke="#7627bb" stroke-width="2"/>
+<text x="590" y="288.0" text-anchor="middle" font-size="18">View dashboard</text>
+<ellipse cx="590" cy="368" rx="95.0" ry="33.0" fill="#f3e8fd" stroke="#7627bb" stroke-width="2"/>
+<text x="590" y="364.0" text-anchor="middle" font-size="18">Run and export</text>
+<text x="590" y="384.0" text-anchor="middle" font-size="18">reports</text>
+<ellipse cx="590" cy="454" rx="95.0" ry="33.0" fill="#f3e8fd" stroke="#7627bb" stroke-width="2"/>
+<text x="590" y="460.0" text-anchor="middle" font-size="18">View record history</text>
+<ellipse cx="590" cy="540" rx="95.0" ry="33.0" fill="#e6f4ea" stroke="#137333" stroke-width="2"/>
+<text x="590" y="536.0" text-anchor="middle" font-size="18">Process inbound</text>
+<text x="590" y="556.0" text-anchor="middle" font-size="18">email</text>
+<circle cx="100" cy="72" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="83" x2="100" y2="113" stroke="#202124" stroke-width="2"/>
+<line x1="82" y1="94" x2="118" y2="94" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="113" x2="86" y2="134" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="113" x2="114" y2="134" stroke="#202124" stroke-width="2"/>
+<text x="100" y="154" text-anchor="middle" font-size="17" font-weight="bold">Platform Super</text>
+<text x="100" y="174" text-anchor="middle" font-size="17" font-weight="bold">Admin</text>
+<circle cx="100" cy="332" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="343" x2="100" y2="373" stroke="#202124" stroke-width="2"/>
+<line x1="82" y1="354" x2="118" y2="354" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="373" x2="86" y2="394" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="373" x2="114" y2="394" stroke="#202124" stroke-width="2"/>
+<text x="100" y="414" text-anchor="middle" font-size="17" font-weight="bold">Tenant Admin</text>
+<circle cx="100" cy="532" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="543" x2="100" y2="573" stroke="#202124" stroke-width="2"/>
+<line x1="82" y1="554" x2="118" y2="554" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="573" x2="86" y2="594" stroke="#202124" stroke-width="2"/>
+<line x1="100" y1="573" x2="114" y2="594" stroke="#202124" stroke-width="2"/>
+<text x="100" y="614" text-anchor="middle" font-size="17" font-weight="bold">Developer</text>
+<circle cx="800" cy="112" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="123" x2="800" y2="153" stroke="#202124" stroke-width="2"/>
+<line x1="782" y1="134" x2="818" y2="134" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="153" x2="786" y2="174" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="153" x2="814" y2="174" stroke="#202124" stroke-width="2"/>
+<text x="800" y="194" text-anchor="middle" font-size="17" font-weight="bold">Support Agent</text>
+<circle cx="800" cy="332" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="343" x2="800" y2="373" stroke="#202124" stroke-width="2"/>
+<line x1="782" y1="354" x2="818" y2="354" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="373" x2="786" y2="394" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="373" x2="814" y2="394" stroke="#202124" stroke-width="2"/>
+<text x="800" y="414" text-anchor="middle" font-size="17" font-weight="bold">Support Manager</text>
+<circle cx="800" cy="532" r="11" fill="#fff" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="543" x2="800" y2="573" stroke="#202124" stroke-width="2"/>
+<line x1="782" y1="554" x2="818" y2="554" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="573" x2="786" y2="594" stroke="#202124" stroke-width="2"/>
+<line x1="800" y1="573" x2="814" y2="594" stroke="#202124" stroke-width="2"/>
+<text x="800" y="614" text-anchor="middle" font-size="17" font-weight="bold">Scheduler</text>
+</svg>

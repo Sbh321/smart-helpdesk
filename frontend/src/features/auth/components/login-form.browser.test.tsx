@@ -1,10 +1,13 @@
 import { HttpResponse, http } from 'msw'
 import { expect, test } from 'vitest'
 import { copy, fill } from '@/copy/en'
+import { isolateLocalStorage } from '@/test/isolated-storage'
 import { setupMswWorker } from '@/test/msw/browser'
 import { apiUrl, problem, sessionFixture } from '@/test/msw/handlers'
 import { renderApp } from '@/test/render-app'
 
+// Both this file and its sibling read and write the recent workspaces; neither may see the other's.
+isolateLocalStorage()
 const worker = setupMswWorker()
 
 /**

@@ -2,6 +2,7 @@ import axe from 'axe-core'
 import { HttpResponse, http } from 'msw'
 import { afterEach, expect, test } from 'vitest'
 import { copy, fill } from '@/copy/en'
+import { isolateLocalStorage } from '@/test/isolated-storage'
 import { setupMswWorker } from '@/test/msw/browser'
 import { apiUrl, problem } from '@/test/msw/handlers'
 import { renderApp } from '@/test/render-app'
@@ -10,6 +11,8 @@ import { renderApp } from '@/test/render-app'
  * The workspace step before sign-in (M5-03): workspaces used on this device first, a field that takes a
  * pasted address, and "Find it by email" (M5-02).
  */
+// Both this file and its sibling read and write the recent workspaces; neither may see the other's.
+isolateLocalStorage()
 const worker = setupMswWorker()
 const KEY = 'sh.recent-workspaces'
 
