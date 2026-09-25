@@ -94,7 +94,7 @@ function Header() {
           <BrandMark className="whitespace-nowrap" />
         </a>
 
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className="hidden items-center gap-1 lg:flex">
           {sections.map((item) => (
             <li key={item.href}>
               <a href={item.href} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
@@ -115,8 +115,9 @@ function Header() {
           <a href={LINKS.app} className={cn(buttonVariants({ size: 'sm' }), 'hidden sm:inline-flex')}>
             {text.openApp}
           </a>
-          {/* Small screens: a disclosure that works without JavaScript. */}
-          <details className="group relative md:hidden">
+          {/* Below lg the section links move into a disclosure that works without JavaScript; at 768 px the
+              full row did not fit with some system fonts (CI). */}
+          <details className="group relative lg:hidden">
             <summary
               className={cn(
                 buttonVariants({ variant: 'outline', size: 'icon-sm' }),

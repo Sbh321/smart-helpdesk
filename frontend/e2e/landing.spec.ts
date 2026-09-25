@@ -8,7 +8,7 @@ import { appUrl, landingUrl } from './support/env'
  */
 test.use({ storageState: { cookies: [], origins: [] } })
 
-const WIDTHS = [360, 768, 1024, 1440]
+const WIDTHS = [360, 768, 1024, 1280, 1440]
 
 for (const width of WIDTHS) {
   test(`fits ${width} px without sideways scrolling`, async ({ page }) => {
