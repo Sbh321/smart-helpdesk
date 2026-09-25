@@ -241,7 +241,7 @@ function TicketHistory({
           const oldest = group.events.at(-1) ?? newest
           const single = group.events.length === 1
           return (
-            <li key={group.key} className="rounded-lg border border-border p-3 text-sm">
+            <li key={group.key} className="rounded-lg border border-border p-3 text-sm bg-surface">
               <p className="font-medium">
                 {single && newest
                   ? fill(copy.tickets.detail.event, { type: eventType(newest), actor })
@@ -500,7 +500,7 @@ export function TicketScreen({
         {wide ? (
           <aside
             aria-labelledby="ticket-context"
-            className="min-w-0 self-start rounded-lg border border-border"
+            className="min-w-0 self-start rounded-lg border border-border bg-surface"
           >
             {/* Names the landmark and keeps the heading order h1 → h2 → section h3 (axe heading-order). */}
             <h2 id="ticket-context" className="sr-only">

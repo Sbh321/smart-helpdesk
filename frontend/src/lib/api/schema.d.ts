@@ -611,6 +611,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Show the workspace's subscription, the plans on offer and its payments
+         * @description Requires permission `billing.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["billing.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a payment for review
+         * @description Upload the receipt first (`POST /media/intent` with `purpose: receipt`), then send its id here.
+         *     A platform admin approves or rejects it; the workspace's billing people are emailed either way.
+         *
+         *     Requires permission `billing.manage`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        post: operations["billing.payments.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/contacts": {
         parameters: {
             query?: never;
@@ -986,6 +1029,29 @@ export interface paths {
          * @description Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         get: operations["media.download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{media}/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open a media item in the browser
+         * @description Redirects to a short-lived URL that shows the original in place: images, PDF and plain text
+         *     (CSV and logs as text). Any other type is sent as a download, like `GET /media/{media}/download`.
+         *
+         *     Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.
+         */
+        get: operations["media.open"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1765,6 +1831,61 @@ export interface paths {
          *     Requires permission `settings.manage`. SPA session only: an API client token is answered with `403 forbidden`.
          */
         patch: operations["settings.update"];
+        trace?: never;
+    };
+    "/signup/address": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check a workspace address */
+        get: operations["signup.address"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign up for a workspace
+         * @description Nothing is created yet: the address receives a link, valid for 24 hours, that creates the
+         *     workspace. Answers 202 whether or not the email is sent (an empty `website` field is expected).
+         */
+        post: operations["signup.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/signup/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm a sign-up: the workspace is created on the free trial */
+        post: operations["signup.verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/tags": {
@@ -3650,12 +3771,108 @@ export interface components {
             reason?: string | null;
         };
         /**
+         * PaymentMethod
+         * @enum {string}
+         */
+        PaymentMethod: "bank_transfer" | "wallet" | "cash" | "other";
+        /**
+         * PaymentRequest
+         * @description A payment for some periods of a paid plan: sent by a workspace with its receipt, or recorded by a
+         *     platform admin (no receipt). Amounts are integers in minor units.
+         */
+        PaymentRequest: {
+            /** Format: uuid */
+            plan_id: string;
+            periods: number;
+            amount_minor: number;
+            currency?: string | null;
+            /** Format: date */
+            paid_on: string;
+            method: components["schemas"]["PaymentMethod"];
+            reference?: string | null;
+            note?: string | null;
+            /** Format: uuid */
+            receipt_media_id: string;
+        };
+        /**
+         * PaymentResource
+         * @description A payment and its review (ADR-0025 §3). `receipt` is the media item's summary (open it through the media endpoints in the workspace, or `GET /platform-api/payments/{id}/receipt` in the console); `workspace` is present in the console only.
+         */
+        PaymentResource: {
+            /** Format: uuid */
+            id: string;
+            plan: components["schemas"]["PlanResource"];
+            periods: number;
+            amount_minor: number;
+            currency: string;
+            /** @description What the plan asks for these periods, to compare with `amount_minor`. */
+            expected_minor: number;
+            paid_on: string;
+            /** @enum {string} */
+            method: "bank_transfer" | "wallet" | "cash" | "other";
+            reference: string | null;
+            note: string | null;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected";
+            rejection_reason: string | null;
+            submitted_by: {
+                name: string | null;
+                email: string | null;
+            } | null;
+            /** @description True when a platform admin recorded it for the workspace. */
+            recorded_by_platform: boolean;
+            /** Format: date-time */
+            reviewed_at: string | null;
+            /** Format: date-time */
+            period_starts_at: string | null;
+            /** Format: date-time */
+            period_ends_at: string | null;
+            /** Format: date-time */
+            created_at: string | null;
+            receipt: {
+                id: string;
+                name: string;
+                mime_type: string;
+                size_bytes: number;
+                width: number | null;
+                height: number | null;
+                has_thumb: boolean;
+                has_preview: boolean;
+            } | null;
+            workspace?: {
+                id: string;
+                slug: string;
+                name: string;
+            };
+        };
+        /**
          * PingResource
          * @description Liveness answer of `GET /v1/ping`. Wraps no model; the class exists so the OpenAPI document types the response.
          */
         PingResource: {
             /** @constant */
             status: "ok";
+        };
+        /**
+         * PlanResource
+         * @description A plan. `subscriptions_count` is present in the console's plan list only.
+         */
+        PlanResource: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            description: string | null;
+            /** @enum {string} */
+            kind: "trial" | "paid";
+            /** @description Price of one period in minor units (paisa); 0 for a trial. */
+            price_minor: number;
+            currency: string;
+            period_months: number | null;
+            trial_days: number | null;
+            is_active: boolean;
+            sort_order: number;
+            subscriptions_count?: number;
         };
         /** PreviewDuplicatesRequest */
         PreviewDuplicatesRequest: {
@@ -3885,7 +4102,7 @@ export interface components {
         /** RoleRequest */
         RoleRequest: {
             name: string;
-            permissions: ("tickets.view" | "tickets.create" | "tickets.update" | "tickets.assign" | "tickets.resolve" | "tickets.close" | "tickets.reopen" | "tickets.delete" | "comments.internal" | "contacts.view" | "contacts.manage" | "agents.view" | "agents.manage" | "teams.manage" | "sla.manage" | "calendars.manage" | "shifts.manage" | "media.view" | "media.upload" | "media.manage" | "mail.manage" | "settings.manage" | "users.manage" | "roles.manage" | "integrations.manage" | "reports.view" | "reports.export" | "history.view" | "audit.view")[];
+            permissions: ("tickets.view" | "tickets.create" | "tickets.update" | "tickets.assign" | "tickets.resolve" | "tickets.close" | "tickets.reopen" | "tickets.delete" | "comments.internal" | "contacts.view" | "contacts.manage" | "agents.view" | "agents.manage" | "teams.manage" | "sla.manage" | "calendars.manage" | "shifts.manage" | "media.view" | "media.upload" | "media.manage" | "mail.manage" | "settings.manage" | "users.manage" | "roles.manage" | "integrations.manage" | "reports.view" | "reports.export" | "history.view" | "audit.view" | "billing.manage")[];
         };
         /**
          * RoleResource
@@ -4091,6 +4308,22 @@ export interface components {
             url: string;
             events: ("ticket.created" | "ticket.updated" | "ticket.assigned" | "ticket.status_changed" | "ticket.priority_changed" | "ticket.resolved" | "ticket.closed" | "ticket.comment_added" | "ticket.sla_breached" | "contact.created" | "contact.updated")[];
         };
+        /**
+         * SubscriptionResource
+         * @description A workspace's subscription as its state reads now (ADR-0025 §2). `state` is `none` for a workspace billing does not manage, with every other field null.
+         */
+        SubscriptionResource: {
+            /** @enum {string} */
+            state: "trialing" | "active" | "grace" | "expired" | "none";
+            plan: components["schemas"]["PlanResource"] | null;
+            /** Format: date-time */
+            ends_at: string | null;
+            /** Format: date-time */
+            grace_ends_at: string | null;
+            /** @description Whole days until the next change of state; null when expired or unmanaged. */
+            days_left: number | null;
+            read_only: boolean;
+        };
         /** TagRequest */
         TagRequest: {
             name: string;
@@ -4120,7 +4353,7 @@ export interface components {
         };
         /**
          * TenantResource
-         * @description The platform view of a workspace: more than tenant users see.
+         * @description The platform view of a workspace: more than tenant users see, with its subscription (ADR-0025).
          */
         TenantResource: {
             /** Format: uuid */
@@ -4140,6 +4373,8 @@ export interface components {
                 realtime: boolean;
                 exports: boolean;
             };
+            /** @description The plan and its state, for the trial, grace and read-only banner (ADR-0025 §6). */
+            subscription: components["schemas"]["SubscriptionResource"];
         };
         /**
          * TicketAssignmentResource
@@ -4436,10 +4671,11 @@ export interface components {
             /** @description Advisory: browsers send '' for types they do not know; the stored type comes from the extension. */
             mime: string | null;
             /**
-             * @description Where the file starts: the Tickets folder, or Branding for a workspace logo (settings.manage).
+             * @description Where the file starts: the Tickets folder, Branding for a workspace logo (settings.manage), or
+             *     Billing for a payment receipt (billing.manage, ADR-0025 §4).
              * @enum {string}
              */
-            purpose?: "attachment" | "branding";
+            purpose?: "attachment" | "branding" | "receipt";
         };
         /**
          * UploadIntentResource
@@ -6147,6 +6383,82 @@ export interface operations {
             };
         };
     };
+    "billing.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            subscription: components["schemas"]["SubscriptionResource"];
+                            plans: components["schemas"]["PlanResource"][];
+                            payments: components["schemas"]["PaymentResource"][];
+                            grace_days: number;
+                            payment_instructions: string;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "billing.payments.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description `PaymentResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaymentResource"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "contacts.index": {
         parameters: {
             query?: {
@@ -7172,6 +7484,41 @@ export interface operations {
         };
     };
     "media.download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The media ID */
+                media: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to a short-lived signed URL. */
+            302: {
+                headers: {
+                    /** @description Signed URL of the file on the files host; valid for a few minutes. */
+                    Location: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "media.open": {
         parameters: {
             query?: never;
             header?: never;
@@ -8925,6 +9272,132 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "signup.address": {
+        parameters: {
+            query: {
+                /** @description The address to check, as it would appear after the host. */
+                slug: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            slug: string;
+                            available: boolean;
+                            /** @enum {string|null} */
+                            reason: "invalid" | "reserved" | "taken" | null;
+                        };
+                    };
+                };
+            };
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "signup.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    password: string;
+                    workspace_name: string;
+                    slug: string;
+                    timezone?: string;
+                    password_confirmation: string;
+                };
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            status: "sent";
+                        };
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "signup.verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            slug: string;
+                            name: string;
+                            email: string;
+                        };
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
             default: {
                 headers: {

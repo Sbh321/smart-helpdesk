@@ -11,11 +11,14 @@ export function AppShell({
   workspace,
   topbarActions,
   topbarNotifications,
+  banner,
   children,
 }: {
   workspace: string
   topbarActions?: ReactNode
   topbarNotifications?: ReactNode
+  /** A workspace-wide notice under the top bar (the subscription, ADR-0025 §6). */
+  banner?: ReactNode
   children: ReactNode
 }) {
   return (
@@ -25,6 +28,7 @@ export function AppShell({
         <Sidebar workspace={workspace} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar workspace={workspace} actions={topbarActions} notifications={topbarNotifications} />
+          {banner}
           <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex flex-1 flex-col gap-6 p-6 outline-none">
             {children}
           </main>

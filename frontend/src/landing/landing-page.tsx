@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils'
 /** Host-independent entry points: the apex proxy redirects them to the right host (frontend/docker/Caddyfile). */
 export const LINKS = {
   app: '/go/app',
+  signup: '/go/signup',
   find: '/go/find',
   docs: '/go/docs',
   licences: '/third-party-licences.txt',
@@ -112,8 +113,8 @@ function Header() {
           >
             {text.signIn}
           </a>
-          <a href={LINKS.app} className={cn(buttonVariants({ size: 'sm' }), 'hidden sm:inline-flex')}>
-            {text.openApp}
+          <a href={LINKS.signup} className={cn(buttonVariants({ size: 'sm' }), 'hidden sm:inline-flex')}>
+            {text.startTrial}
           </a>
           {/* Below lg the section links move into a disclosure that works without JavaScript; at 768 px the
               full row did not fit with some system fonts (CI). */}
@@ -141,8 +142,8 @@ function Header() {
                 <a href={LINKS.app} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
                   {text.signIn}
                 </a>
-                <a href={LINKS.app} className={buttonVariants({ size: 'sm' })}>
-                  {text.openApp}
+                <a href={LINKS.signup} className={buttonVariants({ size: 'sm' })}>
+                  {text.startTrial}
                 </a>
               </div>
             </div>
@@ -251,15 +252,15 @@ function Hero() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg text-muted-foreground">{text.body}</p>
           <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-            <a href={LINKS.app} className={cn(buttonVariants({ size: 'lg' }), 'h-11 px-6 text-base')}>
+            <a href={LINKS.signup} className={cn(buttonVariants({ size: 'lg' }), 'h-11 px-6 text-base')}>
               {text.primary}
               <ArrowRightIcon aria-hidden="true" />
             </a>
             <a
-              href={LINKS.find}
+              href={LINKS.app}
               className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'h-11 px-6 text-base')}
             >
-              {text.secondary}
+              {text.signIn}
             </a>
           </div>
         </div>
@@ -623,12 +624,12 @@ function CallToAction() {
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">{text.body}</p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-              <a href={LINKS.app} className={cn(buttonVariants({ size: 'lg' }), 'h-11 px-6 text-base')}>
+              <a href={LINKS.signup} className={cn(buttonVariants({ size: 'lg' }), 'h-11 px-6 text-base')}>
                 {text.primary}
                 <ArrowRightIcon aria-hidden="true" />
               </a>
               <a
-                href={LINKS.find}
+                href={LINKS.app}
                 className={cn(
                   buttonVariants({ variant: 'outline', size: 'lg' }),
                   'h-11 bg-surface px-6 text-base',
@@ -666,6 +667,7 @@ function Footer() {
     {
       title: text.account,
       links: [
+        { href: LINKS.signup, label: text.signup },
         { href: LINKS.app, label: landing.nav.signIn },
         { href: LINKS.find, label: landing.hero.secondary },
       ],

@@ -14,7 +14,12 @@ import { Route as WorkspaceRouteImport } from './routes/$workspace'
 import { Route as PlatformRouteImport } from './routes/_platform'
 import { Route as WorkspaceAppRouteImport } from './routes/$workspace/_app'
 import { Route as WorkspaceAuthRouteImport } from './routes/$workspace/_auth'
+import { Route as PlatformAcceptInvitationRouteImport } from './routes/platform.accept-invitation'
+import { Route as PlatformForgotPasswordRouteImport } from './routes/platform.forgot-password'
 import { Route as PlatformLoginRouteImport } from './routes/platform.login'
+import { Route as PlatformResetPasswordRouteImport } from './routes/platform.reset-password'
+import { Route as SignupIndexRouteImport } from './routes/signup.index'
+import { Route as SignupVerifyRouteImport } from './routes/signup.verify'
 import { Route as WorkspaceAppIndexRouteImport } from './routes/$workspace/_app/index'
 import { Route as WorkspaceAppNotificationsRouteImport } from './routes/$workspace/_app/notifications'
 import { Route as WorkspaceAppSettingsRouteImport } from './routes/$workspace/_app/settings'
@@ -22,8 +27,13 @@ import { Route as WorkspaceAuthAcceptInvitationRouteImport } from './routes/$wor
 import { Route as WorkspaceAuthLoginRouteImport } from './routes/$workspace/_auth/login'
 import { Route as WorkspaceAuthResetPasswordRouteImport } from './routes/$workspace/_auth/reset-password'
 import { Route as PlatformPlatformIndexRouteImport } from './routes/_platform.platform.index'
+import { Route as PlatformPlatformAccountRouteImport } from './routes/_platform.platform.account'
+import { Route as PlatformPlatformAdminsRouteImport } from './routes/_platform.platform.admins'
 import { Route as PlatformPlatformDocsRouteImport } from './routes/_platform.platform.docs'
-import { Route as PlatformPlatformTenantsRouteImport } from './routes/_platform.platform.tenants'
+import { Route as PlatformPlatformMonitorRouteImport } from './routes/_platform.platform.monitor'
+import { Route as PlatformPlatformPaymentsRouteImport } from './routes/_platform.platform.payments'
+import { Route as PlatformPlatformPlansRouteImport } from './routes/_platform.platform.plans'
+import { Route as PlatformPlatformSettingsRouteImport } from './routes/_platform.platform.settings'
 import { Route as WorkspaceAppAgentsAgentIdRouteImport } from './routes/$workspace/_app/agents/$agentId'
 import { Route as WorkspaceAppCategoriesCategoryIdRouteImport } from './routes/$workspace/_app/categories/$categoryId'
 import { Route as WorkspaceAppContactsIndexRouteImport } from './routes/$workspace/_app/contacts/index'
@@ -39,6 +49,7 @@ import { Route as WorkspaceAppSettingsAgentsRouteImport } from './routes/$worksp
 import { Route as WorkspaceAppSettingsApiClientsRouteImport } from './routes/$workspace/_app/settings/api-clients'
 import { Route as WorkspaceAppSettingsAuditRouteImport } from './routes/$workspace/_app/settings/audit'
 import { Route as WorkspaceAppSettingsAutomationRouteImport } from './routes/$workspace/_app/settings/automation'
+import { Route as WorkspaceAppSettingsBillingRouteImport } from './routes/$workspace/_app/settings/billing'
 import { Route as WorkspaceAppSettingsBrandingRouteImport } from './routes/$workspace/_app/settings/branding'
 import { Route as WorkspaceAppSettingsCalendarsRouteImport } from './routes/$workspace/_app/settings/calendars'
 import { Route as WorkspaceAppSettingsCategoriesRouteImport } from './routes/$workspace/_app/settings/categories'
@@ -58,6 +69,8 @@ import { Route as WorkspaceAppTeamsTeamIdRouteImport } from './routes/$workspace
 import { Route as WorkspaceAppTicketsIndexRouteImport } from './routes/$workspace/_app/tickets/index'
 import { Route as WorkspaceAppTicketsTicketIdRouteImport } from './routes/$workspace/_app/tickets/$ticketId'
 import { Route as WorkspaceAppTicketsNewRouteImport } from './routes/$workspace/_app/tickets/new'
+import { Route as PlatformPlatformTenantsIndexRouteImport } from './routes/_platform.platform.tenants.index'
+import { Route as PlatformPlatformTenantsTenantIdRouteImport } from './routes/_platform.platform.tenants.$tenantId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -81,9 +94,35 @@ const WorkspaceAuthRoute = WorkspaceAuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => WorkspaceRoute,
 } as any)
+const PlatformAcceptInvitationRoute =
+  PlatformAcceptInvitationRouteImport.update({
+    id: '/platform/accept-invitation',
+    path: '/platform/accept-invitation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlatformForgotPasswordRoute = PlatformForgotPasswordRouteImport.update({
+  id: '/platform/forgot-password',
+  path: '/platform/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlatformLoginRoute = PlatformLoginRouteImport.update({
   id: '/platform/login',
   path: '/platform/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformResetPasswordRoute = PlatformResetPasswordRouteImport.update({
+  id: '/platform/reset-password',
+  path: '/platform/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupIndexRoute = SignupIndexRouteImport.update({
+  id: '/signup/',
+  path: '/signup/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupVerifyRoute = SignupVerifyRouteImport.update({
+  id: '/signup/verify',
+  path: '/signup/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorkspaceAppIndexRoute = WorkspaceAppIndexRouteImport.update({
@@ -124,16 +163,43 @@ const PlatformPlatformIndexRoute = PlatformPlatformIndexRouteImport.update({
   path: '/platform/',
   getParentRoute: () => PlatformRoute,
 } as any)
+const PlatformPlatformAccountRoute = PlatformPlatformAccountRouteImport.update({
+  id: '/platform/account',
+  path: '/platform/account',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformPlatformAdminsRoute = PlatformPlatformAdminsRouteImport.update({
+  id: '/platform/admins',
+  path: '/platform/admins',
+  getParentRoute: () => PlatformRoute,
+} as any)
 const PlatformPlatformDocsRoute = PlatformPlatformDocsRouteImport.update({
   id: '/platform/docs',
   path: '/platform/docs',
   getParentRoute: () => PlatformRoute,
 } as any)
-const PlatformPlatformTenantsRoute = PlatformPlatformTenantsRouteImport.update({
-  id: '/platform/tenants',
-  path: '/platform/tenants',
+const PlatformPlatformMonitorRoute = PlatformPlatformMonitorRouteImport.update({
+  id: '/platform/monitor',
+  path: '/platform/monitor',
   getParentRoute: () => PlatformRoute,
 } as any)
+const PlatformPlatformPaymentsRoute =
+  PlatformPlatformPaymentsRouteImport.update({
+    id: '/platform/payments',
+    path: '/platform/payments',
+    getParentRoute: () => PlatformRoute,
+  } as any)
+const PlatformPlatformPlansRoute = PlatformPlatformPlansRouteImport.update({
+  id: '/platform/plans',
+  path: '/platform/plans',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformPlatformSettingsRoute =
+  PlatformPlatformSettingsRouteImport.update({
+    id: '/platform/settings',
+    path: '/platform/settings',
+    getParentRoute: () => PlatformRoute,
+  } as any)
 const WorkspaceAppAgentsAgentIdRoute =
   WorkspaceAppAgentsAgentIdRouteImport.update({
     id: '/agents/$agentId',
@@ -221,6 +287,12 @@ const WorkspaceAppSettingsAutomationRoute =
   WorkspaceAppSettingsAutomationRouteImport.update({
     id: '/automation',
     path: '/automation',
+    getParentRoute: () => WorkspaceAppSettingsRoute,
+  } as any)
+const WorkspaceAppSettingsBillingRoute =
+  WorkspaceAppSettingsBillingRouteImport.update({
+    id: '/billing',
+    path: '/billing',
     getParentRoute: () => WorkspaceAppSettingsRoute,
   } as any)
 const WorkspaceAppSettingsBrandingRoute =
@@ -334,18 +406,40 @@ const WorkspaceAppTicketsNewRoute = WorkspaceAppTicketsNewRouteImport.update({
   path: '/tickets/new',
   getParentRoute: () => WorkspaceAppRoute,
 } as any)
+const PlatformPlatformTenantsIndexRoute =
+  PlatformPlatformTenantsIndexRouteImport.update({
+    id: '/platform/tenants/',
+    path: '/platform/tenants/',
+    getParentRoute: () => PlatformRoute,
+  } as any)
+const PlatformPlatformTenantsTenantIdRoute =
+  PlatformPlatformTenantsTenantIdRouteImport.update({
+    id: '/platform/tenants/$tenantId',
+    path: '/platform/tenants/$tenantId',
+    getParentRoute: () => PlatformRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$workspace': typeof WorkspaceRouteWithChildren
+  '/platform/accept-invitation': typeof PlatformAcceptInvitationRoute
+  '/platform/forgot-password': typeof PlatformForgotPasswordRoute
   '/platform/login': typeof PlatformLoginRoute
+  '/platform/reset-password': typeof PlatformResetPasswordRoute
+  '/signup/verify': typeof SignupVerifyRoute
+  '/signup/': typeof SignupIndexRoute
   '/$workspace/notifications': typeof WorkspaceAppNotificationsRoute
   '/$workspace/settings': typeof WorkspaceAppSettingsRouteWithChildren
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/reset-password': typeof WorkspaceAuthResetPasswordRoute
+  '/platform/account': typeof PlatformPlatformAccountRoute
+  '/platform/admins': typeof PlatformPlatformAdminsRoute
   '/platform/docs': typeof PlatformPlatformDocsRoute
-  '/platform/tenants': typeof PlatformPlatformTenantsRoute
+  '/platform/monitor': typeof PlatformPlatformMonitorRoute
+  '/platform/payments': typeof PlatformPlatformPaymentsRoute
+  '/platform/plans': typeof PlatformPlatformPlansRoute
+  '/platform/settings': typeof PlatformPlatformSettingsRoute
   '/$workspace/': typeof WorkspaceAppIndexRoute
   '/platform/': typeof PlatformPlatformIndexRoute
   '/$workspace/agents/$agentId': typeof WorkspaceAppAgentsAgentIdRoute
@@ -359,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/$workspace/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
   '/$workspace/settings/audit': typeof WorkspaceAppSettingsAuditRoute
   '/$workspace/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
+  '/$workspace/settings/billing': typeof WorkspaceAppSettingsBillingRoute
   '/$workspace/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
   '/$workspace/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
   '/$workspace/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
@@ -377,22 +472,34 @@ export interface FileRoutesByFullPath {
   '/$workspace/teams/$teamId': typeof WorkspaceAppTeamsTeamIdRoute
   '/$workspace/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
   '/$workspace/tickets/new': typeof WorkspaceAppTicketsNewRoute
+  '/platform/tenants/$tenantId': typeof PlatformPlatformTenantsTenantIdRoute
   '/$workspace/contacts/': typeof WorkspaceAppContactsIndexRoute
   '/$workspace/organizations/': typeof WorkspaceAppOrganizationsIndexRoute
   '/$workspace/reports/': typeof WorkspaceAppReportsIndexRoute
   '/$workspace/settings/': typeof WorkspaceAppSettingsIndexRoute
   '/$workspace/tickets/': typeof WorkspaceAppTicketsIndexRoute
+  '/platform/tenants/': typeof PlatformPlatformTenantsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$workspace': typeof WorkspaceAppIndexRoute
+  '/platform/accept-invitation': typeof PlatformAcceptInvitationRoute
+  '/platform/forgot-password': typeof PlatformForgotPasswordRoute
   '/platform/login': typeof PlatformLoginRoute
+  '/platform/reset-password': typeof PlatformResetPasswordRoute
+  '/signup/verify': typeof SignupVerifyRoute
+  '/signup': typeof SignupIndexRoute
   '/$workspace/notifications': typeof WorkspaceAppNotificationsRoute
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/reset-password': typeof WorkspaceAuthResetPasswordRoute
+  '/platform/account': typeof PlatformPlatformAccountRoute
+  '/platform/admins': typeof PlatformPlatformAdminsRoute
   '/platform/docs': typeof PlatformPlatformDocsRoute
-  '/platform/tenants': typeof PlatformPlatformTenantsRoute
+  '/platform/monitor': typeof PlatformPlatformMonitorRoute
+  '/platform/payments': typeof PlatformPlatformPaymentsRoute
+  '/platform/plans': typeof PlatformPlatformPlansRoute
+  '/platform/settings': typeof PlatformPlatformSettingsRoute
   '/platform': typeof PlatformPlatformIndexRoute
   '/$workspace/agents/$agentId': typeof WorkspaceAppAgentsAgentIdRoute
   '/$workspace/categories/$categoryId': typeof WorkspaceAppCategoriesCategoryIdRoute
@@ -405,6 +512,7 @@ export interface FileRoutesByTo {
   '/$workspace/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
   '/$workspace/settings/audit': typeof WorkspaceAppSettingsAuditRoute
   '/$workspace/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
+  '/$workspace/settings/billing': typeof WorkspaceAppSettingsBillingRoute
   '/$workspace/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
   '/$workspace/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
   '/$workspace/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
@@ -423,11 +531,13 @@ export interface FileRoutesByTo {
   '/$workspace/teams/$teamId': typeof WorkspaceAppTeamsTeamIdRoute
   '/$workspace/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
   '/$workspace/tickets/new': typeof WorkspaceAppTicketsNewRoute
+  '/platform/tenants/$tenantId': typeof PlatformPlatformTenantsTenantIdRoute
   '/$workspace/contacts': typeof WorkspaceAppContactsIndexRoute
   '/$workspace/organizations': typeof WorkspaceAppOrganizationsIndexRoute
   '/$workspace/reports': typeof WorkspaceAppReportsIndexRoute
   '/$workspace/settings': typeof WorkspaceAppSettingsIndexRoute
   '/$workspace/tickets': typeof WorkspaceAppTicketsIndexRoute
+  '/platform/tenants': typeof PlatformPlatformTenantsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -436,14 +546,24 @@ export interface FileRoutesById {
   '/_platform': typeof PlatformRouteWithChildren
   '/$workspace/_app': typeof WorkspaceAppRouteWithChildren
   '/$workspace/_auth': typeof WorkspaceAuthRouteWithChildren
+  '/platform/accept-invitation': typeof PlatformAcceptInvitationRoute
+  '/platform/forgot-password': typeof PlatformForgotPasswordRoute
   '/platform/login': typeof PlatformLoginRoute
+  '/platform/reset-password': typeof PlatformResetPasswordRoute
+  '/signup/verify': typeof SignupVerifyRoute
+  '/signup/': typeof SignupIndexRoute
   '/$workspace/_app/notifications': typeof WorkspaceAppNotificationsRoute
   '/$workspace/_app/settings': typeof WorkspaceAppSettingsRouteWithChildren
   '/$workspace/_auth/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/_auth/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/_auth/reset-password': typeof WorkspaceAuthResetPasswordRoute
+  '/_platform/platform/account': typeof PlatformPlatformAccountRoute
+  '/_platform/platform/admins': typeof PlatformPlatformAdminsRoute
   '/_platform/platform/docs': typeof PlatformPlatformDocsRoute
-  '/_platform/platform/tenants': typeof PlatformPlatformTenantsRoute
+  '/_platform/platform/monitor': typeof PlatformPlatformMonitorRoute
+  '/_platform/platform/payments': typeof PlatformPlatformPaymentsRoute
+  '/_platform/platform/plans': typeof PlatformPlatformPlansRoute
+  '/_platform/platform/settings': typeof PlatformPlatformSettingsRoute
   '/$workspace/_app/': typeof WorkspaceAppIndexRoute
   '/_platform/platform/': typeof PlatformPlatformIndexRoute
   '/$workspace/_app/agents/$agentId': typeof WorkspaceAppAgentsAgentIdRoute
@@ -457,6 +577,7 @@ export interface FileRoutesById {
   '/$workspace/_app/settings/api-clients': typeof WorkspaceAppSettingsApiClientsRoute
   '/$workspace/_app/settings/audit': typeof WorkspaceAppSettingsAuditRoute
   '/$workspace/_app/settings/automation': typeof WorkspaceAppSettingsAutomationRoute
+  '/$workspace/_app/settings/billing': typeof WorkspaceAppSettingsBillingRoute
   '/$workspace/_app/settings/branding': typeof WorkspaceAppSettingsBrandingRoute
   '/$workspace/_app/settings/calendars': typeof WorkspaceAppSettingsCalendarsRoute
   '/$workspace/_app/settings/categories': typeof WorkspaceAppSettingsCategoriesRoute
@@ -475,25 +596,37 @@ export interface FileRoutesById {
   '/$workspace/_app/teams/$teamId': typeof WorkspaceAppTeamsTeamIdRoute
   '/$workspace/_app/tickets/$ticketId': typeof WorkspaceAppTicketsTicketIdRoute
   '/$workspace/_app/tickets/new': typeof WorkspaceAppTicketsNewRoute
+  '/_platform/platform/tenants/$tenantId': typeof PlatformPlatformTenantsTenantIdRoute
   '/$workspace/_app/contacts/': typeof WorkspaceAppContactsIndexRoute
   '/$workspace/_app/organizations/': typeof WorkspaceAppOrganizationsIndexRoute
   '/$workspace/_app/reports/': typeof WorkspaceAppReportsIndexRoute
   '/$workspace/_app/settings/': typeof WorkspaceAppSettingsIndexRoute
   '/$workspace/_app/tickets/': typeof WorkspaceAppTicketsIndexRoute
+  '/_platform/platform/tenants/': typeof PlatformPlatformTenantsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$workspace'
+    | '/platform/accept-invitation'
+    | '/platform/forgot-password'
     | '/platform/login'
+    | '/platform/reset-password'
+    | '/signup/verify'
+    | '/signup/'
     | '/$workspace/notifications'
     | '/$workspace/settings'
     | '/$workspace/accept-invitation'
     | '/$workspace/login'
     | '/$workspace/reset-password'
+    | '/platform/account'
+    | '/platform/admins'
     | '/platform/docs'
-    | '/platform/tenants'
+    | '/platform/monitor'
+    | '/platform/payments'
+    | '/platform/plans'
+    | '/platform/settings'
     | '/$workspace/'
     | '/platform/'
     | '/$workspace/agents/$agentId'
@@ -507,6 +640,7 @@ export interface FileRouteTypes {
     | '/$workspace/settings/api-clients'
     | '/$workspace/settings/audit'
     | '/$workspace/settings/automation'
+    | '/$workspace/settings/billing'
     | '/$workspace/settings/branding'
     | '/$workspace/settings/calendars'
     | '/$workspace/settings/categories'
@@ -525,22 +659,34 @@ export interface FileRouteTypes {
     | '/$workspace/teams/$teamId'
     | '/$workspace/tickets/$ticketId'
     | '/$workspace/tickets/new'
+    | '/platform/tenants/$tenantId'
     | '/$workspace/contacts/'
     | '/$workspace/organizations/'
     | '/$workspace/reports/'
     | '/$workspace/settings/'
     | '/$workspace/tickets/'
+    | '/platform/tenants/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$workspace'
+    | '/platform/accept-invitation'
+    | '/platform/forgot-password'
     | '/platform/login'
+    | '/platform/reset-password'
+    | '/signup/verify'
+    | '/signup'
     | '/$workspace/notifications'
     | '/$workspace/accept-invitation'
     | '/$workspace/login'
     | '/$workspace/reset-password'
+    | '/platform/account'
+    | '/platform/admins'
     | '/platform/docs'
-    | '/platform/tenants'
+    | '/platform/monitor'
+    | '/platform/payments'
+    | '/platform/plans'
+    | '/platform/settings'
     | '/platform'
     | '/$workspace/agents/$agentId'
     | '/$workspace/categories/$categoryId'
@@ -553,6 +699,7 @@ export interface FileRouteTypes {
     | '/$workspace/settings/api-clients'
     | '/$workspace/settings/audit'
     | '/$workspace/settings/automation'
+    | '/$workspace/settings/billing'
     | '/$workspace/settings/branding'
     | '/$workspace/settings/calendars'
     | '/$workspace/settings/categories'
@@ -571,11 +718,13 @@ export interface FileRouteTypes {
     | '/$workspace/teams/$teamId'
     | '/$workspace/tickets/$ticketId'
     | '/$workspace/tickets/new'
+    | '/platform/tenants/$tenantId'
     | '/$workspace/contacts'
     | '/$workspace/organizations'
     | '/$workspace/reports'
     | '/$workspace/settings'
     | '/$workspace/tickets'
+    | '/platform/tenants'
   id:
     | '__root__'
     | '/'
@@ -583,14 +732,24 @@ export interface FileRouteTypes {
     | '/_platform'
     | '/$workspace/_app'
     | '/$workspace/_auth'
+    | '/platform/accept-invitation'
+    | '/platform/forgot-password'
     | '/platform/login'
+    | '/platform/reset-password'
+    | '/signup/verify'
+    | '/signup/'
     | '/$workspace/_app/notifications'
     | '/$workspace/_app/settings'
     | '/$workspace/_auth/accept-invitation'
     | '/$workspace/_auth/login'
     | '/$workspace/_auth/reset-password'
+    | '/_platform/platform/account'
+    | '/_platform/platform/admins'
     | '/_platform/platform/docs'
-    | '/_platform/platform/tenants'
+    | '/_platform/platform/monitor'
+    | '/_platform/platform/payments'
+    | '/_platform/platform/plans'
+    | '/_platform/platform/settings'
     | '/$workspace/_app/'
     | '/_platform/platform/'
     | '/$workspace/_app/agents/$agentId'
@@ -604,6 +763,7 @@ export interface FileRouteTypes {
     | '/$workspace/_app/settings/api-clients'
     | '/$workspace/_app/settings/audit'
     | '/$workspace/_app/settings/automation'
+    | '/$workspace/_app/settings/billing'
     | '/$workspace/_app/settings/branding'
     | '/$workspace/_app/settings/calendars'
     | '/$workspace/_app/settings/categories'
@@ -622,18 +782,25 @@ export interface FileRouteTypes {
     | '/$workspace/_app/teams/$teamId'
     | '/$workspace/_app/tickets/$ticketId'
     | '/$workspace/_app/tickets/new'
+    | '/_platform/platform/tenants/$tenantId'
     | '/$workspace/_app/contacts/'
     | '/$workspace/_app/organizations/'
     | '/$workspace/_app/reports/'
     | '/$workspace/_app/settings/'
     | '/$workspace/_app/tickets/'
+    | '/_platform/platform/tenants/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WorkspaceRoute: typeof WorkspaceRouteWithChildren
   PlatformRoute: typeof PlatformRouteWithChildren
+  PlatformAcceptInvitationRoute: typeof PlatformAcceptInvitationRoute
+  PlatformForgotPasswordRoute: typeof PlatformForgotPasswordRoute
   PlatformLoginRoute: typeof PlatformLoginRoute
+  PlatformResetPasswordRoute: typeof PlatformResetPasswordRoute
+  SignupVerifyRoute: typeof SignupVerifyRoute
+  SignupIndexRoute: typeof SignupIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -673,11 +840,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceAuthRouteImport
       parentRoute: typeof WorkspaceRoute
     }
+    '/platform/accept-invitation': {
+      id: '/platform/accept-invitation'
+      path: '/platform/accept-invitation'
+      fullPath: '/platform/accept-invitation'
+      preLoaderRoute: typeof PlatformAcceptInvitationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform/forgot-password': {
+      id: '/platform/forgot-password'
+      path: '/platform/forgot-password'
+      fullPath: '/platform/forgot-password'
+      preLoaderRoute: typeof PlatformForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/platform/login': {
       id: '/platform/login'
       path: '/platform/login'
       fullPath: '/platform/login'
       preLoaderRoute: typeof PlatformLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform/reset-password': {
+      id: '/platform/reset-password'
+      path: '/platform/reset-password'
+      fullPath: '/platform/reset-password'
+      preLoaderRoute: typeof PlatformResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup/': {
+      id: '/signup/'
+      path: '/signup'
+      fullPath: '/signup/'
+      preLoaderRoute: typeof SignupIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup/verify': {
+      id: '/signup/verify'
+      path: '/signup/verify'
+      fullPath: '/signup/verify'
+      preLoaderRoute: typeof SignupVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$workspace/_app/': {
@@ -729,6 +931,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformPlatformIndexRouteImport
       parentRoute: typeof PlatformRoute
     }
+    '/_platform/platform/account': {
+      id: '/_platform/platform/account'
+      path: '/platform/account'
+      fullPath: '/platform/account'
+      preLoaderRoute: typeof PlatformPlatformAccountRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/_platform/platform/admins': {
+      id: '/_platform/platform/admins'
+      path: '/platform/admins'
+      fullPath: '/platform/admins'
+      preLoaderRoute: typeof PlatformPlatformAdminsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
     '/_platform/platform/docs': {
       id: '/_platform/platform/docs'
       path: '/platform/docs'
@@ -736,11 +952,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformPlatformDocsRouteImport
       parentRoute: typeof PlatformRoute
     }
-    '/_platform/platform/tenants': {
-      id: '/_platform/platform/tenants'
-      path: '/platform/tenants'
-      fullPath: '/platform/tenants'
-      preLoaderRoute: typeof PlatformPlatformTenantsRouteImport
+    '/_platform/platform/monitor': {
+      id: '/_platform/platform/monitor'
+      path: '/platform/monitor'
+      fullPath: '/platform/monitor'
+      preLoaderRoute: typeof PlatformPlatformMonitorRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/_platform/platform/payments': {
+      id: '/_platform/platform/payments'
+      path: '/platform/payments'
+      fullPath: '/platform/payments'
+      preLoaderRoute: typeof PlatformPlatformPaymentsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/_platform/platform/plans': {
+      id: '/_platform/platform/plans'
+      path: '/platform/plans'
+      fullPath: '/platform/plans'
+      preLoaderRoute: typeof PlatformPlatformPlansRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/_platform/platform/settings': {
+      id: '/_platform/platform/settings'
+      path: '/platform/settings'
+      fullPath: '/platform/settings'
+      preLoaderRoute: typeof PlatformPlatformSettingsRouteImport
       parentRoute: typeof PlatformRoute
     }
     '/$workspace/_app/agents/$agentId': {
@@ -846,6 +1083,13 @@ declare module '@tanstack/react-router' {
       path: '/automation'
       fullPath: '/$workspace/settings/automation'
       preLoaderRoute: typeof WorkspaceAppSettingsAutomationRouteImport
+      parentRoute: typeof WorkspaceAppSettingsRoute
+    }
+    '/$workspace/_app/settings/billing': {
+      id: '/$workspace/_app/settings/billing'
+      path: '/billing'
+      fullPath: '/$workspace/settings/billing'
+      preLoaderRoute: typeof WorkspaceAppSettingsBillingRouteImport
       parentRoute: typeof WorkspaceAppSettingsRoute
     }
     '/$workspace/_app/settings/branding': {
@@ -981,6 +1225,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceAppTicketsNewRouteImport
       parentRoute: typeof WorkspaceAppRoute
     }
+    '/_platform/platform/tenants/': {
+      id: '/_platform/platform/tenants/'
+      path: '/platform/tenants'
+      fullPath: '/platform/tenants/'
+      preLoaderRoute: typeof PlatformPlatformTenantsIndexRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/_platform/platform/tenants/$tenantId': {
+      id: '/_platform/platform/tenants/$tenantId'
+      path: '/platform/tenants/$tenantId'
+      fullPath: '/platform/tenants/$tenantId'
+      preLoaderRoute: typeof PlatformPlatformTenantsTenantIdRouteImport
+      parentRoute: typeof PlatformRoute
+    }
   }
 }
 
@@ -989,6 +1247,7 @@ interface WorkspaceAppSettingsRouteChildren {
   WorkspaceAppSettingsApiClientsRoute: typeof WorkspaceAppSettingsApiClientsRoute
   WorkspaceAppSettingsAuditRoute: typeof WorkspaceAppSettingsAuditRoute
   WorkspaceAppSettingsAutomationRoute: typeof WorkspaceAppSettingsAutomationRoute
+  WorkspaceAppSettingsBillingRoute: typeof WorkspaceAppSettingsBillingRoute
   WorkspaceAppSettingsBrandingRoute: typeof WorkspaceAppSettingsBrandingRoute
   WorkspaceAppSettingsCalendarsRoute: typeof WorkspaceAppSettingsCalendarsRoute
   WorkspaceAppSettingsCategoriesRoute: typeof WorkspaceAppSettingsCategoriesRoute
@@ -1012,6 +1271,7 @@ const WorkspaceAppSettingsRouteChildren: WorkspaceAppSettingsRouteChildren = {
   WorkspaceAppSettingsApiClientsRoute: WorkspaceAppSettingsApiClientsRoute,
   WorkspaceAppSettingsAuditRoute: WorkspaceAppSettingsAuditRoute,
   WorkspaceAppSettingsAutomationRoute: WorkspaceAppSettingsAutomationRoute,
+  WorkspaceAppSettingsBillingRoute: WorkspaceAppSettingsBillingRoute,
   WorkspaceAppSettingsBrandingRoute: WorkspaceAppSettingsBrandingRoute,
   WorkspaceAppSettingsCalendarsRoute: WorkspaceAppSettingsCalendarsRoute,
   WorkspaceAppSettingsCategoriesRoute: WorkspaceAppSettingsCategoriesRoute,
@@ -1109,15 +1369,29 @@ const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(
 )
 
 interface PlatformRouteChildren {
+  PlatformPlatformAccountRoute: typeof PlatformPlatformAccountRoute
+  PlatformPlatformAdminsRoute: typeof PlatformPlatformAdminsRoute
   PlatformPlatformDocsRoute: typeof PlatformPlatformDocsRoute
-  PlatformPlatformTenantsRoute: typeof PlatformPlatformTenantsRoute
+  PlatformPlatformMonitorRoute: typeof PlatformPlatformMonitorRoute
+  PlatformPlatformPaymentsRoute: typeof PlatformPlatformPaymentsRoute
+  PlatformPlatformPlansRoute: typeof PlatformPlatformPlansRoute
+  PlatformPlatformSettingsRoute: typeof PlatformPlatformSettingsRoute
   PlatformPlatformIndexRoute: typeof PlatformPlatformIndexRoute
+  PlatformPlatformTenantsTenantIdRoute: typeof PlatformPlatformTenantsTenantIdRoute
+  PlatformPlatformTenantsIndexRoute: typeof PlatformPlatformTenantsIndexRoute
 }
 
 const PlatformRouteChildren: PlatformRouteChildren = {
+  PlatformPlatformAccountRoute: PlatformPlatformAccountRoute,
+  PlatformPlatformAdminsRoute: PlatformPlatformAdminsRoute,
   PlatformPlatformDocsRoute: PlatformPlatformDocsRoute,
-  PlatformPlatformTenantsRoute: PlatformPlatformTenantsRoute,
+  PlatformPlatformMonitorRoute: PlatformPlatformMonitorRoute,
+  PlatformPlatformPaymentsRoute: PlatformPlatformPaymentsRoute,
+  PlatformPlatformPlansRoute: PlatformPlatformPlansRoute,
+  PlatformPlatformSettingsRoute: PlatformPlatformSettingsRoute,
   PlatformPlatformIndexRoute: PlatformPlatformIndexRoute,
+  PlatformPlatformTenantsTenantIdRoute: PlatformPlatformTenantsTenantIdRoute,
+  PlatformPlatformTenantsIndexRoute: PlatformPlatformTenantsIndexRoute,
 }
 
 const PlatformRouteWithChildren = PlatformRoute._addFileChildren(
@@ -1128,7 +1402,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WorkspaceRoute: WorkspaceRouteWithChildren,
   PlatformRoute: PlatformRouteWithChildren,
+  PlatformAcceptInvitationRoute: PlatformAcceptInvitationRoute,
+  PlatformForgotPasswordRoute: PlatformForgotPasswordRoute,
   PlatformLoginRoute: PlatformLoginRoute,
+  PlatformResetPasswordRoute: PlatformResetPasswordRoute,
+  SignupVerifyRoute: SignupVerifyRoute,
+  SignupIndexRoute: SignupIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,4 +1,4 @@
-# ADR-0024 Platform documentation host behind the platform sign-in
+# ADR-0024 Platform documentation and monitoring hosts behind the platform sign-in
 
 **Status:** Accepted (2026-09-25). Extends the host layout of [ADR-0021](0021-host-layout-and-tenant-resolution.md) with a ninth host. Roadmap [M5-05, M5-06](../../roadmap/13-public-face.md).
 
@@ -16,10 +16,15 @@ The content itself is not secret: the repository is public and holds no secret v
 4. **Check.** The proxy guards every other request with `forward_auth` to `/_session/check`, which answers 204 when the pass is valid and the admin still exists, and otherwise redirects to `https://admin.<domain>/platform/docs?next=<requested path>`; that console page requires the platform sign-in, then hands off again, so a guest lands on the page they asked for.
 5. **No session, no tenant.** The platform-docs routes run with cookie encryption only: no session store, no tenancy, no CSRF (they are `GET`s that change nothing but the pass cookie).
 
+## Amendment (2026-09-25): monitoring and revocation
+
+- The **monitor host** uses the same pass instead of HTTP basic auth (development had no gate at all): the console's *Monitoring* button hands over to `monitor.<domain>`, Caddy guards every path except `/_session/*` with `forward_auth`, Horizon's gate and Telescope's `auth` check the pass themselves (in every environment, local included), and `/health` on that host is the health dashboard.
+- The pass is a random token held by the server (cache, eight hours), not a signed admin id: the console session records the tokens it handed out and **console sign-out deletes them**, so signing out ends access to both hosts at once. Hand-off links are signed per host, so a link for one host does not work on the other. Endpoint: `POST /platform-api/handoff {target: docs | monitor, next}`; cookie `shp_platform_pass`.
+
 ## Consequences
 
 - One more DNS record and certificate (`platform-docs` in the OpenTofu host lists, the on-demand TLS allow list).
-- A pass outlives a console sign-out until it expires (at most 8 hours); deleting the admin ends it on the next request. There is no disabled state for platform admins today.
+- Console sign-out, expiry (eight hours) or deleting the admin ends a pass on the next request. There is no disabled state for platform admins today.
 - Single-host installs do not serve the platform documentation. MVP-SHORTCUT → V1-PL-17 (a path on the one host).
 - The proxy image is built with `docs/` as a second build context (`docs`).
 

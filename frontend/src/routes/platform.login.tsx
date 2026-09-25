@@ -14,7 +14,7 @@ export const Route = createFileRoute('/platform/login')({
   validateSearch: searchSchema,
   beforeLoad: async ({ context, search }) => {
     if (await ensurePlatformSession(context.queryClient)) {
-      throw redirect({ href: platformRedirect(search.redirect) ?? '/platform/tenants', replace: true })
+      throw redirect({ href: platformRedirect(search.redirect) ?? '/platform', replace: true })
     }
   },
   component: PlatformLoginPage,

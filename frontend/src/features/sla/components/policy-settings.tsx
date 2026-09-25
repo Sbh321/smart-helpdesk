@@ -120,7 +120,7 @@ function PolicyForm({
     <form
       noValidate
       aria-label={policy ? fill(copy.sla.editNamed, { name: policy.name }) : copy.sla.newPolicy}
-      className="flex max-w-2xl flex-col gap-5 rounded-lg border border-border p-4"
+      className="flex max-w-2xl flex-col gap-5 rounded-lg border border-border p-4 bg-surface"
       onSubmit={(event) => {
         event.preventDefault()
         void form.handleSubmit()
@@ -284,7 +284,10 @@ function PolicyList() {
       ) : (
         <ul className="grid gap-4 xl:grid-cols-2">
           {policies.data.map((policy) => (
-            <li key={policy.id} className="flex flex-col gap-3 rounded-lg border border-border p-4">
+            <li
+              key={policy.id}
+              className="flex flex-col gap-3 rounded-lg border border-border p-4 bg-surface"
+            >
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-semibold">{policy.name}</h3>
                 {canManage ? (

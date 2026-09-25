@@ -131,6 +131,13 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        // Platform super admins (ADR-0025 §7): their own token table, links to the admin host.
+        'platform_users' => [
+            'provider' => 'platform_users',
+            'table' => 'platform_password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
     /*

@@ -63,7 +63,7 @@ export function CalendarSettings() {
       ) : (
         <ul className="flex flex-col gap-4">
           {calendars.data.map((calendar) => (
-            <li key={calendar.id} className="space-y-3 rounded-lg border border-border p-4">
+            <li key={calendar.id} className="space-y-3 rounded-lg border border-border p-4 bg-surface">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-semibold">
                   {fill(copy.sla.calendarLine, { name: calendar.name, zone: calendar.timezone })}

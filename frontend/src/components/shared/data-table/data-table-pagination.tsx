@@ -2,6 +2,7 @@ import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon 
 import { useId } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import { PAGE_SIZES, type PageSize } from '@/lib/list-params'
 
@@ -67,49 +68,57 @@ export function DataTablePagination({
           })}
         </p>
         <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            aria-label={copy.dataTable.firstPage}
-            disabled={!canGoBack}
-            onClick={() => onPageChange(1)}
-          >
-            <ChevronsLeftIcon aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            aria-label={copy.dataTable.previousPage}
-            disabled={!canGoBack}
-            onClick={() => onPageChange(page - 1)}
-          >
-            <ChevronLeftIcon aria-hidden="true" />
-          </Button>
+          <Hint label={copy.dataTable.firstPage}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              aria-label={copy.dataTable.firstPage}
+              disabled={!canGoBack}
+              onClick={() => onPageChange(1)}
+            >
+              <ChevronsLeftIcon aria-hidden="true" />
+            </Button>
+          </Hint>
+          <Hint label={copy.dataTable.previousPage}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              aria-label={copy.dataTable.previousPage}
+              disabled={!canGoBack}
+              onClick={() => onPageChange(page - 1)}
+            >
+              <ChevronLeftIcon aria-hidden="true" />
+            </Button>
+          </Hint>
           <span className="px-1 text-muted-foreground tabular-nums">
             {fill(copy.dataTable.pageOf, { page, pages: pageCount })}
           </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            aria-label={copy.dataTable.nextPage}
-            disabled={!canGoForward}
-            onClick={() => onPageChange(page + 1)}
-          >
-            <ChevronRightIcon aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            aria-label={copy.dataTable.lastPage}
-            disabled={!canGoForward}
-            onClick={() => onPageChange(pageCount)}
-          >
-            <ChevronsRightIcon aria-hidden="true" />
-          </Button>
+          <Hint label={copy.dataTable.nextPage}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              aria-label={copy.dataTable.nextPage}
+              disabled={!canGoForward}
+              onClick={() => onPageChange(page + 1)}
+            >
+              <ChevronRightIcon aria-hidden="true" />
+            </Button>
+          </Hint>
+          <Hint label={copy.dataTable.lastPage}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              aria-label={copy.dataTable.lastPage}
+              disabled={!canGoForward}
+              onClick={() => onPageChange(pageCount)}
+            >
+              <ChevronsRightIcon aria-hidden="true" />
+            </Button>
+          </Hint>
         </div>
       </nav>
     </div>

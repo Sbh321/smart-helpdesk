@@ -44,22 +44,27 @@ enum ErrorCode: string
     case IdempotencyKeyReused = 'idempotency_key_reused';
     case WebhookUrlRejected = 'webhook_url_rejected';
     case DeliveryNotRetryable = 'delivery_not_retryable';
+    case WorkspaceReadOnly = 'workspace_read_only';
+    case AlreadyReviewed = 'already_reviewed';
+    case LastAdmin = 'last_admin';
+    case SignupClosed = 'signup_closed';
+    case LinkExpired = 'link_expired';
 
     public function status(): int
     {
         return match ($this) {
             self::BadRequest, self::InvalidScope, self::UnsupportedGrantType => 400,
             self::InvalidCredentials, self::Unauthenticated, self::InvalidClient => 401,
-            self::Forbidden, self::TenantSuspended, self::AccountLocked => 403,
+            self::Forbidden, self::TenantSuspended, self::AccountLocked, self::WorkspaceReadOnly, self::SignupClosed => 403,
             self::NotFound => 404,
             self::MethodNotAllowed => 405,
             self::Conflict, self::StaleUpdate, self::AlreadyAssigned, self::InUse, self::AlreadyDecided,
-            self::DeliveryNotRetryable => 409,
+            self::DeliveryNotRetryable, self::AlreadyReviewed => 409,
             self::PayloadTooLarge => 413,
             self::SessionExpired => 419,
             self::ValidationFailed, self::InvalidTransition, self::NoEligibleAgent, self::QuotaExceeded,
             self::DuplicateTargetInvalid, self::LastOwner, self::ResolutionCommentRequired, self::SlaTargetMissing,
-            self::SettingsInvalid, self::IdempotencyKeyReused, self::WebhookUrlRejected => 422,
+            self::SettingsInvalid, self::IdempotencyKeyReused, self::WebhookUrlRejected, self::LastAdmin, self::LinkExpired => 422,
             self::RateLimited => 429,
             self::InternalError => 500,
             self::StorageUnavailable => 502,
@@ -104,6 +109,11 @@ enum ErrorCode: string
             self::IdempotencyKeyReused => 'The idempotency key was used for a different request',
             self::WebhookUrlRejected => 'The webhook URL is not allowed',
             self::DeliveryNotRetryable => 'The delivery cannot be retried',
+            self::WorkspaceReadOnly => 'This workspace is read-only',
+            self::AlreadyReviewed => 'The payment was already reviewed',
+            self::LastAdmin => 'The last active platform admin cannot be removed',
+            self::SignupClosed => 'Sign-up is closed',
+            self::LinkExpired => 'The link has expired or was already used',
         };
     }
 

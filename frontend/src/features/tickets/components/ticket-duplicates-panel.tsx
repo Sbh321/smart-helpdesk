@@ -75,7 +75,7 @@ export function TicketDuplicatesPanel({
     <section aria-label={copy.tickets.detail.duplicates}>
       <ul className="space-y-3">
         {suggestions.data.map((item) => (
-          <li key={item.id} className="rounded-lg border border-border p-4 text-sm">
+          <li key={item.id} className="rounded-lg border border-border p-4 text-sm bg-surface">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <Link

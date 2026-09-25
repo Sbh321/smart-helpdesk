@@ -1,5 +1,5 @@
 # Edge proxy for the split host layout (ADR-0021, docs/09-infrastructure/docker.md).
-# Environment: PLATFORM_DOMAIN, TLS_MODE (acme|on_demand|internal|files), APP_SERVE (static|vite), MONITOR_AUTH (off|on).
+# Environment: PLATFORM_DOMAIN, TLS_MODE (acme|on_demand|internal|files), APP_SERVE (static|vite).
 {
 	servers {
 		protocols h1 h2 h3
@@ -62,18 +62,14 @@ http://127.0.0.1:5555 {
 	reverse_proxy {$VITE_UPSTREAM:host.docker.internal:5173}
 }
 
-(monitor_auth_off) {
-}
-(monitor_auth_on) {
-	basic_auth {
-		{$MONITOR_USER} {$MONITOR_PASSWORD_HASH}
-	}
-}
 
 {$PLATFORM_DOMAIN} {
 	import common
 	handle /go/app {
 		redir https://app.{$PLATFORM_DOMAIN}/ 302
+	}
+	handle /go/signup {
+		redir https://app.{$PLATFORM_DOMAIN}/signup 302
 	}
 	handle /go/docs {
 		redir https://docs.{$PLATFORM_DOMAIN}/ 302
@@ -132,25 +128,44 @@ admin.{$PLATFORM_DOMAIN} {
 	}
 }
 
+# Monitoring for platform super admins (ADR-0024): Horizon, Telescope (local only), the health dashboard,
+# the RustFS console and the Stalwart admin API, all behind the platform pass that the console hands over.
 monitor.{$PLATFORM_DOMAIN} {
 	import common
-	import monitor_auth_{$MONITOR_AUTH:on}
-	# RustFS console uses absolute /rustfs/... paths, so the prefix is kept, not stripped.
-	redir /storage /rustfs/console/
-	redir /storage/ /rustfs/console/
-	handle /rustfs/* {
-		reverse_proxy rustfs:9001
-	}
-	handle_path /mail/* {
-		reverse_proxy {$MAIL_ADMIN_UPSTREAM:mail:8080}
+	header X-Frame-Options DENY
+	header X-Robots-Tag "noindex, nofollow"
+	handle /_session/* {
+		reverse_proxy app:8080
 	}
 	handle {
-		reverse_proxy app:8080
+		forward_auth app:8080 {
+			uri /_session/check
+			header_up X-Forwarded-Uri {http.request.orig_uri}
+		}
+		# RustFS console uses absolute /rustfs/... paths, so the prefix is kept, not stripped.
+		redir /storage /rustfs/console/
+		redir /storage/ /rustfs/console/
+		handle /rustfs/* {
+			reverse_proxy rustfs:9001
+		}
+		# Everything under /mail/ goes to Stalwart's admin API with the /mail prefix removed.
+		handle_path /mail/* {
+			reverse_proxy {$MAIL_ADMIN_UPSTREAM:mail:8080}
+		}
+		handle {
+			reverse_proxy app:8080
+		}
 	}
 }
 
 docs.{$PLATFORM_DOMAIN} {
 	import common
+	# The product icons (docs/06-design-system/brand.md) from the API's public folder: the tab icon and
+	# the reference's logo, public like every favicon.
+	@icons path /favicon.ico /favicon.svg /apple-touch-icon.png
+	handle @icons {
+		reverse_proxy app:8080
+	}
 	handle /openapi.json {
 		rewrite * /docs/api.json
 		reverse_proxy app:8080

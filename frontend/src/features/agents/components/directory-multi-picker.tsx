@@ -39,7 +39,10 @@ export function DirectoryMultiPicker({
       {selected.length ? (
         <ul className="flex flex-wrap gap-2" aria-label={label}>
           {selected.map((item) => (
-            <li key={item.value} className="flex items-center gap-2 rounded-lg border px-2 py-1 text-sm">
+            <li
+              key={item.value}
+              className="flex items-center gap-2 rounded-lg border px-2 py-1 text-sm bg-surface"
+            >
               {item.label}
               <Button
                 type="button"

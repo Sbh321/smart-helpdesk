@@ -14,6 +14,12 @@ use App\Modules\Audit\Audit;
 use App\Modules\Audit\Enums\ActorType;
 use App\Modules\Automation\Actions\AssignTicket;
 use App\Modules\Automation\Actions\OverrideTicketPriority;
+use App\Modules\Billing\Enums\PaymentMethod;
+use App\Modules\Billing\Enums\PaymentStatus;
+use App\Modules\Billing\Models\Plan;
+use App\Modules\Billing\Models\Subscription;
+use App\Modules\Billing\Models\SubscriptionPayment;
+use App\Modules\Billing\Support\BillingSettings;
 use App\Modules\Contacts\Actions\SaveContact;
 use App\Modules\Contacts\Enums\OrganizationTier;
 use App\Modules\Contacts\Models\Contact;
@@ -29,6 +35,7 @@ use App\Modules\Integrations\Webhooks\DeliveryAttempt;
 use App\Modules\Media\Actions\CompleteUpload;
 use App\Modules\Media\Actions\RegisterUpload;
 use App\Modules\Media\Jobs\GenerateImageVariants;
+use App\Modules\Media\Models\Mediable;
 use App\Modules\Media\Models\MediaItem;
 use App\Modules\Media\Support\MediaKeys;
 use App\Modules\Media\Support\MediaStorage;
@@ -138,6 +145,7 @@ final class DemoWorkspaceBuilder
             app(SyncPermissionCatalogue::class)();
             $acme = $this->buildAcme($plan, $tickets, $attachments);
             $globex = $this->buildGlobex();
+            $this->seedBilling($acme, $globex, $attachments);
             DB::table('tenants')->whereIn('id', [$acme, $globex])->update(['status' => TenantStatus::Active->value]);
         } finally {
             $this->clock->restore();
@@ -704,6 +712,95 @@ final class DemoWorkspaceBuilder
      * While the replay writes history with past instants the workspace is suspended, so a real-time sweep
      * cannot act on it halfway; build() activates both workspaces at the end.
      */
+    /**
+     * Billing (ADR-0025): both workspaces pay for Standard, a year past the reset, so the demo never turns
+     * read-only; Acme has two approved monthly payments and one receipt waiting in the console's queue.
+     */
+    private function seedBilling(string $acmeId, string $globexId, bool $attachments): void
+    {
+        $standard = Plan::query()->where('code', 'standard')->first();
+        if ($standard === null) {
+            return;
+        }
+        // Where to pay, unless the platform already says (a real installation keeps its own text).
+        $settings = app(BillingSettings::class);
+        if ($settings->paymentInstructions() === '') {
+            $settings->setPaymentInstructions("Himalayan Bank, Smart Helpdesk Pvt. Ltd., account 01234567890123\neSewa or Khalti: 9800000000\nPut your workspace address in the remarks.");
+        }
+        foreach ([$acmeId, $globexId] as $tenantId) {
+            Subscription::query()->updateOrCreate(
+                ['tenant_id' => $tenantId],
+                ['plan_id' => $standard->id, 'ends_at' => $this->now->addYear(), 'reminders' => []],
+            );
+        }
+
+        $payment = fn (array $attributes): SubscriptionPayment => SubscriptionPayment::query()->create([
+            'tenant_id' => $acmeId, 'plan_id' => $standard->id, 'periods' => 1, 'amount_minor' => $standard->price_minor,
+            'currency' => $standard->currency, 'method' => PaymentMethod::BankTransfer,
+            'submitted_by_name' => 'Meera Joshi', 'submitted_by_email' => 'meera@acme.test', ...$attributes,
+        ]);
+        foreach ([[70, 'TRX-20260716'], [40, 'TRX-20260815']] as [$daysAgo, $reference]) {
+            $paidOn = $this->now->subDays($daysAgo);
+            $payment([
+                'paid_on' => $paidOn->toDateString(), 'reference' => $reference, 'status' => PaymentStatus::Approved,
+                'reviewed_at' => $paidOn->addDay(), 'period_starts_at' => $paidOn, 'period_ends_at' => $paidOn->addMonth(),
+            ]);
+        }
+
+        // One receipt to review, with its image, when object storage is reachable.
+        $receiptId = null;
+        $tenant = Tenant::query()->findOrFail($acmeId);
+        if ($attachments) {
+            try {
+                $receiptId = $tenant->run(function (): string {
+                    $owner = User::query()->where('email', 'meera@acme.test')->firstOrFail();
+                    $bytes = $this->receiptImage();
+                    $intent = app(RegisterUpload::class)('receipt-2026-09.png', strlen($bytes), 'image/png', $owner, 'receipt');
+                    app(MediaStorage::class)->put(MediaKeys::staging($intent->media_id, 'png'), $bytes, 'image/png');
+                    $item = app(CompleteUpload::class)(MediaItem::query()->findOrFail($intent->media_id));
+                    GenerateImageVariants::dispatchSync($item->id);
+
+                    return $item->id;
+                });
+            } catch (Throwable $exception) {
+                Log::warning('Demo seed: the receipt was skipped, object storage unavailable.', ['error' => $exception->getMessage()]);
+            }
+        }
+        $pending = $payment([
+            'periods' => 3, 'amount_minor' => $standard->price_minor * 3, 'paid_on' => $this->now->subDay()->toDateString(),
+            'reference' => 'TRX-20260924', 'note' => 'Three months, paid from the office account.',
+            'status' => PaymentStatus::Pending, 'receipt_media_id' => $receiptId,
+        ]);
+        if ($receiptId !== null) {
+            $tenant->run(fn () => Mediable::query()->create([
+                'media_item_id' => $receiptId, 'mediable_type' => SubscriptionPayment::MEDIABLE_TYPE,
+                'mediable_id' => $pending->id, 'role' => 'receipt', 'created_at' => $this->now,
+            ]));
+        }
+    }
+
+    /** A bank receipt as a PNG: the bank, the amount, the reference. */
+    private function receiptImage(): string
+    {
+        $image = imagecreatetruecolor(600, 800);
+        if ($image === false) {
+            throw new LogicException('GD cannot create the demo receipt.');
+        }
+        imagefill($image, 0, 0, (int) imagecolorallocate($image, 255, 255, 255));
+        imagefilledrectangle($image, 0, 0, 599, 90, (int) imagecolorallocate($image, 15, 118, 110));
+        $white = (int) imagecolorallocate($image, 255, 255, 255);
+        $ink = (int) imagecolorallocate($image, 30, 30, 30);
+        imagestring($image, 5, 30, 35, 'HIMALAYAN BANK - PAYMENT RECEIPT', $white);
+        $lines = ['Paid to:    Smart Helpdesk', 'From:       Acme Support Pvt. Ltd.', 'Amount:     NPR 7,500.00', 'Reference:  TRX-20260924', 'For:        Standard plan, 3 months', 'Status:     Successful'];
+        foreach ($lines as $index => $line) {
+            imagestring($image, 5, 40, 150 + $index * 50, $line, $ink);
+        }
+        ob_start();
+        imagepng($image, null, 9);
+
+        return (string) ob_get_clean();
+    }
+
     private function suspendWhileBuilding(Tenant $tenant): void
     {
         DB::table('tenants')->where('id', $tenant->id)->update(['status' => TenantStatus::Suspended->value]);

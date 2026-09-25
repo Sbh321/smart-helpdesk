@@ -10,8 +10,9 @@ Lightweight by design ([ADR-0012](../adr/0012-deployment-architecture.md)): stru
 | Docker `json-file` driver, 10 MB × 3 per container | retention without filling disks | daemon.json + Compose |
 | `GET /up` | framework boot only; container healthcheck | `app` |
 | `GET /v1/health` (spatie/laravel-health checks, own JSON) | dependency health for humans and uptime monitors | `api` host; `Authorization: Bearer <HEALTH_TOKEN>` or `X-Health-Token`; open without a token only when `APP_ENV=local`; platform admin access arrives with M1-07 |
-| Horizon dashboard | queue throughput, wait times, failed jobs, per-tenant tags | `/horizon`, platform admin |
-| Telescope | requests, queries, jobs, mail, exceptions in development only | `/telescope`, `TELESCOPE_ENABLED=true` only when `APP_ENV=local` |
+| Horizon dashboard | queue throughput, wait times, failed jobs, per-tenant tags | `monitor.<domain>/horizon`; its gate and the proxy require the platform pass (ADR-0024) |
+| Health dashboard | the latest results of the scheduled checks | `monitor.<domain>/health`, platform pass |
+| Telescope | requests, queries, jobs, mail, exceptions in development only (dark theme; the pass checks on `/_session/check` are not recorded) | `monitor.<domain>/telescope`, registered only when `APP_ENV=local`, behind the platform pass. Not in production: it stores every request, query and mail across all workspaces, including personal data, and writes on each request |
 | `opcodesio/log-viewer` | browse container log files on-prem (files written by the `daily` channel in addition to stderr when `LOG_FILE_ENABLED=true`) | `/log-viewer`, platform admin |
 | Health notifications | mail on failing checks | `HEALTH_NOTIFY_MAIL` |
 

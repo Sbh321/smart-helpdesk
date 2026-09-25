@@ -20,7 +20,7 @@ Planning and design documentation for **Smart Helpdesk**, a multi-tenant support
 | [03-architecture](03-architecture/overview.md) | overview, frontend, backend, data, tenancy, security, storage, realtime, deployment, configuration, error handling, diagrams |
 | [04-domain](04-domain/tickets.md) | tickets, contacts, agents and teams, SLA, notifications, integrations, audit, media, email, reporting |
 | [05-algorithms](05-algorithms/priority-scoring.md) | priority scoring, agent assignment, duplicate detection, SLA evaluation, history reconstruction and time analytics, evaluation methodology |
-| [06-design-system](06-design-system/tokens.md) | principles, tokens, themes, typography, spacing, components, page patterns, accessibility, UX review |
+| [06-design-system](06-design-system/tokens.md) | principles, tokens, themes, typography, spacing, components, page patterns, accessibility, UX review, brand mark and icons |
 | [07-api](07-api/conventions.md) | conventions, authentication, pagination and filtering, errors, versioning, webhooks, documentation |
 | [08-database](08-database/overview.md) | overview, entities, indexing, tenancy, migrations |
 | [09-infrastructure](09-infrastructure/docker.md) | docker, local development, environments (hosts, services, credentials), production, terraform, ansible, backups, disaster recovery, CI/CD |

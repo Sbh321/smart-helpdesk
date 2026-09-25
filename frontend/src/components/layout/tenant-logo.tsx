@@ -1,5 +1,5 @@
-import { LifeBuoyIcon } from 'lucide-react'
 import { useState } from 'react'
+import { BrandMark } from '@/components/shared/brand-mark'
 import type { SessionTenant } from '@/lib/auth'
 import { useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
@@ -23,7 +23,7 @@ export function pickTenantLogo(
 }
 
 /**
- * The workspace logo, or the product mark when there is none or it cannot be loaded. The image is
+ * The workspace logo, or the product mark (`BrandMark`) when there is none or it cannot be loaded. The image is
  * decorative: the workspace name is always printed next to it.
  */
 export function TenantLogo({
@@ -38,7 +38,8 @@ export function TenantLogo({
   const [failed, setFailed] = useState<string | null>(null)
 
   if (!logo || failed === logo.src) {
-    return <LifeBuoyIcon aria-hidden="true" className={cn('size-5 shrink-0 text-primary', className)} />
+    // The workspace's default logo is the product mark, as on every favicon.
+    return <BrandMark showName={false} size="sm" className={className} />
   }
   return (
     <img

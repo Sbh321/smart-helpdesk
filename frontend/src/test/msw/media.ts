@@ -11,6 +11,15 @@ export const TEST_STORAGE_ORIGIN = 'https://files.test'
 const PIXEL_PNG =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
 
+/** The API's `filter[type]` groups (MediaLibraryController::TYPE_GROUPS). */
+function inTypeGroup(mime: string, group: string): boolean {
+  if (group === 'image') return mime.startsWith('image/')
+  if (group === 'document')
+    return mime === 'application/pdf' || mime.startsWith('application/vnd.openxmlformats-officedocument.')
+  if (group === 'text') return mime.startsWith('text/')
+  return group === 'archive' && mime === 'application/zip'
+}
+
 function find(id: unknown): MediaItemResource | undefined {
   return db.media.find((row) => row.id === id)
 }
@@ -20,7 +29,7 @@ export const mediaHandlers = [
     const url = new URL(request.url)
     const invalid = validateListQuery(url, {
       sortable: ['name', 'size_bytes', 'created_at'],
-      filters: ['folder_id', 'state', 'tag'],
+      filters: ['folder_id', 'state', 'tag', 'type'],
       defaultSort: '-created_at',
     })
     if (invalid) return invalid
@@ -28,13 +37,15 @@ export const mediaHandlers = [
     const folders = url.searchParams.get('filter[folder_id]')?.split(',')
     const trashed = url.searchParams.get('filter[state]') === 'trashed'
     const tags = url.searchParams.get('filter[tag]')?.split(',')
+    const types = url.searchParams.get('filter[type]')?.split(',')
     const rows = db.media.filter(
       (item) =>
         (item.state === 'trashed') === trashed &&
         (trashed || item.state === 'ready') &&
         (!search || item.name.toLowerCase().includes(search)) &&
         (!folders || (item.folder_id !== null && folders.includes(item.folder_id))) &&
-        (!tags || item.tags.some((tag) => tags.includes(tag.slug))),
+        (!tags || item.tags.some((tag) => tags.includes(tag.slug))) &&
+        (!types || types.some((group) => inTypeGroup(item.mime_type, group))),
     )
     return HttpResponse.json(paginate(url, sortRows(rows, url.searchParams.get('sort') ?? '-created_at')))
   }),
@@ -159,8 +170,15 @@ export const mediaHandlers = [
     `${TEST_API_ORIGIN}/v1/media/:media/variants/:name`,
     () => new HttpResponse(null, { status: 404 }),
   ),
-  /** The API redirects a download to a signed URL; here it answers with a 1×1 PNG so `<img>` loads. */
+  /**
+   * The API redirects a download or an "open" to a signed URL; here both answer with a 1×1 PNG so an
+   * `<img>` (thumbnail, logo, lightbox) loads.
+   */
   http.get(`${TEST_API_ORIGIN}/v1/media/:media/download`, () => {
+    const bytes = Uint8Array.from(atob(PIXEL_PNG), (char) => char.charCodeAt(0))
+    return new HttpResponse(bytes, { headers: { 'Content-Type': 'image/png' } })
+  }),
+  http.get(`${TEST_API_ORIGIN}/v1/media/:media/open`, () => {
     const bytes = Uint8Array.from(atob(PIXEL_PNG), (char) => char.charCodeAt(0))
     return new HttpResponse(bytes, { headers: { 'Content-Type': 'image/png' } })
   }),

@@ -309,7 +309,7 @@ test('the Media library, its folder tree and its dialogs have no serious or crit
     ),
   )
   const { screen } = await renderApp('/acme/settings/media')
-  await expect.element(screen.getByRole('table', { name: copy.media.tableLabel })).toBeVisible()
+  await expect.element(screen.getByRole('list', { name: copy.media.tableLabel })).toBeVisible()
   await screen.getByRole('treeitem', { name: 'Brand' }).click()
   expect(await scan(screen.container)).toEqual([])
 
@@ -319,9 +319,29 @@ test('the Media library, its folder tree and its dialogs have no serious or crit
   await screen.getByRole('alertdialog').getByRole('button', { name: copy.confirm.cancel }).click()
 
   await screen.getByRole('treeitem', { name: copy.media.allFolders }).click()
-  await screen.getByRole('button', { name: 'Edit screenshot-27.png' }).click()
+  await screen.getByRole('button', { name: 'Actions for screenshot-27.png' }).click()
+  await screen.getByRole('menuitem', { name: copy.media.edit }).click()
   await expect.element(screen.getByRole('dialog', { name: copy.media.editTitle })).toBeVisible()
   expect(await scan(document.body)).toEqual([])
+  await userEvent.keyboard('{Escape}')
+
+  // The lightbox, with its details panel open.
+  await screen.getByRole('button', { name: 'Preview screenshot-27.png' }).click()
+  const box = screen.getByRole('dialog', { name: 'screenshot-27.png' })
+  await box.getByRole('button', { name: copy.lightbox.showDetails }).click()
+  await expect.element(box.getByRole('complementary', { name: copy.lightbox.details })).toBeVisible()
+  expect(await scan(document.body)).toEqual([])
+  await userEvent.keyboard('{Escape}')
+
+  // The list view.
+  await screen.getByRole('button', { name: copy.media.viewList }).click()
+  await expect.element(screen.getByRole('table', { name: copy.media.tableLabel })).toBeVisible()
+  expect(await scan(screen.container)).toEqual([])
+  try {
+    localStorage.removeItem('sh.media.view')
+  } catch {
+    // Nothing remembered.
+  }
 })
 
 test('the ticket tabs and the assignment dialog have no serious or critical axe violations', async () => {

@@ -120,6 +120,8 @@ return [
         'pulse*',
         '_boost*',
         '.well-known*',
+        // The proxy's platform pass check runs for every file on the monitor and docs hosts (ADR-0024).
+        '_session/check',
     ],
 
     'ignore_commands' => [

@@ -21,6 +21,8 @@ final class StoreTenantRequest extends FormRequest
             'owner_email' => ['required', 'string', 'email:filter', 'max:254'],
             'owner_name' => ['sometimes', 'string', 'max:120'],
             'timezone' => ['sometimes', 'string', 'timezone:all', 'max:64'],
+            'plan_id' => ['sometimes', 'nullable', 'uuid', Rule::exists('plans', 'id')->where('is_active', true)],
+            'periods' => ['sometimes', 'integer', 'between:1,36'],
         ];
     }
 }

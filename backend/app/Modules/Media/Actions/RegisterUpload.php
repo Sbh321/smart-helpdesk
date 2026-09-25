@@ -37,7 +37,12 @@ final class RegisterUpload
     ) {}
 
     /** System folders an upload may start in; everything else is moved there later by a media manager. */
-    public const array PURPOSE_FOLDERS = ['attachment' => ['tickets', 'Tickets'], 'branding' => ['branding', 'Branding']];
+    public const array PURPOSE_FOLDERS = [
+        'attachment' => ['tickets', 'Tickets'],
+        'branding' => ['branding', 'Branding'],
+        // A payment receipt for the workspace's subscription (ADR-0025 §4).
+        'receipt' => ['billing', 'Billing'],
+    ];
 
     public function __invoke(string $filename, int $size, string $declaredMime, User $actor, string $purpose = 'attachment'): UploadIntent
     {

@@ -325,7 +325,7 @@ export function TicketBulkDialogs({
                     ? `${fill(copy.tickets.number, { number: ticket.number })} ${ticket.title}`
                     : fill(text.unknownTicket, { id: row.ticket_id.slice(0, 8) })
                   return (
-                    <li key={row.ticket_id} className="rounded-md border border-border px-2 py-1">
+                    <li key={row.ticket_id} className="rounded-md border border-border px-2 py-1 bg-surface">
                       {fill(text.failureRow, { ticket: name, message: bulkRowMessage(row) })}
                     </li>
                   )

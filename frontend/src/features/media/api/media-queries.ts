@@ -3,7 +3,13 @@ import { z } from 'zod'
 import { api, unwrap, unwrapBody } from '@/lib/api/client'
 import { queryKeys } from '@/lib/api/query-keys'
 import type { components, operations } from '@/lib/api/schema'
-import { type ApiListQuery, choiceFilter, defineListSchema, multiFilter } from '@/lib/list-params'
+import {
+  type ApiListQuery,
+  choiceFilter,
+  defineListSchema,
+  multiFilter,
+  type UseListParamsResult,
+} from '@/lib/list-params'
 
 export type MediaItem = components['schemas']['MediaItemResource']
 export type MediaFolder = components['schemas']['MediaFolderResource']
@@ -14,15 +20,26 @@ export type MediaListPage = operations['media.index']['responses'][200]['content
 type MediaIndex = operations['media.index']
 type MediaListQuery = NonNullable<MediaIndex['parameters']['query']>
 
+/** The API's type groups (`filter[type]`): images, PDF and Office documents, text and CSV, ZIP. */
+export const MEDIA_TYPE_GROUPS = ['image', 'document', 'text', 'archive'] as const
+export type MediaTypeGroup = (typeof MEDIA_TYPE_GROUPS)[number]
+
 export const mediaListSchema = defineListSchema({
   sortFields: ['name', 'size_bytes', 'created_at'] as const,
   defaultSort: '-created_at',
   filters: {
     folder_id: multiFilter(z.uuid()),
     state: choiceFilter(['trashed']),
+    type: choiceFilter(MEDIA_TYPE_GROUPS),
     tag: multiFilter(z.string().trim().min(1).max(40)),
   },
 })
+
+/** The media list's state, from the URL (`useListParams`) or from a dialog (`useLocalListParams`). */
+export type MediaListState = UseListParamsResult<
+  'name' | 'size_bytes' | 'created_at',
+  (typeof mediaListSchema)['filters']
+>
 
 export const mediaQueries = {
   list: (tenantId: string, query: ApiListQuery) =>
@@ -49,8 +66,11 @@ export const mediaQueries = {
     }),
 }
 
-/** `branding` puts the file into the Branding folder and needs `settings.manage` (workspace logos). */
-export type UploadPurpose = 'attachment' | 'branding'
+/**
+ * `branding` puts the file into the Branding folder and needs `settings.manage` (workspace logos);
+ * `receipt` into the Billing folder, images and PDF only, with `billing.manage` (ADR-0025 §4).
+ */
+export type UploadPurpose = 'attachment' | 'branding' | 'receipt'
 
 export function uploadIntent(
   filename: string,

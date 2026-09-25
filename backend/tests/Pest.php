@@ -9,4 +9,5 @@ use Tests\TestCase;
  * Tenancy helpers live in tests/Support/TenancyHelpers.php.
  */
 require_once __DIR__.'/Support/TenancyHelpers.php';
+require_once __DIR__.'/Support/PlatformHelpers.php';
 pest()->extend(TestCase::class)->in('Feature', 'Isolation', 'Permissions');

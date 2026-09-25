@@ -73,11 +73,11 @@ return [
     // Platform super admins on the admin host (ADR-0021).
     'platform' => [
         'session_cookie' => env('SESSION_PLATFORM_COOKIE', 'shp_platform_session'),
-        // The platform docs pass (ADR-0024): a host-only cookie on the platform-docs host, and the
-        // single-use hand-off link from the console that sets it.
-        'docs_cookie' => env('PLATFORM_DOCS_COOKIE', 'shp_platform_docs'),
-        'docs_pass_minutes' => (int) env('PLATFORM_DOCS_PASS_MINUTES', 480),
-        'docs_handoff_seconds' => 60,
+        // The platform pass (ADR-0024): a host-only cookie on the platform-docs and monitor hosts, set from
+        // a single-use hand-off link from the console and ended by console sign-out.
+        'pass_cookie' => env('PLATFORM_PASS_COOKIE', 'shp_platform_pass'),
+        'pass_minutes' => (int) env('PLATFORM_PASS_MINUTES', 480),
+        'pass_handoff_seconds' => 60,
     ],
 
     // On-prem single-tenant mode: every request runs in this tenant (slug).
@@ -86,6 +86,8 @@ return [
     'reserved_slugs' => [
         'app', 'api', 'admin', 'monitor', 'docs', 'platform-docs', 'files', 'mail', 'www', 'login', 'logout', 'invite',
         'reset-password', 'select-workspace', 'assets', 'static', 'platform', 'health', 'status',
+        // The public sign-up pages on the app host (ADR-0025 §8).
+        'signup',
     ],
 
     // Platform-level: which implementation serves each algorithm contract (ADR-0023). Not a tenant setting.

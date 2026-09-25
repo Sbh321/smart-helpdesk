@@ -262,7 +262,7 @@ export function DataTable<TRow extends RowData, TSort extends string = string>({
     body = (
       <div
         data-slot="data-table-scroll"
-        className="relative max-h-[min(70dvh,48rem)] overflow-auto rounded-lg border border-border"
+        className="relative max-h-[min(70dvh,48rem)] overflow-auto rounded-card border border-border bg-surface shadow-1"
       >
         <table
           className={cn('w-full caption-bottom text-sm', isFetching && 'opacity-70 transition-opacity')}
@@ -271,8 +271,8 @@ export function DataTable<TRow extends RowData, TSort extends string = string>({
           aria-rowcount={rowCount !== undefined ? rowCount + 1 : undefined}
         >
           <caption className="sr-only">{label}</caption>
-          <TableHeader className="sticky top-0 z-10 bg-surface shadow-[inset_0_-1px_0_var(--border)]">
-            <TableRow aria-rowindex={1} className="hover:bg-transparent">
+          <TableHeader className="sticky top-0 z-10 bg-muted shadow-[inset_0_-1px_0_var(--border)]">
+            <TableRow aria-rowindex={1} className="hover:bg-muted">
               {selectable ? (
                 <TableHead className="w-10 px-3">
                   <Checkbox

@@ -7,6 +7,7 @@ namespace App\Modules\Platform\Http\Controllers;
 use App\Modules\Audit\Audit;
 use App\Modules\Audit\Enums\ActorType;
 use App\Modules\Platform\Models\PlatformUser;
+use App\Modules\Platform\Support\PlatformPass;
 use App\Modules\Tenancy\Exceptions\InvalidCredentials;
 use App\Support\Time\Clock;
 use Illuminate\Http\JsonResponse;
@@ -34,7 +35,8 @@ final class PlatformAuthController
 
         $user = PlatformUser::query()->whereRaw('lower(email) = lower(?)', [$credentials['email']])->first();
 
-        if ($user === null || ! Hash::check($credentials['password'], (string) $user->password)) {
+        // A deactivated admin, or one who has not accepted the invitation, cannot sign in (ADR-0025 §7).
+        if ($user === null || ! $user->canSignIn() || ! Hash::check($credentials['password'], (string) $user->password)) {
             throw InvalidCredentials::make();
         }
 
@@ -44,7 +46,7 @@ final class PlatformAuthController
 
         Audit::record('platform_user.logged_in', $user, tenantId: null, actorType: ActorType::PlatformUser, actorId: $user->getKey());
 
-        return new JsonResponse(['data' => $this->profile($user)]);
+        return new JsonResponse(['data' => self::profileOf($user)]);
     }
 
     /**
@@ -53,6 +55,8 @@ final class PlatformAuthController
     public function logout(Request $request): JsonResponse
     {
         Auth::guard('platform')->logout();
+        // Signing out of the console also ends the passes it handed to the docs and monitor hosts.
+        app(PlatformPass::class)->revokeFor($request->session());
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -67,13 +71,13 @@ final class PlatformAuthController
         /** @var PlatformUser $user */
         $user = $request->user('platform');
 
-        return new JsonResponse(['data' => $this->profile($user)]);
+        return new JsonResponse(['data' => self::profileOf($user)]);
     }
 
     /**
      * @return array{id: string, name: string, email: string, last_login_at: ?string}
      */
-    private function profile(PlatformUser $user): array
+    public static function profileOf(PlatformUser $user): array
     {
         return [
             'id' => $user->id,

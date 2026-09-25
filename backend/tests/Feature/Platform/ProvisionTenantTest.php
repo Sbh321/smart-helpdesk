@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\User;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Billing\Models\Subscription;
 use App\Modules\Identity\Models\Invitation;
 use App\Modules\Identity\Notifications\UserInvitation;
 use App\Modules\Platform\Actions\ProvisionTenant;
@@ -23,7 +24,7 @@ it('creates the workspace with its counter, domain and invited owner', function 
     expect($tenant->slug)->toBe('acme')
         ->and($tenant->status->value)->toBe('active')
         ->and($tenant->timezone)->toBe('Asia/Kathmandu')
-        ->and($tenant->plan)->toBe('standard')
+        ->and(Subscription::forTenant($tenant->id)?->plan->code)->toBe('trial')
         ->and($tenant->placement)->toBe('shared')
         ->and(TenantCounter::query()->where('tenant_id', $tenant->id)->value('next_ticket_number'))->toBe(1)
         ->and($tenant->domains()->where('is_primary', true)->value('domain'))->toBe('app.shp.localhost/acme')

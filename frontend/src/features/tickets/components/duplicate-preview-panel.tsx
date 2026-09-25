@@ -38,7 +38,7 @@ export function DuplicatePreviewPanel({
   const throttled = preview.isError && isRateLimited(preview.error)
 
   return (
-    <section className="rounded-lg border border-border p-4" aria-live="polite">
+    <section className="rounded-lg border border-border p-4 bg-surface" aria-live="polite">
       <h2 className="text-sm font-medium">{copy.tickets.detail.duplicates}</h2>
       {!ready || throttled ? (
         <p className="mt-1 text-sm text-muted-foreground">{copy.tickets.duplicates.previewHint}</p>

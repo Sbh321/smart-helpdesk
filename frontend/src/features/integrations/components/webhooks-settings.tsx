@@ -32,6 +32,7 @@ import { FieldGroup } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/sonner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import { CheckboxGroup } from '@/features/users'
 import { isApiError } from '@/lib/api/errors'
@@ -345,17 +346,19 @@ function WebhookRow({
             {text.showDeliveries}
           </Button>
           <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  size="icon-sm"
-                  variant="outline"
-                  aria-label={fill(text.actionsFor, { name: webhook.name })}
-                />
-              }
-            >
-              <MoreHorizontalIcon aria-hidden="true" />
-            </DropdownMenuTrigger>
+            <Hint label={fill(text.actionsFor, { name: webhook.name })}>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    size="icon-sm"
+                    variant="outline"
+                    aria-label={fill(text.actionsFor, { name: webhook.name })}
+                  />
+                }
+              >
+                <MoreHorizontalIcon aria-hidden="true" />
+              </DropdownMenuTrigger>
+            </Hint>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onTest(webhook)}>{text.sendTest}</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(webhook)}>{text.edit}</DropdownMenuItem>

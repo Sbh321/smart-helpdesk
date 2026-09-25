@@ -94,6 +94,8 @@ final class MediaUses
                 'ticket' => $canSeeTickets,
                 // A comment that no longer exists grants nothing.
                 'ticket_comment' => $link->visibility === 'public' ? $canSeeTickets : ($link->visibility === 'internal' && $canSeeInternal),
+                // A payment receipt shows what the workspace paid: billing only (ADR-0025 §4).
+                'subscription_payment' => $user->can('billing.manage'),
                 default => true,
             };
             if ($visible) {

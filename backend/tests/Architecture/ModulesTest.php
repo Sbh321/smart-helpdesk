@@ -91,3 +91,9 @@ it('gives every module a provider that extends the module base provider and is r
             ->and($registered)->toContain($provider);
     }
 });
+
+// Billing announces what happened (PaymentSubmitted) and Platform tells the admins; provisioning in
+// Platform starts subscriptions, so the arrow points one way only (ADR-0025).
+arch('billing never depends on the platform module')
+    ->expect('App\Modules\Billing')
+    ->not->toUse('App\Modules\Platform');

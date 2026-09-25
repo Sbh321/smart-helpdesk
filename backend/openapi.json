@@ -25,6 +25,9 @@
             "name": "Automation"
         },
         {
+            "name": "Billing"
+        },
+        {
             "name": "Contacts"
         },
         {
@@ -53,6 +56,9 @@
         },
         {
             "name": "Notifications"
+        },
+        {
+            "name": "Sign-up"
         },
         {
             "name": "History"
@@ -3089,6 +3095,151 @@
                 ]
             }
         },
+        "/billing": {
+            "get": {
+                "operationId": "billing.show",
+                "description": "Requires permission `billing.manage`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Show the workspace's subscription, the plans on offer and its payments",
+                "tags": [
+                    "Billing"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "subscription": {
+                                                    "$ref": "#/components/schemas/SubscriptionResource"
+                                                },
+                                                "plans": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/PlanResource"
+                                                    }
+                                                },
+                                                "payments": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/PaymentResource"
+                                                    }
+                                                },
+                                                "grace_days": {
+                                                    "type": "integer"
+                                                },
+                                                "payment_instructions": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "subscription",
+                                                "plans",
+                                                "payments",
+                                                "grace_days",
+                                                "payment_instructions"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
+        "/billing/payments": {
+            "post": {
+                "operationId": "billing.payments.store",
+                "description": "Upload the receipt first (`POST /media/intent` with `purpose: receipt`), then send its id here.\nA platform admin approves or rejects it; the workspace's billing people are emailed either way.\n\nRequires permission `billing.manage`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Send a payment for review",
+                "tags": [
+                    "Billing"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PaymentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`PaymentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaymentResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
         "/contacts": {
             "get": {
                 "operationId": "contacts.index",
@@ -5363,6 +5514,67 @@
                 "operationId": "media.download",
                 "description": "Requires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.",
                 "summary": "Download a media item",
+                "tags": [
+                    "Media"
+                ],
+                "parameters": [
+                    {
+                        "name": "media",
+                        "in": "path",
+                        "required": true,
+                        "description": "The media ID",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect to a short-lived signed URL.",
+                        "headers": {
+                            "Location": {
+                                "description": "Signed URL of the file on the files host; valid for a few minutes.",
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "format": "uri"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthenticated"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "session": []
+                    }
+                ]
+            }
+        },
+        "/media/{media}/open": {
+            "get": {
+                "operationId": "media.open",
+                "description": "Redirects to a short-lived URL that shows the original in place: images, PDF and plain text\n(CSV and logs as text). Any other type is sent as a download, like `GET /media/{media}/download`.\n\nRequires permission `media.view`. SPA session only: an API client token is answered with `403 forbidden`.",
+                "summary": "Open a media item in the browser",
                 "tags": [
                     "Media"
                 ],
@@ -8633,6 +8845,260 @@
                         "session": []
                     }
                 ]
+            }
+        },
+        "/signup/address": {
+            "get": {
+                "operationId": "signup.address",
+                "summary": "Check a workspace address",
+                "tags": [
+                    "Sign-up"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "required": true,
+                        "description": "The address to check, as it would appear after the host.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "slug": {
+                                                    "type": "string"
+                                                },
+                                                "available": {
+                                                    "type": "boolean"
+                                                },
+                                                "reason": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "invalid",
+                                                        "reserved",
+                                                        "taken",
+                                                        null
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "slug",
+                                                "available",
+                                                "reason"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/signup": {
+            "post": {
+                "operationId": "signup.store",
+                "description": "Nothing is created yet: the address receives a link, valid for 24 hours, that creates the\nworkspace. Answers 202 whether or not the email is sent (an empty `website` field is expected).",
+                "summary": "Sign up for a workspace",
+                "tags": [
+                    "Sign-up"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 120
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "maxLength": 254
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "workspace_name": {
+                                        "type": "string",
+                                        "maxLength": 120
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 63
+                                    },
+                                    "timezone": {
+                                        "type": "string",
+                                        "maxLength": 64
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "workspace_name",
+                                    "slug",
+                                    "password_confirmation"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "const": "sent"
+                                                }
+                                            },
+                                            "required": [
+                                                "status"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/signup/verify": {
+            "post": {
+                "operationId": "signup.verify",
+                "summary": "Confirm a sign-up: the workspace is created on the free trial",
+                "tags": [
+                    "Sign-up"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    }
+                                },
+                                "required": [
+                                    "token"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "slug": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "slug",
+                                                "name",
+                                                "email"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "default": {
+                        "description": "Problem details (RFC 9457)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
             }
         },
         "/tags": {
@@ -15964,6 +16430,288 @@
                 ],
                 "title": "OverridePriorityRequest"
             },
+            "PaymentMethod": {
+                "type": "string",
+                "enum": [
+                    "bank_transfer",
+                    "wallet",
+                    "cash",
+                    "other"
+                ],
+                "title": "PaymentMethod"
+            },
+            "PaymentRequest": {
+                "type": "object",
+                "description": "A payment for some periods of a paid plan: sent by a workspace with its receipt, or recorded by a\nplatform admin (no receipt). Amounts are integers in minor units.",
+                "properties": {
+                    "plan_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "periods": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 36
+                    },
+                    "amount_minor": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000000
+                    },
+                    "currency": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^[A-Z]{3}$",
+                        "minLength": 3,
+                        "maxLength": 3
+                    },
+                    "paid_on": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "method": {
+                        "$ref": "#/components/schemas/PaymentMethod"
+                    },
+                    "reference": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 120
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 1000
+                    },
+                    "receipt_media_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "plan_id",
+                    "periods",
+                    "amount_minor",
+                    "paid_on",
+                    "method",
+                    "receipt_media_id"
+                ],
+                "title": "PaymentRequest"
+            },
+            "PaymentResource": {
+                "type": "object",
+                "description": "A payment and its review (ADR-0025 \u00a73). `receipt` is the media item's summary (open it through the media endpoints in the workspace, or `GET /platform-api/payments/{id}/receipt` in the console); `workspace` is present in the console only.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "plan": {
+                        "$ref": "#/components/schemas/PlanResource"
+                    },
+                    "periods": {
+                        "type": "integer"
+                    },
+                    "amount_minor": {
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "expected_minor": {
+                        "type": "integer",
+                        "description": "What the plan asks for these periods, to compare with `amount_minor`."
+                    },
+                    "paid_on": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "bank_transfer",
+                            "wallet",
+                            "cash",
+                            "other"
+                        ]
+                    },
+                    "reference": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "approved",
+                            "rejected"
+                        ]
+                    },
+                    "rejection_reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "submitted_by": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "email": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "email"
+                        ]
+                    },
+                    "recorded_by_platform": {
+                        "type": "boolean",
+                        "description": "True when a platform admin recorded it for the workspace."
+                    },
+                    "reviewed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "period_starts_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "period_ends_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "receipt": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "mime_type": {
+                                "type": "string"
+                            },
+                            "size_bytes": {
+                                "type": "integer"
+                            },
+                            "width": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "height": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "has_thumb": {
+                                "type": "boolean"
+                            },
+                            "has_preview": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "mime_type",
+                            "size_bytes",
+                            "width",
+                            "height",
+                            "has_thumb",
+                            "has_preview"
+                        ]
+                    },
+                    "workspace": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "slug",
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "plan",
+                    "periods",
+                    "amount_minor",
+                    "currency",
+                    "expected_minor",
+                    "paid_on",
+                    "method",
+                    "reference",
+                    "note",
+                    "status",
+                    "rejection_reason",
+                    "submitted_by",
+                    "recorded_by_platform",
+                    "reviewed_at",
+                    "period_starts_at",
+                    "period_ends_at",
+                    "created_at",
+                    "receipt"
+                ],
+                "title": "PaymentResource"
+            },
             "PingResource": {
                 "type": "object",
                 "description": "Liveness answer of `GET /v1/ping`. Wraps no model; the class exists so the OpenAPI document types the response.",
@@ -15977,6 +16725,77 @@
                     "status"
                 ],
                 "title": "PingResource"
+            },
+            "PlanResource": {
+                "type": "object",
+                "description": "A plan. `subscriptions_count` is present in the console's plan list only.",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "trial",
+                            "paid"
+                        ]
+                    },
+                    "price_minor": {
+                        "type": "integer",
+                        "description": "Price of one period in minor units (paisa); 0 for a trial."
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "period_months": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "trial_days": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "sort_order": {
+                        "type": "integer"
+                    },
+                    "subscriptions_count": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "description",
+                    "kind",
+                    "price_minor",
+                    "currency",
+                    "period_months",
+                    "trial_days",
+                    "is_active",
+                    "sort_order"
+                ],
+                "title": "PlanResource"
             },
             "PreviewDuplicatesRequest": {
                 "type": "object",
@@ -16740,7 +17559,8 @@
                                 "reports.view",
                                 "reports.export",
                                 "history.view",
-                                "audit.view"
+                                "audit.view",
+                                "billing.manage"
                             ]
                         },
                         "minItems": 1
@@ -17473,6 +18293,65 @@
                 ],
                 "title": "StoreWebhookRequest"
             },
+            "SubscriptionResource": {
+                "type": "object",
+                "description": "A workspace's subscription as its state reads now (ADR-0025 \u00a72). `state` is `none` for a workspace billing does not manage, with every other field null.",
+                "properties": {
+                    "state": {
+                        "type": "string",
+                        "enum": [
+                            "trialing",
+                            "active",
+                            "grace",
+                            "expired",
+                            "none"
+                        ]
+                    },
+                    "plan": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/PlanResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "ends_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "grace_ends_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "days_left": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Whole days until the next change of state; null when expired or unmanaged."
+                    },
+                    "read_only": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "state",
+                    "plan",
+                    "ends_at",
+                    "grace_ends_at",
+                    "days_left",
+                    "read_only"
+                ],
+                "title": "SubscriptionResource"
+            },
             "TagRequest": {
                 "type": "object",
                 "properties": {
@@ -17557,7 +18436,7 @@
             },
             "TenantResource": {
                 "type": "object",
-                "description": "The platform view of a workspace: more than tenant users see.",
+                "description": "The platform view of a workspace: more than tenant users see, with its subscription (ADR-0025).",
                 "properties": {
                     "id": {
                         "type": "string",
@@ -17621,6 +18500,10 @@
                             "realtime",
                             "exports"
                         ]
+                    },
+                    "subscription": {
+                        "description": "The plan and its state, for the trial, grace and read-only banner (ADR-0025 \u00a76).",
+                        "$ref": "#/components/schemas/SubscriptionResource"
                     }
                 },
                 "required": [
@@ -17631,7 +18514,8 @@
                     "timezone",
                     "settings_version",
                     "branding",
-                    "features"
+                    "features",
+                    "subscription"
                 ],
                 "title": "TenantResource"
             },
@@ -18497,10 +19381,11 @@
                     },
                     "purpose": {
                         "type": "string",
-                        "description": "Where the file starts: the Tickets folder, or Branding for a workspace logo (settings.manage).",
+                        "description": "Where the file starts: the Tickets folder, Branding for a workspace logo (settings.manage), or\nBilling for a payment receipt (billing.manage, ADR-0025 \u00a74).",
                         "enum": [
                             "attachment",
-                            "branding"
+                            "branding",
+                            "receipt"
                         ]
                     }
                 },

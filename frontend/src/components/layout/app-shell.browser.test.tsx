@@ -41,6 +41,8 @@ test('the account menu opens and signs the user out', async () => {
   await expect.element(menu.getByText('priya@acme.test')).toBeVisible()
 
   await menu.getByRole('menuitem', { name: copy.auth.signOut }).click()
+  // Sign-out asks first.
+  await screen.getByRole('alertdialog').getByRole('button', { name: copy.auth.signOut }).click()
 
   await expect.element(screen.getByRole('heading', { level: 1, name: copy.auth.login.heading })).toBeVisible()
   expect(currentPath()).toBe('/acme/login')
@@ -59,7 +61,7 @@ test('the command palette opens with Ctrl+K and navigates', async () => {
   const dialog = screen.getByRole('dialog')
   await expect.element(dialog).toBeVisible()
 
-  await dialog.getByRole('link', { name: copy.nav.tickets }).click()
+  await dialog.getByRole('option', { name: copy.nav.tickets }).click()
 
   await expect.element(screen.getByRole('heading', { level: 1, name: copy.tickets.title })).toBeVisible()
   expect(currentPath()).toBe('/acme/tickets')
@@ -128,30 +130,49 @@ test('the navigation is grouped and collapses to an icon rail that keeps its lab
   expect(window.localStorage.getItem('sh.nav-collapsed')).toBe('false')
 })
 
-test('the API reference link opens the docs host in a new tab, only for integration managers (M5-01)', async () => {
+test('an agent without integrations.manage sees no API reference link (M5-01)', async () => {
   worker.use(
     http.get(apiUrl('/me'), () =>
       HttpResponse.json({ data: sessionFixture({ permissions: ['tickets.view'] }) }),
     ),
   )
-  const agent = await renderApp('/acme')
-  await expect
-    .element(agent.screen.getByRole('heading', { level: 1, name: copy.dashboard.title }))
-    .toBeVisible()
-  expect(agent.screen.getByRole('link', { name: new RegExp(copy.nav.apiReference) }).query()).toBeNull()
-  agent.screen.unmount()
+  const { screen } = await renderApp('/acme')
+  await expect.element(screen.getByRole('heading', { level: 1, name: copy.dashboard.title })).toBeVisible()
+  expect(screen.getByRole('link', { name: new RegExp(copy.nav.apiReference) }).query()).toBeNull()
+})
 
+test('the API reference link opens the docs host in a new tab for integration managers (M5-01)', async () => {
   worker.use(
     http.get(apiUrl('/me'), () =>
       HttpResponse.json({ data: sessionFixture({ permissions: ['integrations.manage'] }) }),
     ),
   )
-  const developer = await renderApp('/acme')
-  const link = developer.screen
+  const { screen } = await renderApp('/acme')
+  const link = screen
     .getByRole('navigation', { name: copy.nav.primary })
     .getByRole('link', { name: new RegExp(copy.nav.apiReference) })
   await expect.element(link).toBeVisible()
   expect(link.element().getAttribute('href')).toBe('https://docs.shp.test')
   expect(link.element().getAttribute('target')).toBe('_blank')
   expect(link.element().getAttribute('rel')).toContain('noopener')
+})
+
+test('the command palette searches tickets by number or words and opens one with Enter', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ['tickets.view'] }) }),
+    ),
+  )
+  const { screen } = await renderApp('/acme')
+  await expect.element(screen.getByRole('heading', { level: 1, name: copy.dashboard.title })).toBeVisible()
+
+  await screen.getByRole('button', { name: copy.shell.commandPalette.open }).click()
+  const input = screen.getByRole('combobox', { name: copy.shell.commandPalette.inputLabel })
+  await expect.element(input).toHaveFocus()
+
+  await input.fill('dash')
+  const dialog = screen.getByRole('dialog')
+  await expect.element(dialog.getByRole('option', { name: copy.nav.dashboard })).toBeVisible()
+  expect(dialog.getByRole('option', { name: copy.nav.tickets }).query()).toBeNull()
+  await expect.element(dialog.getByRole('option', { name: /Search all tickets for "dash"/ })).toBeVisible()
 })

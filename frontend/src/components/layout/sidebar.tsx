@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { BookOpenIcon, ExternalLinkIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Hint } from '@/components/ui/tooltip'
 import { copy } from '@/copy/en'
 import { hasPermission, useSession } from '@/lib/auth'
 import { useRuntimeConfig } from '@/lib/config'
@@ -62,7 +62,8 @@ export function Sidebar({ workspace }: { workspace: string }) {
       aria-label={copy.nav.primary}
       data-collapsed={collapsed || undefined}
       className={cn(
-        'flex shrink-0 flex-col gap-3 border-border border-r bg-surface p-3 print:hidden',
+        // Sticky at the viewport's height, so it stays in place while a long page scrolls (it scrolls on its own if taller).
+        'sticky top-0 flex h-dvh shrink-0 flex-col gap-3 self-start overflow-y-auto border-border border-r bg-surface p-3 print:hidden',
         collapsed ? 'w-14 items-center' : 'w-56',
       )}
     >
@@ -109,12 +110,9 @@ export function Sidebar({ workspace }: { workspace: string }) {
                 return (
                   <li key={item.key}>
                     {collapsed ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger render={link} />
-                          <TooltipContent side="right">{item.label}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Hint label={item.label} side="right">
+                        {link}
+                      </Hint>
                     ) : (
                       link
                     )}
@@ -130,17 +128,19 @@ export function Sidebar({ workspace }: { workspace: string }) {
         <DevelopersGroup docsUrl={docsUrl} collapsed={collapsed} />
       ) : null}
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        onClick={toggle}
-        aria-label={collapsed ? copy.nav.expand : copy.nav.collapse}
-        aria-pressed={collapsed}
-        className="mt-auto"
-      >
-        {collapsed ? <PanelLeftOpenIcon aria-hidden="true" /> : <PanelLeftCloseIcon aria-hidden="true" />}
-      </Button>
+      <Hint label={collapsed ? copy.nav.expand : copy.nav.collapse} side="right">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={toggle}
+          aria-label={collapsed ? copy.nav.expand : copy.nav.collapse}
+          aria-pressed={collapsed}
+          className="mt-auto"
+        >
+          {collapsed ? <PanelLeftOpenIcon aria-hidden="true" /> : <PanelLeftCloseIcon aria-hidden="true" />}
+        </Button>
+      </Hint>
     </nav>
   )
 }
@@ -186,12 +186,9 @@ function DevelopersGroup({ docsUrl, collapsed }: { docsUrl: string; collapsed: b
       <ul className="flex flex-col gap-0.5">
         <li>
           {collapsed ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger render={link} />
-                <TooltipContent side="right">{label}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Hint label={label} side="right">
+              {link}
+            </Hint>
           ) : (
             link
           )}

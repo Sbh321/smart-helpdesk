@@ -1,15 +1,27 @@
+import { ImagesIcon, UploadIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useFileDrop } from '@/components/shared/file-drop'
+import { Lightbox } from '@/components/shared/lightbox'
 import { Button } from '@/components/ui/button'
 import { copy, fill } from '@/copy/en'
-import { isImageFile, rejectionReason, UploadAborted, uploadFile } from '@/features/media'
-import { apiUrl } from '@/lib/api/client'
+import {
+  isImageFile,
+  MediaPickerDialog,
+  mediaUrls,
+  rejectionReason,
+  UploadAborted,
+  uploadFile,
+} from '@/features/media'
 import { isApiError } from '@/lib/api/errors'
+import { useCan } from '@/lib/auth'
+import { cn } from '@/lib/utils'
 
 const text = copy.workspaceSettings.brandingForm
 
 /**
- * One workspace logo: preview, upload (a single image, through the media intent → PUT → complete flow
- * with `purpose: 'branding'`) and remove. The value is the Media item id; the form saves it.
+ * One workspace logo: preview (opens the lightbox), upload a single image by dropping it on the preview
+ * or choosing it (media intent → PUT → complete with `purpose: 'branding'`), choose an image already in
+ * the library, and remove. The value is the Media item id; the form saves it.
  */
 export function LogoField({
   id,
@@ -35,6 +47,9 @@ export function LogoField({
   const controller = useRef<AbortController | null>(null)
   const [progress, setProgress] = useState<number | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
+  const [picking, setPicking] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
+  const canPick = useCan('media.view')
   const lower = label.toLowerCase()
 
   useEffect(() => () => controller.current?.abort(), [])
@@ -77,6 +92,11 @@ export function LogoField({
 
   const messages = [...errors, ...(failure ? [failure] : [])]
   const busy = progress !== null
+  const drop = useFileDrop((files) => {
+    const file = files[0]
+    if (file) void upload(file)
+  }, busy)
+  const urls = mediaId ? mediaUrls(mediaId) : null
 
   return (
     <fieldset className="flex flex-col gap-2" aria-describedby={`${id}-description`}>
@@ -86,17 +106,30 @@ export function LogoField({
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <div
+          {...drop.dropProps}
           data-theme={theme}
-          className="flex h-14 w-40 items-center justify-center rounded-md border border-border bg-background p-2 text-foreground"
+          className={cn(
+            'relative flex h-16 w-48 items-center justify-center overflow-hidden rounded-card border border-field-border border-dashed bg-background p-2 text-foreground transition-colors',
+            drop.dragging && 'border-primary bg-primary/10',
+          )}
         >
-          {mediaId ? (
-            <img
-              src={apiUrl(`/v1/media/${mediaId}/download`)}
-              alt={fill(text.logoAlt, { label: lower })}
-              className="max-h-full max-w-full object-contain"
-            />
+          {drop.dragging ? (
+            <span className="text-center font-medium text-primary text-xs">{text.dropLogo}</span>
+          ) : urls ? (
+            <button
+              type="button"
+              onClick={() => setPreviewing(true)}
+              aria-label={fill(text.previewLogo, { label: lower })}
+              className="flex size-full cursor-zoom-in items-center justify-center rounded-control outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <img
+                src={urls.open}
+                alt={fill(text.logoAlt, { label: lower })}
+                className="max-h-full max-w-full object-contain"
+              />
+            </button>
           ) : (
-            <span className="text-xs text-muted-foreground">{text.noLogo}</span>
+            <span className="text-center text-muted-foreground text-xs">{text.noLogo}</span>
           )}
         </div>
         <input
@@ -115,8 +148,15 @@ export function LogoField({
           }}
         />
         <Button type="button" variant="outline" disabled={busy} onClick={() => input.current?.click()}>
+          <UploadIcon aria-hidden="true" />
           {fill(mediaId ? text.replace : text.upload, { label: lower })}
         </Button>
+        {canPick ? (
+          <Button type="button" variant="outline" disabled={busy} onClick={() => setPicking(true)}>
+            <ImagesIcon aria-hidden="true" />
+            {text.chooseLogo}
+          </Button>
+        ) : null}
         {mediaId ? (
           <Button type="button" variant="ghost" disabled={busy} onClick={() => onChange(null)}>
             {fill(text.remove, { label: lower })}
@@ -131,6 +171,40 @@ export function LogoField({
           {message}
         </p>
       ))}
+      {canPick ? (
+        <MediaPickerDialog
+          open={picking}
+          onOpenChange={setPicking}
+          single
+          type="image"
+          onPick={(items) => {
+            const item = items[0]
+            if (!item) return
+            setFailure(null)
+            onChange(item.id)
+          }}
+        />
+      ) : null}
+      <Lightbox
+        items={
+          urls && mediaId
+            ? [
+                {
+                  id: mediaId,
+                  name: label,
+                  kind: 'image',
+                  summary: description,
+                  sourceUrl: urls.open,
+                  openUrl: urls.open,
+                  downloadUrl: urls.download,
+                },
+              ]
+            : []
+        }
+        index={previewing && urls ? 0 : null}
+        onIndexChange={() => undefined}
+        onClose={() => setPreviewing(false)}
+      />
     </fieldset>
   )
 }

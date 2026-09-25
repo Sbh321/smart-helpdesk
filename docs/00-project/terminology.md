@@ -58,6 +58,12 @@ Use these terms consistently in code, documentation, UI copy and the university 
 | **API client** | An OAuth2 client (client-credentials) registered by a tenant for an integration |
 | **Webhook subscription** | A tenant-registered URL plus event list and signing secret |
 | **Webhook delivery** | One attempt record for one event to one subscription |
+| **Plan** | What a workspace can be on: a free trial (days) or a paid plan (price per period of months) ([ADR-0025](../adr/0025-plans-subscriptions-and-receipts.md)) |
+| **Subscription** | A workspace's plan and end date; its state (trialing, active, grace, expired) is derived, never stored |
+| **Payment** | A workspace's payment for periods of a paid plan, with its receipt, reviewed by a Platform Super Admin |
+| **Receipt** | The image or PDF that proves a payment; a Media item in the workspace's Billing folder |
+| **Grace period** | The days after a subscription ends during which everything keeps working; then the workspace is read-only |
+| **Sign-up** | A person creating a workspace themselves on the free trial, confirmed by an emailed link |
 
 ## Process
 

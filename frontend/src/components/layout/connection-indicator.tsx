@@ -1,5 +1,6 @@
 import { RadioIcon, RefreshCwIcon, WifiOffIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { Hint } from '@/components/ui/tooltip'
 import { copy } from '@/copy/en'
 import { type RealtimeState, useRealtime } from '@/lib/realtime'
 import { cn } from '@/lib/utils'
@@ -33,24 +34,25 @@ export function ConnectionIndicator() {
 
   return (
     <>
-      <span
-        role="img"
-        aria-label={label}
-        title={label}
-        data-state={state}
-        className="inline-flex size-8 items-center justify-center rounded-md"
-      >
-        <Icon
-          aria-hidden="true"
-          className={cn(
-            'size-4',
-            state === 'connected' && 'text-success',
-            state === 'offline' && 'text-muted-foreground',
-            (state === 'connecting' || state === 'reconnecting') &&
-              'text-muted-foreground motion-safe:animate-spin',
-          )}
-        />
-      </span>
+      <Hint label={label}>
+        <span
+          role="img"
+          aria-label={label}
+          data-state={state}
+          className="inline-flex size-8 items-center justify-center rounded-md"
+        >
+          <Icon
+            aria-hidden="true"
+            className={cn(
+              'size-4',
+              state === 'connected' && 'text-success',
+              state === 'offline' && 'text-muted-foreground',
+              (state === 'connecting' || state === 'reconnecting') &&
+                'text-muted-foreground motion-safe:animate-spin',
+            )}
+          />
+        </span>
+      </Hint>
       <span className="sr-only" role="status" aria-live="polite">
         {announcement}
       </span>

@@ -63,6 +63,9 @@
   --secondary-foreground: var(--neutral-900);
   --accent: var(--neutral-100);
   --accent-foreground: var(--neutral-900);
+  /* Options in selects, comboboxes and menus: hover, and a darker shade for the chosen one (no tick). */
+  --option-highlight: var(--neutral-100);
+  --option-selected: var(--neutral-200);
   --destructive: var(--red-600);
   --destructive-foreground: var(--neutral-0);
   --warning: var(--amber-800);
@@ -72,7 +75,20 @@
   --info: var(--blue-700);
   --info-foreground: var(--neutral-0);
   --border: var(--neutral-200);
-  --input: var(--neutral-500); /* WCAG 1.4.11: control boundary needs 3:1; neutral-300 gave 1.4:1 */
+  --input: var(
+    --neutral-500
+  ); /* WCAG 1.4.11: control boundary needs 3:1; neutral-300 gave 1.4:1 (checkbox, switch, selected toggle) */
+  /* Text fields, selects, comboboxes and outline buttons: a soft grey edge that darkens on hover and on
+     focus, with a neutral halo instead of the brand ring. Their label and surface identify them, so the
+     edge is not the only cue (the 3:1 --input stays on controls where it is). */
+  --field-border: var(--neutral-300);
+  --field-border-hover: var(--neutral-400);
+  --field-border-focus: var(--neutral-500);
+  --field-ring: var(--neutral-200);
+  /* The lightbox's backdrop: near-black in both themes, so photos and documents read the same. */
+  --scrim: var(--neutral-950);
+  /* Documents in the lightbox (PDF, text) sit on white in both themes; not redefined for dark. */
+  --paper: var(--neutral-0);
   --ring: var(--blue-600);
   --overlay: oklch(0.145 0.01 250 / 0.6);
 
@@ -145,6 +161,9 @@
   --secondary-foreground: var(--neutral-50);
   --accent: var(--neutral-800);
   --accent-foreground: var(--neutral-50);
+  /* One and two steps lighter than the popover (neutral-800), so both show on it. */
+  --option-highlight: var(--neutral-700);
+  --option-selected: var(--neutral-600);
   --destructive: var(--red-400);
   --destructive-foreground: var(--neutral-950);
   --warning: var(--amber-400);
@@ -155,6 +174,11 @@
   --info-foreground: var(--neutral-950);
   --border: var(--neutral-700);
   --input: var(--neutral-500); /* neutral-600 gave 2.6:1 */
+  --field-border: var(--neutral-700);
+  --field-border-hover: var(--neutral-600);
+  --field-border-focus: var(--neutral-400);
+  --field-ring: var(--neutral-700);
+  --scrim: var(--neutral-950);
   --ring: var(--blue-400);
   --overlay: oklch(0 0 0 / 0.7);
 
@@ -361,6 +385,14 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-option-highlight: var(--option-highlight);
+  --color-option-selected: var(--option-selected);
+  --color-field-border: var(--field-border);
+  --color-field-border-hover: var(--field-border-hover);
+  --color-field-border-focus: var(--field-border-focus);
+  --color-field-ring: var(--field-ring);
+  --color-scrim: var(--scrim);
+  --color-paper: var(--paper);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-warning: var(--warning);

@@ -34,8 +34,6 @@ services:
   proxy:
     pull_policy: missing
     restart: unless-stopped
-    environment:
-      MONITOR_AUTH: "on"
     volumes:
       - ./certs:/certs:ro            # tls_mode=files: fullchain.pem + privkey.pem supplied by the customer
     deploy: { resources: { limits: { memory: 256M, cpus: "0.5" } } }

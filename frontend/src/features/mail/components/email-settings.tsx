@@ -79,7 +79,7 @@ function SenderForm({ tenantId, settings }: { tenantId: string; settings: EmailS
     <form
       noValidate
       aria-labelledby="settings-email-sender-heading"
-      className="flex max-w-xl flex-col gap-4 rounded-lg border border-border p-4"
+      className="flex max-w-xl flex-col gap-4 rounded-lg border border-border p-4 bg-surface"
       onSubmit={(event) => {
         event.preventDefault()
         void form.handleSubmit()
@@ -159,7 +159,7 @@ function Addresses({ settings }: { settings: EmailSettingsData }) {
   return (
     <section
       aria-labelledby="settings-email-addresses-heading"
-      className="max-w-2xl rounded-lg border border-border p-4"
+      className="max-w-2xl rounded-lg border border-border p-4 bg-surface"
     >
       <h3 id="settings-email-addresses-heading" className="mb-3 font-medium">
         {text.addressesTitle}
@@ -185,46 +185,44 @@ function DnsRecords({ domain, records }: { domain: string; records: DnsRecord[] 
         {text.dnsTitle}
       </h3>
       <p className="max-w-2xl text-sm text-muted-foreground">{fill(text.dnsIntro, { domain })}</p>
-      <div className="rounded-lg border border-border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">{text.dnsType}</TableHead>
-              <TableHead scope="col">{text.dnsName}</TableHead>
-              <TableHead scope="col">{text.dnsValue}</TableHead>
-              <TableHead scope="col">
-                <span className="sr-only">{text.copy}</span>
-              </TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead scope="col">{text.dnsType}</TableHead>
+            <TableHead scope="col">{text.dnsName}</TableHead>
+            <TableHead scope="col">{text.dnsValue}</TableHead>
+            <TableHead scope="col">
+              <span className="sr-only">{text.copy}</span>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {records.map((record) => (
+            <TableRow key={`${record.type}-${record.name}`}>
+              <TableCell className="align-top font-mono text-xs">{record.type}</TableCell>
+              <TableCell className="max-w-48 align-top font-mono text-xs break-all whitespace-normal">
+                {record.name}
+              </TableCell>
+              <TableCell className="min-w-64 align-top whitespace-normal">
+                {record.ready ? (
+                  <span className="font-mono text-xs break-all">{record.value}</span>
+                ) : (
+                  <span className="flex flex-col items-start gap-1 text-sm">
+                    <Badge variant="outline">{text.dnsNotReady}</Badge>
+                    {record.value}
+                  </span>
+                )}
+                <span className="mt-1 block text-sm text-muted-foreground">{record.purpose}</span>
+              </TableCell>
+              <TableCell className="align-top">
+                {record.ready ? (
+                  <CopyButton label={`${record.type} ${record.name}`} value={record.value} />
+                ) : null}
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {records.map((record) => (
-              <TableRow key={`${record.type}-${record.name}`}>
-                <TableCell className="align-top font-mono text-xs">{record.type}</TableCell>
-                <TableCell className="max-w-48 align-top font-mono text-xs break-all whitespace-normal">
-                  {record.name}
-                </TableCell>
-                <TableCell className="min-w-64 align-top whitespace-normal">
-                  {record.ready ? (
-                    <span className="font-mono text-xs break-all">{record.value}</span>
-                  ) : (
-                    <span className="flex flex-col items-start gap-1 text-sm">
-                      <Badge variant="outline">{text.dnsNotReady}</Badge>
-                      {record.value}
-                    </span>
-                  )}
-                  <span className="mt-1 block text-sm text-muted-foreground">{record.purpose}</span>
-                </TableCell>
-                <TableCell className="align-top">
-                  {record.ready ? (
-                    <CopyButton label={`${record.type} ${record.name}`} value={record.value} />
-                  ) : null}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+          ))}
+        </TableBody>
+      </Table>
     </section>
   )
 }

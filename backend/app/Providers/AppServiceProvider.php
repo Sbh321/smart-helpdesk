@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Platform\Support\PlatformPass;
 use App\Support\Experiments\RunExperiments;
 use App\Support\Health\HealthChecks;
 use App\Support\Logging\LogContext;
@@ -11,6 +12,7 @@ use App\Support\Time\Clock;
 use App\Support\Time\SystemClock;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Telescope\Telescope;
 use Laravel\Telescope\TelescopeServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
@@ -31,6 +33,14 @@ final class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! $this->app->isProduction());
 
         LogContext::register($this->app->make('events'));
+
+        if (class_exists(Telescope::class) && $this->app->providerIsLoaded(TelescopeServiceProvider::class)) {
+            // Dark theme, and only for platform super admins holding the monitor host's pass (ADR-0024),
+            // even in local, where Telescope would otherwise let everyone in.
+            Telescope::night();
+            Telescope::auth(fn ($request): bool => app(PlatformPass::class)
+                ->check($request->cookie(PlatformPass::cookieName())) !== null);
+        }
         HealthChecks::register();
 
         if ($this->app->runningInConsole()) {

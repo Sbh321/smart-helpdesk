@@ -80,12 +80,14 @@ if [[ $storage == 1 ]]; then
   fi
 fi
 
+if [[ $layout == split ]]; then
+  # Monitoring needs the platform pass from the console (ADR-0024): without it every page redirects there.
+  check 302 "${monitor}/horizon"
+  check 302 "${monitor}/health"
+  check 302 "https://monitor.${domain}/rustfs/console/"
+fi
 if [[ $dev == 1 ]]; then
-  check 200 "${monitor}/horizon"
-  check 200 "https://monitor.${domain}/rustfs/console/"
   check 200 "https://mail.${domain}/"
-elif [[ $layout == split ]]; then
-  check 401 "${monitor}/horizon"   # basic auth in front of the consoles
 fi
 
 if [[ -n ${HEALTH_TOKEN:-} ]]; then

@@ -65,7 +65,8 @@ return [
             'theme' => 'system',
             'hideTryIt' => false,
             'hideSchemas' => false,
-            'logo' => '',
+            // The product mark (frontend/scripts/brand-icons.mjs writes it to public/).
+            'logo' => '/favicon.svg',
             'tryItCredentialsPolicy' => 'include',
             'layout' => 'responsive',
             'router' => 'hash',

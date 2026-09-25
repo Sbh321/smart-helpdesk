@@ -9,7 +9,7 @@ import { useSession } from '@/lib/auth'
 /** Pickers inside the settings forms ask for one large page and narrow it with `search`. */
 export const PICKER_PAGE = { page: 1, per_page: 100, sort: 'name' }
 
-export const FORM_CLASS = 'flex max-w-lg flex-col gap-4 rounded-lg border border-border p-4'
+export const FORM_CLASS = 'flex max-w-lg flex-col gap-4 rounded-lg border border-border p-4 bg-surface'
 
 /** A directory settings page (skills, teams, categories, agents, shifts) in the shared frame (M4-12). */
 export function Section({
@@ -63,7 +63,7 @@ export function Rows<T extends { id: string }>({
 }) {
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">{copy.settings.empty}</p>
   return (
-    <ul className="divide-y divide-border rounded-lg border border-border">
+    <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
       {rows.map((row) => (
         <li key={row.id} className="p-3">
           {render(row)}

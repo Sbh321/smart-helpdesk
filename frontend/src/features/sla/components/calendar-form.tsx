@@ -72,7 +72,7 @@ export function CalendarForm({
     <form
       noValidate
       aria-label={calendar ? fill(copy.sla.editNamed, { name: calendar.name }) : copy.sla.newCalendar}
-      className="flex max-w-2xl flex-col gap-5 rounded-lg border border-border p-4"
+      className="flex max-w-2xl flex-col gap-5 rounded-lg border border-border p-4 bg-surface"
       onSubmit={(event) => {
         event.preventDefault()
         void form.handleSubmit()
@@ -120,7 +120,7 @@ export function CalendarForm({
         {DAYS.map((day) => (
           <form.Field key={day} name={`windows.${day}`} mode="array">
             {(rows) => (
-              <div className="grid gap-3 rounded-md border border-border p-3">
+              <div className="grid gap-3 rounded-md border border-border p-3 bg-surface">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-medium">{copy.sla.days[day]}</h3>
                   <Button

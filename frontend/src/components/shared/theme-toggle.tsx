@@ -1,6 +1,7 @@
 import { type LucideIcon, Monitor, Moon, Sun } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Hint } from '@/components/ui/tooltip'
 import { copy } from '@/copy/en'
 import { type ResolvedTheme, THEME_CHOICES, type ThemeChoice, useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
@@ -22,10 +23,10 @@ function announcementFor(choice: ThemeChoice, resolved: ResolvedTheme): string {
  */
 export function ThemeToggle({
   className,
-  compact = false,
+  compact: _compact = false,
 }: {
   className?: string
-  /** Below `sm` the labels are read out but not shown, so the control fits a phone header (M5-03). */
+  /** @deprecated The control is always icons only now; kept so existing callers still compile. */
   compact?: boolean
 }) {
   const { theme, resolvedTheme, setTheme } = useTheme()
@@ -48,19 +49,20 @@ export function ThemeToggle({
         const Icon = icons[choice]
         const selected = theme === choice
         return (
-          <Button
-            key={choice}
-            type="button"
-            size="sm"
-            variant={selected ? 'outline' : 'ghost'}
-            aria-pressed={selected}
-            onClick={() => choose(choice)}
-            // The selected option carries a --input border so the state indicator reaches 3:1 (WCAG 1.4.11).
-            className={cn(selected ? 'border-input bg-surface text-foreground' : 'text-muted-foreground')}
-          >
-            <Icon aria-hidden="true" />
-            <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{copy.theme[choice]}</span>
-          </Button>
+          <Hint key={choice} label={copy.theme[choice]}>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant={selected ? 'outline' : 'ghost'}
+              aria-pressed={selected}
+              onClick={() => choose(choice)}
+              // The selected option carries a --input border so the state indicator reaches 3:1 (WCAG 1.4.11).
+              className={cn(selected ? 'border-input bg-surface text-foreground' : 'text-muted-foreground')}
+            >
+              <Icon aria-hidden="true" />
+              <span className="sr-only">{copy.theme[choice]}</span>
+            </Button>
+          </Hint>
         )
       })}
       <span role="status" aria-live="polite" className="sr-only">

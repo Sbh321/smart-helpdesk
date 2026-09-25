@@ -4,6 +4,7 @@ import { ErrorState } from '@/components/shared/error-state'
 import { NotFoundState } from '@/components/shared/not-found-state'
 import { AvailabilityControl } from '@/features/agents'
 import { ensureSession } from '@/features/auth'
+import { SubscriptionBanner } from '@/features/billing'
 import { NotificationBell } from '@/features/notifications'
 import { guardWorkspaceRoute, REDIRECT_PARAM } from '@/lib/auth'
 import { RealtimeProvider } from '@/lib/realtime'
@@ -48,6 +49,7 @@ function AppLayout() {
         workspace={workspace}
         topbarActions={<AvailabilityControl />}
         topbarNotifications={<NotificationBell workspace={workspace} />}
+        banner={<SubscriptionBanner workspace={workspace} />}
       >
         <Outlet />
       </AppShell>

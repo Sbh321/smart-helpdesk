@@ -58,7 +58,7 @@ export function PriorityExplanation({ data, reason }: { data: unknown; reason?: 
       <PopoverContent className="w-[min(26rem,calc(100vw-2rem))]">
         <PopoverTitle>{text.whyPriority}</PopoverTitle>
         {reason ? (
-          <p className="rounded-control border border-border p-2">
+          <p className="rounded-control border border-border p-2 bg-surface">
             <span className="font-medium">{text.manual}:</span> {reason}
           </p>
         ) : null}

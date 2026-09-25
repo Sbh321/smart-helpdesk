@@ -106,7 +106,7 @@ function ShiftForm({ agentId, shifts }: { agentId: string; shifts: AgentShift[] 
                 className="grid gap-2 sm:grid-cols-2 lg:grid-cols-7"
               >
                 {copy.settings.weekdays.map((day, weekday) => (
-                  <div key={day} className="space-y-2 rounded-lg border border-border p-2">
+                  <div key={day} className="space-y-2 rounded-lg border border-border p-2 bg-surface">
                     <h3 className="text-sm font-semibold">{day}</h3>
                     {rows.state.value
                       .filter((entry) => entry.weekday === weekday)
@@ -143,7 +143,7 @@ function ShiftForm({ agentId, shifts }: { agentId: string; shifts: AgentShift[] 
                 {rows.state.value.map((entry, index) => (
                   <fieldset
                     key={entry.key}
-                    className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-2"
+                    className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-2 bg-surface"
                   >
                     <legend className="sr-only">{fill(copy.settings.shiftRow, { number: index + 1 })}</legend>
                     <form.Field name={`shifts[${index}].weekday`}>

@@ -48,7 +48,7 @@ export function HolidayForm({
     <form
       noValidate
       aria-label={fill(copy.sla.addHolidayTo, { name: calendar.name })}
-      className="flex flex-col gap-4 rounded-md border border-border p-3"
+      className="flex flex-col gap-4 rounded-md border border-border p-3 bg-surface"
       onSubmit={(event) => {
         event.preventDefault()
         void form.handleSubmit()

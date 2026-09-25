@@ -30,7 +30,7 @@ The primary Button keeps its opaque semantic background on hover. A translucent 
 | `combobox` | `Combobox` / `Autocomplete` | **all searchable pickers**: agent, contact, organisation, category, tags (multi), team | installed (M1-14): `MultiSelectFilter`; `EntityCombobox` and `TagInput` (M1-15) |
 | `checkbox`, `radio-group`, `switch` | `Checkbox`, `Radio`, `Switch` | settings, row selection | `checkbox` (M1-14) and `switch` installed; `radio-group` not installed: the composer's Public/Internal switch and the Appearance menu use native radios and `DropdownMenuRadioGroup` |
 | `dialog`, `alert-dialog`, `sheet` | `Dialog`, `AlertDialog` | forms, confirmations, side panels | `dialog` (M1-12), `alert-dialog` (`ConfirmDialog`), `sheet` (M4-13, on Base UI `Dialog`: the ticket context below 1280 px) installed |
-| `popover`, `tooltip`, `dropdown-menu`, `menubar` | `Popover`, `Tooltip`, `Menu`, `Menubar` | explanations, row actions | `popover`, `dropdown-menu` installed (M1-12), `tooltip` (M4-02, wrap uses in `TooltipProvider`); `menubar` not yet |
+| `popover`, `tooltip`, `dropdown-menu`, `menubar` | `Popover`, `Tooltip`, `Menu`, `Menubar` | explanations, row actions | `popover`, `dropdown-menu` installed (M1-12), `tooltip` (M4-02; one `TooltipProvider` at the root, and every tooltip is `Hint` from `components/ui/tooltip.tsx`: `<Hint label=…>` around its one trigger, never the native `title` attribute; an icon-only control keeps its `aria-label`); `menubar` not yet |
 | `tabs`, `card`, `badge`, `separator`, `skeleton`, `scroll-area`, `avatar`, `progress` | `Tabs`, `Separator`, `ScrollArea`, `Avatar`, `Progress` | layout and feedback | `card`, `badge`, `separator`, `skeleton`, `avatar` installed (M1-12); `tabs` added on Base UI (M2-06); `scroll-area`, `progress` not yet |
 | `table`, `pagination` | plain elements | `DataTable` base | `table` installed (M1-14); `pagination` **not** installed: it is a list of page-number links, and a server-mode table with `meta.total` needs first/previous/next/last buttons and a range, which `DataTablePagination` draws with `Button` |
 | `sonner` | (sonner) | toasts | installed (M1-12); rewritten to read our `ThemeProvider` instead of `next-themes` |
@@ -59,6 +59,7 @@ Each composition is one kebab-case file in `src/components/shared/` (`empty-stat
 | `StatusBadge`, `PriorityBadge`, `SlaIndicator`, `PriorityExplanation` | `shared/` | ticket state, priority, SLA timer (M4-07) and the priority explanation (M4-06) |
 | `KpiTile`, `ChartCard`, `SeriesChart`, `Sparkline` | `shared/kpi-tile.tsx`, `chart-card.tsx`, `charts/` | key figures and charts ([data visualisation](data-visualization.md)) |
 | `CodeBlock` | `shared/code-block.tsx` | machine text to read and copy (webhook payloads, M4-11) |
+| `Lightbox`, `useFileDrop`, `DropOverlay` | `shared/lightbox.tsx`, `file-drop.tsx` | looking at files, and dropping files on a target ([§Lightbox](#lightbox), [§File drop](#file-drop)) |
 | `AppearanceMenu`, `ThemeToggle` | `shared/appearance-menu.tsx`, `theme-toggle.tsx` | theme and density in the account menu (M4-02) |
 | `SkipLink` | `shared/skip-link.tsx` | owns `MAIN_CONTENT_ID` |
 | `AppShell`, `Sidebar`, `Topbar`, `Breadcrumbs`, `CommandPalette`, `ConnectionIndicator`, `AuthLayout` | `layout/` | the shell; the sidebar is an icon rail below 1280 px (M4-13) |
@@ -214,7 +215,19 @@ The Timeline tab of a ticket lists its history newest first with the actor and e
 
 ### AttachmentUploader
 
-`features/media/components/attachment-uploader.tsx`: files go straight to object storage with a presigned PUT, with a state per file (uploading with progress, ready, failed with retry) and the type and size checked before upload ([storage](../03-architecture/storage.md)). The ticket's Attachments section and the composer use it; "Pick from library" reuses Media items.
+`features/media/components/attachment-uploader.tsx`: the one upload field. A drop zone takes files dragged onto it; "Choose files" opens the device's chooser; with `library`, "Choose from library" opens `MediaPickerDialog`. Files go straight to object storage with a presigned PUT, with a state per file (uploading with progress, ready, failed with retry) and the type and size checked before upload ([storage](../03-architecture/storage.md)). Each file is a tile with a thumbnail (the device's copy through an object URL until it is stored) that opens the `Lightbox` over all tiles. A form reads `onChange` and library files join its tiles; a screen that acts at once (the Ticket's Attachments section, the library) passes `onUploaded` and `onPicked`. It lays itself out by its own width (container queries), so it fits a form and the side panel alike. The comment composer, ticket create, the Ticket's Attachments section and the library use it; the workspace logo field has the same three routes (drop, choose, library) for one image.
+
+### Lightbox
+
+`components/shared/lightbox.tsx`: the one place a file is looked at, opened from every thumbnail, tile, chip and library card. A full-screen dialog on a near-black scrim (`--scrim`) in both themes shows the name and a summary (type, size, dimensions), and a toolbar: zoom out, the zoom level (fit), zoom in, rotate, details, "Open in a new tab" and download. Images zoom with the buttons, the wheel, a double-click and + − 0, pan by dragging, and load the original instead of the preview rendition once zoomed in; PDF and text show in a frame on white (`--paper`); any other type gets a file card with download and open. With more than one file: previous and next buttons, ← → Home End, a horizontal swipe, a thumbnail strip, and an announcement of "n of m: name". R rotates and I toggles the details panel. The keys listen on the window while it is open, so a button that becomes disabled (Next on the last file) never strands them. It takes `LightboxItem`s with ready-made URLs and labels; `features/media` builds them (`mediaLightboxItem`, `localFileLightboxItem`).
+
+### MediaBrowser and MediaPickerDialog
+
+`features/media/components/media-browser.tsx`: the library's body, shared by the library page (list state in the URL, `useListParams`) and the picker (component state, `useLocalListParams`): folder tree, search, type, tag and trash filters, sort, a grid of cards (`media-grid.tsx`, thumbnail or type icon, name, type and size, an actions menu) or the table, pagination, selection and the lightbox over the page. `media-picker-dialog.tsx` puts the whole browser in a large dialog with a footer ("n selected", Use); `single` and `type="image"` make it a logo picker, and files already attached show but cannot be picked again.
+
+### File drop
+
+`components/shared/file-drop.tsx`: `useFileDrop(onFiles, disabled)` gives any element drag-and-drop of files (only drags that carry files count; nested children do not flicker the state), and `DropOverlay` is the "drop here" layer over a large target (the library's contents, which upload into the open folder).
 
 ### NotificationBell
 

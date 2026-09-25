@@ -61,7 +61,10 @@ Everything here is deliberately **not** in the MVP ([mvp-scope.md](../docs/02-pr
 |---|---|---|---|---|---|
 | V1-PL-01 | Dedicated tenant databases (placement) | `placement = dedicated`, stancl `DatabaseTenancyBootstrapper`, per-tenant migrations/backups | MVP scale | `tenant_id` everywhere, Eloquent-only access, stancl already installed | L |
 | V1-PL-02 | Control-plane / application-plane split | separate central DB and admin app | single DB suffices | central vs tenant routes/tables already separated | L |
-| V1-PL-03 | Billing and subscriptions, plan limits | Stripe/Paddle, seat counts, feature gating via Pennant | no paying tenants yet | platform settings, feature flags in tenant settings | L |
+| V1-PL-03 | Online payment and plan limits | eSewa/Khalti/Stripe filling the ADR-0025 payment record, seat counts, feature gating via Pennant | receipts are verified by hand (ADR-0025) | payments, feature flags in tenant settings | L |
+| V1-PL-19 | Inbound email in a read-only workspace | refuse or hold email-to-ticket while the subscription has expired | MVP lets mail through (ADR-0025 §6) | Mail, Billing | S |
+| V1-PL-20 | Platform read model for the dashboard | counts inside workspaces from change capture instead of one visit per workspace | fine for tens of workspaces | Reporting, Platform | M |
+| V1-PL-21 | Receipt file on payments recorded by an admin | upload a scan from the console | admins record without a file today | Billing | S |
 | V1-PL-04 | White labelling | custom domains with TLS, full theme override, email templates per tenant | logo + primary colour in MVP | token architecture, `domains` table, Caddy on-demand TLS | M |
 | V1-PL-05 | High availability | multiple app replicas, managed PostgreSQL, Valkey Sentinel, Reverb scaling | single VM MVP | stateless app image, Reverb Redis scaling flag | L |
 | V1-PL-06 | Kubernetes packaging (Helm) | only past the thresholds in [10-future-architecture.md](10-future-architecture.md) | Compose suffices | images, health endpoints | M |
@@ -193,4 +196,4 @@ Items referenced by `MVP-SHORTCUT` markers written while building milestone 5.
 | ID | Item | Why deferred | Seam | Size |
 |---|---|---|---|---|
 | V1-ID-01 | Central address directory for the workspace finder (email hash → tenant, kept in step with `users`) | the finder visits each active workspace once, fine for tens of workspaces | `SendWorkspaceReminder` | S |
-| V1-PL-17 | Platform documentation in single-host mode | the platform-docs host exists only in the split layout | `Caddyfile.single`, `PlatformServiceProvider` | S |
+| V1-PL-17 | Platform pass in single-host mode (platform documentation and monitoring on paths of the one host) | the platform-docs and monitor hosts and their pass exist only in the split layout; single-host monitoring has no gate of its own | `Caddyfile.single`, `PlatformServiceProvider`, `PlatformPass` | S |

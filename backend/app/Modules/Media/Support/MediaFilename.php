@@ -44,8 +44,11 @@ final class MediaFilename
         return strtolower(pathinfo($name, PATHINFO_EXTENSION));
     }
 
-    /** RFC 6266: an ASCII `filename` fallback plus the exact name as RFC 5987 `filename*`. */
-    public static function contentDisposition(string $name): string
+    /**
+     * RFC 6266: an ASCII `filename` fallback plus the exact name as RFC 5987 `filename*`. `inline` is
+     * for `MediaStorage::viewUrl` only, which allows it for the types in `MediaStorage::VIEWABLE`.
+     */
+    public static function contentDisposition(string $name, bool $inline = false): string
     {
         $name = self::sanitise($name);
         if ($name === '') {
@@ -60,6 +63,6 @@ final class MediaFilename
             $ascii = 'download'.($extension === '' || preg_match('/\A[a-z0-9]+\z/', $extension) !== 1 ? '' : '.'.$extension);
         }
 
-        return sprintf('attachment; filename="%s"; filename*=UTF-8\'\'%s', $ascii, rawurlencode($name));
+        return sprintf('%s; filename="%s"; filename*=UTF-8\'\'%s', $inline ? 'inline' : 'attachment', $ascii, rawurlencode($name));
     }
 }

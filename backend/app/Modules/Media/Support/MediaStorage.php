@@ -81,6 +81,46 @@ final class MediaStorage
         );
     }
 
+    /**
+     * The types a browser may show in place (docs/03-architecture/security.md §Uploads): raster images,
+     * PDF and plain text, each with the content type it is served as. CSV and logs are shown as text.
+     * Nothing here can run script; everything else (Office, ZIP) is only ever a download.
+     */
+    public const VIEWABLE = [
+        'image/png' => 'image/png',
+        'image/jpeg' => 'image/jpeg',
+        'image/gif' => 'image/gif',
+        'image/webp' => 'image/webp',
+        'application/pdf' => 'application/pdf',
+        'text/plain' => 'text/plain; charset=utf-8',
+        'text/csv' => 'text/plain; charset=utf-8',
+    ];
+
+    public static function viewable(string $mime): bool
+    {
+        return isset(self::VIEWABLE[$mime]);
+    }
+
+    /**
+     * A short-lived URL that opens the original in the browser (new tab, lightbox): inline, with the
+     * content type fixed from the stored, sniffed type. A type outside `VIEWABLE` gets the download URL.
+     */
+    public function viewUrl(string $key, string $filename, string $mime, int $ttlSeconds = 300): string
+    {
+        if (! self::viewable($mime)) {
+            return $this->downloadUrl($key, $filename, $ttlSeconds);
+        }
+
+        return $this->presignDisk()->temporaryUrl(
+            $key,
+            $this->clock->now()->addSeconds($ttlSeconds),
+            [
+                'ResponseContentDisposition' => MediaFilename::contentDisposition($filename, inline: true),
+                'ResponseContentType' => self::VIEWABLE[$mime],
+            ],
+        );
+    }
+
     public function variantUrl(string $key, int $ttlSeconds = 300): string
     {
         return $this->presignDisk()->temporaryUrl(

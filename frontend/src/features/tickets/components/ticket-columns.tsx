@@ -3,6 +3,7 @@ import { dataTableColumnHelper } from '@/components/shared/data-table'
 import { PriorityBadge } from '@/components/shared/priority-badge'
 import { SlaIndicator } from '@/components/shared/sla-indicator'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import { durationBetween, formatInZone } from '@/lib/datetime/format'
 import type { Ticket } from '../api/ticket-queries'
@@ -83,10 +84,12 @@ export function ticketColumns(timeZone: string, names: TicketColumnNames, now: D
         // Icon plus an accessible name: the word would cost a quarter of the row's width, and the
         // column header already says what the icon means.
         return (
-          <span className="flex items-center text-muted-foreground" title={label}>
-            <Icon aria-hidden="true" className="size-4 shrink-0" />
-            <span className="sr-only">{label}</span>
-          </span>
+          <Hint label={label}>
+            <span className="flex w-fit items-center text-muted-foreground">
+              <Icon aria-hidden="true" className="size-4 shrink-0" />
+              <span className="sr-only">{label}</span>
+            </span>
+          </Hint>
         )
       },
     }),
@@ -130,15 +133,19 @@ export function ticketColumns(timeZone: string, names: TicketColumnNames, now: D
       id: 'age',
       enableSorting: true,
       meta: { label: copy.tickets.columns.age, className: 'w-20 tabular-nums' },
-      cell: (info) => <span title={formatInZone(info.getValue(), timeZone)}>{ago(info.getValue())}</span>,
+      cell: (info) => (
+        <Hint label={formatInZone(info.getValue(), timeZone)}>
+          <span>{ago(info.getValue())}</span>
+        </Hint>
+      ),
     }),
     helper.accessor('updated_at', {
       enableSorting: true,
       meta: { label: copy.tickets.columns.lastActivity, className: 'w-24 tabular-nums' },
       cell: (info) => (
-        <span className="text-muted-foreground" title={formatInZone(info.getValue(), timeZone)}>
-          {ago(info.getValue())}
-        </span>
+        <Hint label={formatInZone(info.getValue(), timeZone)}>
+          <span className="text-muted-foreground">{ago(info.getValue())}</span>
+        </Hint>
       ),
     }),
     helper.accessor((ticket) => ticket.contact?.name ?? null, {

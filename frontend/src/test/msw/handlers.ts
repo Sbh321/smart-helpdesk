@@ -70,6 +70,15 @@ export function sessionFixture(
       settings_version: 1,
       branding: { primary: null, logo_url: null, logo_dark_url: null },
       features: { realtime: false, exports: true },
+      // Billing does not manage the fixture workspace unless a test says so (ADR-0025 §2).
+      subscription: {
+        state: 'none',
+        plan: null,
+        ends_at: null,
+        grace_ends_at: null,
+        days_left: null,
+        read_only: false,
+      },
     },
     permissions: [],
     agent_profile: null,

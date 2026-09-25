@@ -57,16 +57,21 @@ test('the phone menu opens and its links work', async ({ page }) => {
   await expect(page).toHaveURL(/#faq$/)
 })
 
-test('open the app and find your workspace land on the sign-in host', async ({ page }) => {
+test('sign-in, find your workspace and the free trial land on the app host', async ({ page }) => {
   await page.goto(landingUrl)
   await page.getByRole('link', { name: 'Find your workspace' }).first().click()
   await expect(page).toHaveURL(`${appUrl}/?find=true`)
   await expect(page.getByRole('heading', { level: 1, name: 'Find your workspace' })).toBeVisible()
 
   await page.goto(landingUrl)
-  await page.getByRole('link', { name: 'Open the app' }).first().click()
+  await page.getByRole('link', { name: 'Sign in to your workspace' }).first().click()
   await expect(page).toHaveURL(`${appUrl}/`)
   await expect(page.getByRole('heading', { level: 1, name: 'Sign in to your workspace' })).toBeVisible()
+
+  await page.goto(landingUrl)
+  await page.getByRole('link', { name: 'Start a free trial' }).first().click()
+  await expect(page).toHaveURL(`${appUrl}/signup`)
+  await expect(page.getByRole('heading', { level: 1, name: 'Create your workspace' })).toBeVisible()
 })
 
 test('serves metadata, a licence notice and cacheable assets', async ({ page, request }) => {

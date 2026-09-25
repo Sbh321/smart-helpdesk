@@ -41,7 +41,7 @@ export function SettingsPage({
       {danger ? (
         <section
           aria-labelledby={dangerId}
-          className="flex flex-col gap-3 rounded-lg border border-destructive/40 p-4"
+          className="flex flex-col gap-3 rounded-lg border border-destructive/40 p-4 bg-surface"
         >
           <h3 id={dangerId} className="text-sm font-semibold text-destructive">
             {copy.settingsPage.danger}

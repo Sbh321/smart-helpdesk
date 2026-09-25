@@ -48,6 +48,8 @@ M2-08 implementation status: the intent/complete API and tenant-scoped metadata 
 
 `GET /v1/media/{id}/download` → policy check (tenant scope + `media.view`, and access to a linked ticket when the item is only linked to tickets) → 302 to `temporaryUrl(key, 5 min, ['ResponseContentDisposition' => 'attachment; filename="..."'])`. Never proxy bytes through PHP.
 
+`GET /v1/media/{id}/open` (2026-09-25, the lightbox and "Open in a new tab") runs the same policy and redirects to a URL that shows the original in the browser: `ResponseContentDisposition: inline` and `ResponseContentType` fixed from the stored, sniffed type, for the types in `MediaStorage::VIEWABLE` only: PNG, JPEG, GIF, WebP, PDF and plain text, with CSV and logs served as `text/plain; charset=utf-8`. Nothing in that list can run script, and it is served from the `files` host, not the app origin. Any other type (Office, ZIP) gets the download URL instead ([security §Uploads](security.md)).
+
 ## Validation
 
 - Allow-list: images (png, jpg, gif, webp), pdf, txt, csv, log, docx/xlsx/pptx, zip; deny svg/html/js/exe.

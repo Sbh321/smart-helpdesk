@@ -12,23 +12,6 @@ use Illuminate\Support\Facades\Notification;
  * the previous request, so a relative path after a platform call would resolve to the admin host.
  */
 
-function onPlatform(string $path): string
-{
-    return 'https://'.config('helpdesk.hosts.admin').'/platform-api/'.ltrim($path, '/');
-}
-
-function actingAsPlatformAdmin(): PlatformUser
-{
-    $admin = PlatformUser::query()->firstOrCreate(
-        ['email' => 'admin@platform.test'],
-        ['name' => 'Platform admin', 'password' => 'platform-password'],
-    );
-
-    test()->actingAs($admin, 'platform');
-
-    return $admin;
-}
-
 beforeEach(function (): void {
     Notification::fake();
     $this->acme = createTenant('acme');
@@ -148,10 +131,10 @@ it('validates the workspace payload', function (array $payload, string $field): 
 it('updates workspace details and records the change', function (): void {
     actingAsPlatformAdmin();
 
-    $this->patchJson(onPlatform("tenants/{$this->acme->id}"), ['name' => 'Acme Limited', 'plan' => 'pro'])
+    $this->patchJson(onPlatform("tenants/{$this->acme->id}"), ['name' => 'Acme Limited'])
         ->assertOk()
         ->assertJsonPath('data.name', 'Acme Limited')
-        ->assertJsonPath('data.plan', 'pro');
+        ->assertJsonPath('data.subscription.state', 'none');
 
     expect(AuditLog::query()->where('action', 'tenant.updated')->count())->toBe(1);
 });

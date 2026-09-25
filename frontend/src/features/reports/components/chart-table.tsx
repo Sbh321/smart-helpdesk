@@ -13,7 +13,7 @@ export interface ChartTableProps {
 /** The numbers of a chart as a plain table: the accessible alternative of every dashboard chart. */
 export function ChartTable({ caption, dimensionLabel, rows, measures }: ChartTableProps) {
   return (
-    <div className="rounded-md border border-border">
+    <div className="overflow-hidden rounded-card border border-border bg-surface shadow-1">
       <table className="w-full text-sm">
         <caption className="sr-only">{caption}</caption>
         <TableHeader>

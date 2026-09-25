@@ -115,7 +115,7 @@ export function InboundRules({ tenantId, settings }: { tenantId: string; setting
   return (
     <section
       aria-labelledby="settings-email-inbound-heading"
-      className="max-w-2xl space-y-3 rounded-lg border border-border p-4"
+      className="max-w-2xl space-y-3 rounded-lg border border-border p-4 bg-surface"
     >
       <div className="space-y-1">
         <h3 id="settings-email-inbound-heading" className="font-medium">

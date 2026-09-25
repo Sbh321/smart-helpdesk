@@ -141,7 +141,7 @@ export function TicketSlaPanel({
       </p>
       <ul className="flex flex-col gap-3">
         {timers.map((timer) => (
-          <li key={timer.id} className="rounded-md border border-border p-3 text-sm">
+          <li key={timer.id} className="rounded-md border border-border p-3 text-sm bg-surface">
             <h3 className="font-medium">
               {timer.kind === 'first_response' ? copy.sla.firstResponse : copy.sla.resolution}
             </h3>

@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { CircleCheckIcon, ClockIcon, OctagonAlertIcon, PauseIcon, TriangleAlertIcon } from 'lucide-react'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import { durationBetween, formatInZone } from '@/lib/datetime/format'
 import { cn } from '@/lib/utils'
@@ -70,20 +71,19 @@ export function SlaIndicator({
   const remaining = slaRemaining(state, dueAt, now)
 
   return (
-    <span
-      className={cn('flex min-w-0 items-center gap-1.5 text-sm', tone, className)}
-      title={dueAt ? fill(text.dueAt, { time: formatInZone(dueAt, timeZone) }) : undefined}
-    >
-      <Icon aria-hidden="true" className="size-3.5 shrink-0" />
-      {kind ? <span className="shrink-0 text-muted-foreground">{text.kinds[kind]}</span> : null}
-      {compact && remaining ? (
-        <>
-          <span className="truncate">{remaining}</span>
-          <span className="sr-only">{word}</span>
-        </>
-      ) : (
-        <span className="truncate">{remaining ? fill(text.full, { state: word, remaining }) : word}</span>
-      )}
-    </span>
+    <Hint label={dueAt ? fill(text.dueAt, { time: formatInZone(dueAt, timeZone) }) : undefined}>
+      <span className={cn('flex min-w-0 items-center gap-1.5 text-sm', tone, className)}>
+        <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+        {kind ? <span className="shrink-0 text-muted-foreground">{text.kinds[kind]}</span> : null}
+        {compact && remaining ? (
+          <>
+            <span className="truncate">{remaining}</span>
+            <span className="sr-only">{word}</span>
+          </>
+        ) : (
+          <span className="truncate">{remaining ? fill(text.full, { state: word, remaining }) : word}</span>
+        )}
+      </span>
+    </Hint>
   )
 }

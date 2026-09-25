@@ -34,7 +34,10 @@ export function NotificationRow({
   const unread = item.read_at === null
   return (
     <li
-      className={cn('flex items-start gap-3 rounded-md', compact ? 'px-1 py-2' : 'border border-border p-3')}
+      className={cn(
+        'flex items-start gap-3 rounded-md',
+        compact ? 'px-1 py-2' : 'border border-border bg-surface p-3',
+      )}
     >
       <span
         aria-hidden="true"

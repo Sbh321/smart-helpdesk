@@ -1,6 +1,8 @@
 import { LogOutIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { AppearanceMenu } from '@/components/shared/appearance-menu'
+import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Hint } from '@/components/ui/tooltip'
 import { copy } from '@/copy/en'
 import { useSession } from '@/lib/auth'
 import { initials } from '@/lib/format/initials'
@@ -38,6 +41,7 @@ export function Topbar({
   notifications?: ReactNode
 }) {
   const { session, signOut } = useSession()
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false)
 
   return (
     <header className="flex items-center gap-3 border-border border-b bg-surface px-4 py-2 print:hidden">
@@ -52,15 +56,22 @@ export function Topbar({
         <ConnectionIndicator />
         {notifications}
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="icon-sm" aria-label={copy.nav.account} className="rounded-full" />
-            }
-          >
-            <Avatar className="size-7">
-              <AvatarFallback>{initials(session?.user.name ?? '')}</AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
+          <Hint label={copy.nav.account}>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={copy.nav.account}
+                  className="rounded-full"
+                />
+              }
+            >
+              <Avatar className="size-7">
+                <AvatarFallback>{initials(session?.user.name ?? '')}</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+          </Hint>
           <DropdownMenuContent align="end" className="w-60">
             {/* Base UI requires a group around a group label, so the account details label the menu. */}
             <DropdownMenuGroup>
@@ -75,13 +86,22 @@ export function Topbar({
             <AppearanceMenu />
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => void signOut()}>
+              <DropdownMenuItem onClick={() => setConfirmingSignOut(true)}>
                 <LogOutIcon aria-hidden="true" />
                 {copy.auth.signOut}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ConfirmDialog
+          open={confirmingSignOut}
+          onOpenChange={setConfirmingSignOut}
+          title={copy.auth.signOutConfirm.title}
+          description={copy.auth.signOutConfirm.description}
+          confirmLabel={copy.auth.signOut}
+          failedTitle={copy.auth.signOutConfirm.failed}
+          onConfirm={signOut}
+        />
       </div>
     </header>
   )

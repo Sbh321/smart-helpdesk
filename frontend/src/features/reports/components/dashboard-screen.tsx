@@ -12,6 +12,7 @@ import { KpiTile, kpiTileLinkClassName } from '@/components/shared/kpi-tile'
 import { PageHeader } from '@/components/shared/page-header'
 import { buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import { useCan, useSession } from '@/lib/auth'
 import { labelRows, timeDimension } from '@/lib/format/dimension-labels'
@@ -62,16 +63,17 @@ function SeriesCard({
       hideTableLabel={copy.reports.hideTable}
       actions={
         // The chart's title says what it is; the icon opens it as a full report with the same period.
-        <Link
-          to="/$workspace/reports/$reportKey"
-          params={{ workspace, reportKey: series.report }}
-          search={reportSearch(period, series.parameters.group)}
-          aria-label={fill(text.openReportFor, { title: series.title })}
-          title={fill(text.openReportFor, { title: series.title })}
-          className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-        >
-          <ArrowUpRightIcon aria-hidden="true" />
-        </Link>
+        <Hint label={fill(text.openReportFor, { title: series.title })}>
+          <Link
+            to="/$workspace/reports/$reportKey"
+            params={{ workspace, reportKey: series.report }}
+            search={reportSearch(period, series.parameters.group)}
+            aria-label={fill(text.openReportFor, { title: series.title })}
+            className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
+          >
+            <ArrowUpRightIcon aria-hidden="true" />
+          </Link>
+        </Hint>
       }
       table={
         <ChartTable

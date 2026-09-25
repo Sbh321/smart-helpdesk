@@ -15,6 +15,7 @@ import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { SettingsPage } from '@/components/shared/settings-page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import { userQueries } from '@/features/users'
 import { useCan, useSession } from '@/lib/auth'
@@ -261,15 +262,17 @@ export function AuditSettings() {
             {record ? (
               <Badge variant="outline" className="h-8 gap-1 pr-1">
                 {fill(text.filters.oneRecord, { id: shortId(record) })}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label={text.filters.clearRecord}
-                  onClick={() => list.setFilter('subject_id', undefined)}
-                >
-                  <XIcon aria-hidden="true" />
-                </Button>
+                <Hint label={text.filters.clearRecord}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={text.filters.clearRecord}
+                    onClick={() => list.setFilter('subject_id', undefined)}
+                  >
+                    <XIcon aria-hidden="true" />
+                  </Button>
+                </Hint>
               </Badge>
             ) : null}
           </FilterBar>

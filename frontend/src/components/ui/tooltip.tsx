@@ -1,4 +1,5 @@
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
+import type * as React from "react"
 import { cn } from "cn"
 
 function TooltipProvider({
@@ -60,4 +61,34 @@ function TooltipContent({
   )
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+/**
+ * The one tooltip of the application (docs/06-design-system/components.md §Hint): wraps its only child,
+ * which becomes the trigger, and shows `label` on hover and keyboard focus. Use it instead of the native
+ * `title` attribute, whose look and delay the browser decides. The label is a supplement: an icon-only
+ * control still needs its own `aria-label`. Without a label the child is returned unchanged.
+ */
+function Hint({
+  label,
+  children,
+  side = "top",
+  align = "center",
+}: {
+  label: React.ReactNode
+  children: React.ReactElement
+  side?: TooltipPrimitive.Positioner.Props["side"]
+  align?: TooltipPrimitive.Positioner.Props["align"]
+}) {
+  if (label === null || label === undefined || label === "" || label === false) {
+    return children
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger render={children} />
+      <TooltipContent side={side} align={align}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+export { Hint, Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

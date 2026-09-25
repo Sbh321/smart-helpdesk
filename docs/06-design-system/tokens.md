@@ -31,7 +31,10 @@ Naming: kebab-case, `--<concept>` for the surface and `--<concept>-foreground` f
 | `--muted` / `--muted-foreground` | subdued backgrounds, secondary text, skeletons | `bg-muted`, `text-muted-foreground` |
 | `--primary` / `--primary-foreground` | primary actions, active nav, links; **tenant-brandable** | `bg-primary` |
 | `--secondary` / `--secondary-foreground` | secondary buttons, chips | `bg-secondary` |
-| `--accent` / `--accent-foreground` | hover/selected rows, menu item hover | `bg-accent` |
+| `--accent` / `--accent-foreground` | hover/selected rows outside popups | `bg-accent` |
+| `--option-highlight` / `--option-selected` | options in selects, comboboxes, menus and the command palette: hovered or keyboard-active, and the chosen one (a darker shade, no tick); dark theme one and two steps above the popover so both show on it | `bg-option-highlight`, `bg-option-selected` |
+| `--field-border`, `--field-border-hover`, `--field-border-focus`, `--field-ring` | text fields, textareas, select triggers, comboboxes, input groups, outline buttons (filters, exports), the file and colour inputs: a soft grey edge at rest, one step darker on hover, darker still on focus or while the popup is open, with a 3 px neutral halo instead of the brand ring | `border-field-border`, `hover:border-field-border-hover`, `focus-visible:border-field-border-focus`, `ring-field-ring` |
+| `--scrim`, `--paper` | the lightbox: a near-black backdrop in both themes, and white behind a document (PDF, text); both keep their value in the dark theme | `bg-scrim/95`, `bg-paper` |
 | `--destructive` / `--destructive-foreground` | delete, breach, errors | `bg-destructive`, `text-destructive` |
 | `--warning` / `--warning-foreground` | caution banners, SLA warning | `text-warning` |
 | `--success` / `--success-foreground` | resolved, met SLA, success toasts | `text-success` |
@@ -150,6 +153,8 @@ The shadcn aliases sit on `:root, [data-theme]` and not on `:root` alone. That w
   --secondary-foreground: var(--neutral-900);
   --accent: var(--neutral-100);
   --accent-foreground: var(--neutral-900);
+  --option-highlight: var(--neutral-100);
+  --option-selected: var(--neutral-200);
   --destructive: var(--red-600);
   --destructive-foreground: var(--neutral-0);
   --warning: var(--amber-800);
@@ -218,6 +223,8 @@ The shadcn aliases sit on `:root, [data-theme]` and not on `:root` alone. That w
   --secondary-foreground: var(--neutral-50);
   --accent: var(--neutral-800);
   --accent-foreground: var(--neutral-50);
+  --option-highlight: var(--neutral-700);
+  --option-selected: var(--neutral-600);
   --destructive: var(--red-400);
   --destructive-foreground: var(--neutral-950);
   --warning: var(--amber-400);
@@ -435,6 +442,7 @@ These values were changed to pass the check:
 |---|---|---|---|
 | `--input` (light) | `--neutral-300` | `--neutral-500` | 1.4:1; a control boundary needs 3:1 (WCAG 1.4.11) |
 | `--input` (dark) | `--neutral-600` | `--neutral-500` | 2.6:1 |
+| fields' edge (both) | `--input` | `--field-border` (`--neutral-300` light, `--neutral-700` dark) | 2026-09-25, owner's design decision: the dark 3:1 edge read as a black border. Fields are identified by their label, their position and the surface fill as well, so the edge is no longer the only cue; `--input` (3:1) stays on checkboxes, switches and the selected toggle, where the edge is the only indicator |
 | `--chart-2` (light) | `--teal-500` | `--teal-700` | 2.5:1 on white |
 | `--status-resolved-foreground` (light) | `--green-700` | `--green-800` (new primitive) | 4.3:1 on the resolved tint |
 

@@ -116,7 +116,7 @@ function BrandingForm({ tenantId, values }: LoadedSection<'branding'>) {
                   <input
                     type="color"
                     aria-label={labels.picker}
-                    className="mt-6 h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
+                    className="mt-6 h-9 w-12 cursor-pointer rounded-lg border border-field-border bg-surface p-1 outline-none transition-colors hover:border-field-border-hover focus-visible:border-field-border-focus focus-visible:ring-3 focus-visible:ring-field-ring"
                     value={HEX_COLOR_PATTERN.test(value.trim()) ? value.trim().toLowerCase() : DEFAULT_SWATCH}
                     onChange={(event) => change(event.target.value)}
                   />
@@ -155,7 +155,7 @@ function BrandingForm({ tenantId, values }: LoadedSection<'branding'>) {
       </FieldSet>
       <FieldSet>
         <FieldLegend>{labels.previewLegend}</FieldLegend>
-        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border p-4">
+        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border p-4 bg-surface">
           <span className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
             {labels.previewButton}
           </span>

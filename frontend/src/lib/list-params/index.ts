@@ -23,3 +23,4 @@ export {
   type SortValue,
 } from './list-schema'
 export { type UseListParamsResult, useListParams } from './use-list-params'
+export { useLocalListParams } from './use-local-list-params'

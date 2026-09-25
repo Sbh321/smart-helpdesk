@@ -19,7 +19,13 @@ export const queryKeys = {
   platform: {
     all: ['platform'] as const,
     me: () => [...queryKeys.platform.all, 'me'] as const,
-    tenants: () => [...queryKeys.platform.all, 'tenants'] as const,
+    tenants: (query: object = {}) => [...queryKeys.platform.all, 'tenants', query] as const,
+    tenant: (id: string) => [...queryKeys.platform.all, 'tenant', id] as const,
+    plans: () => [...queryKeys.platform.all, 'plans'] as const,
+    payments: (query: object = {}) => [...queryKeys.platform.all, 'payments', query] as const,
+    admins: () => [...queryKeys.platform.all, 'admins'] as const,
+    settings: () => [...queryKeys.platform.all, 'settings'] as const,
+    dashboard: () => [...queryKeys.platform.all, 'dashboard'] as const,
   },
   system: {
     all: ['system'] as const,

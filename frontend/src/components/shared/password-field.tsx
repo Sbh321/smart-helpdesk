@@ -2,6 +2,7 @@ import { EyeIcon, EyeOffIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useState } from 'react'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { Hint } from '@/components/ui/tooltip'
 import { copy } from '@/copy/en'
 
 /**
@@ -83,15 +84,17 @@ export function PasswordField({
           }}
         />
         <InputGroupAddon align="inline-end">
-          <InputGroupButton
-            size="icon-xs"
-            aria-label={visible ? copy.auth.password.hide : copy.auth.password.show}
-            aria-pressed={visible}
-            aria-controls={id}
-            onClick={() => setVisible((previous) => !previous)}
-          >
-            {visible ? <EyeOffIcon aria-hidden="true" /> : <EyeIcon aria-hidden="true" />}
-          </InputGroupButton>
+          <Hint label={visible ? copy.auth.password.hide : copy.auth.password.show}>
+            <InputGroupButton
+              size="icon-xs"
+              aria-label={visible ? copy.auth.password.hide : copy.auth.password.show}
+              aria-pressed={visible}
+              aria-controls={id}
+              onClick={() => setVisible((previous) => !previous)}
+            >
+              {visible ? <EyeOffIcon aria-hidden="true" /> : <EyeIcon aria-hidden="true" />}
+            </InputGroupButton>
+          </Hint>
         </InputGroupAddon>
       </InputGroup>
       {action ? (

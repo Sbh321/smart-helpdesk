@@ -24,7 +24,7 @@ This document is the top-level boundary. The feature-level MoSCoW list lives in 
 
 ## Explicitly out of scope for the MVP
 
-Customer portal; live chat and social channels; knowledge base; custom fields and custom statuses; automation rule builder; billing and subscriptions; white-label branding beyond logo and primary colour tokens; AI/LLM features; Meilisearch/Typesense/OpenSearch; Kubernetes; database-per-tenant placement (design hook only); mobile apps and push notifications; SSO/SAML; multi-language UI.
+Customer portal; live chat and social channels; knowledge base; custom fields and custom statuses; automation rule builder; online payment (plans, subscriptions paid by receipt and self sign-up are in scope since [ADR-0025](../adr/0025-plans-subscriptions-and-receipts.md)); white-label branding beyond logo and primary colour tokens; AI/LLM features; Meilisearch/Typesense/OpenSearch; Kubernetes; database-per-tenant placement (design hook only); mobile apps and push notifications; SSO/SAML; multi-language UI.
 
 ## Scope change rule
 

@@ -19,6 +19,7 @@ type SectionPermission =
   | 'integrations.manage'
   | 'audit.view'
   | 'mail.manage'
+  | 'billing.manage'
 
 const sections = [
   { slug: 'general', label: copy.workspaceSettings.general, permission: 'settings.manage' },
@@ -40,6 +41,7 @@ const sections = [
   { slug: 'api-clients', label: copy.apiClients.nav, permission: 'integrations.manage' },
   { slug: 'webhooks', label: copy.webhooks.nav, permission: 'integrations.manage' },
   { slug: 'audit', label: copy.audit.nav, permission: 'audit.view' },
+  { slug: 'billing', label: copy.billing.nav, permission: 'billing.manage' },
 ] as const satisfies readonly { slug: string; label: string; permission: SectionPermission }[]
 
 function SettingsLayout() {
@@ -54,6 +56,7 @@ function SettingsLayout() {
     'integrations.manage': useCan('integrations.manage'),
     'audit.view': useCan('audit.view'),
     'mail.manage': useCan('mail.manage'),
+    'billing.manage': useCan('billing.manage'),
   }
   const visible = sections.filter((section) => granted[section.permission])
 

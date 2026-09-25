@@ -2,10 +2,10 @@ import { dataTableColumnHelper } from '@/components/shared/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { copy, fill } from '@/copy/en'
-import { apiUrl } from '@/lib/api/client'
 import { formatInZone } from '@/lib/datetime/format'
 import { formatFileSize } from '@/lib/format/file-size'
 import type { MediaItem } from '../api/media-queries'
+import { MEDIA_KIND_ICONS, mediaKind, mediaThumbUrl, mediaTypeLabel } from '../media-files'
 
 const helper = dataTableColumnHelper<MediaItem>()
 const none = <span className="text-muted-foreground">{copy.media.none}</span>
@@ -20,7 +20,11 @@ export interface MediaRowActions {
 }
 
 /** Media library columns; the ids of sortable columns are the API's sort fields. */
-export function mediaColumns(timeZone: string, actions: MediaRowActions | null) {
+export function mediaColumns(
+  timeZone: string,
+  actions: MediaRowActions | null,
+  onPreview: (item: MediaItem) => void,
+) {
   return helper.columns([
     helper.accessor('name', {
       enableSorting: true,
@@ -28,27 +32,43 @@ export function mediaColumns(timeZone: string, actions: MediaRowActions | null) 
       meta: { label: copy.media.columns.name, className: 'font-medium' },
       cell: (info) => {
         const item = info.row.original
+        const Icon = MEDIA_KIND_ICONS[mediaKind(item.mime_type)]
+        const thumb = item.state === 'trashed' ? undefined : mediaThumbUrl(item)
         return (
           <span className="flex min-w-0 items-center gap-3">
-            {item.variants.thumb ? (
+            {thumb ? (
               <img
-                className="size-10 shrink-0 rounded object-cover"
-                src={apiUrl(`/v1/media/${item.id}/variants/thumb`)}
+                className="size-10 shrink-0 rounded-control object-cover"
+                src={thumb}
                 alt=""
                 loading="lazy"
               />
             ) : (
-              <span aria-hidden="true" className="size-10 shrink-0 rounded bg-muted" />
+              <span
+                aria-hidden="true"
+                className="flex size-10 shrink-0 items-center justify-center rounded-control bg-muted text-muted-foreground"
+              >
+                <Icon className="size-5" />
+              </span>
             )}
-            <a
-              className="min-w-0 truncate text-primary underline-offset-2 hover:underline"
-              href={apiUrl(`/v1/media/${item.id}/download`)}
-            >
-              {item.name}
-            </a>
+            {item.state === 'trashed' ? (
+              <span className="min-w-0 truncate">{item.name}</span>
+            ) : (
+              <button
+                type="button"
+                className="min-w-0 cursor-zoom-in truncate text-left text-primary underline-offset-2 hover:underline"
+                onClick={() => onPreview(item)}
+              >
+                {item.name}
+              </button>
+            )}
           </span>
         )
       },
+    }),
+    helper.accessor('mime_type', {
+      meta: { label: copy.media.columns.type },
+      cell: (info) => mediaTypeLabel(info.getValue(), info.row.original.name),
     }),
     helper.accessor('size_bytes', {
       enableSorting: true,

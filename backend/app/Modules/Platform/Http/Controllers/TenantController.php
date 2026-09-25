@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Platform\Http\Controllers;
 
 use App\Modules\Audit\Audit;
+use App\Modules\Billing\Enums\SubscriptionState;
+use App\Modules\Billing\Models\Plan;
+use App\Modules\Billing\Support\BillingSettings;
+use App\Modules\Billing\Support\SubscriptionStateSql;
 use App\Modules\Platform\Actions\ChangeTenantStatus;
 use App\Modules\Platform\Actions\ProvisionTenant;
 use App\Modules\Platform\Http\Requests\StoreTenantRequest;
 use App\Modules\Platform\Http\Requests\UpdateTenantRequest;
 use App\Modules\Platform\Http\Resources\TenantResource;
 use App\Modules\Tenancy\Models\Tenant;
+use App\Support\Time\Clock;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,16 +31,32 @@ final class TenantController
     /**
      * List workspaces.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    #[QueryParameter('status', 'active, suspended or archived.', type: 'string')]
+    #[QueryParameter('subscription', 'trialing, active, grace, expired or none, comma separated.', type: 'string')]
+    #[QueryParameter('search', 'Part of the name or address.', type: 'string')]
+    public function index(Request $request, Clock $clock, BillingSettings $settings): AnonymousResourceCollection
     {
-        $tenants = Tenant::query()
-            ->when($request->string('status')->isNotEmpty(), fn ($query) => $query->where('status', $request->string('status')))
+        $states = array_values(array_filter(array_map(
+            fn (string $value): ?SubscriptionState => SubscriptionState::tryFrom(trim($value)),
+            explode(',', $request->string('subscription')->value()),
+        )));
+
+        $query = Tenant::query()->select('tenants.*');
+        if ($states !== []) {
+            SubscriptionStateSql::joinOnto($query);
+            SubscriptionStateSql::whereState($query, $states, $clock->now(), $settings->graceDays());
+        }
+
+        $tenants = $query
+            ->when($request->string('status')->isNotEmpty(), fn ($query) => $query->where('tenants.status', $request->string('status')))
             ->when($request->string('search')->isNotEmpty(), function ($query) use ($request): void {
                 $search = '%'.$request->string('search')->lower().'%';
-                $query->where(fn ($q) => $q->whereRaw('lower(slug) like ?', [$search])->orWhereRaw('lower(name) like ?', [$search]));
+                $query->where(fn ($q) => $q->whereRaw('lower(tenants.slug) like ?', [$search])->orWhereRaw('lower(tenants.name) like ?', [$search]));
             })
-            ->orderBy('created_at')
-            ->paginate(perPage: 25);
+            ->orderByDesc('tenants.created_at')
+            ->paginate(perPage: min(100, max(1, $request->integer('per_page', 25))));
+
+        TenantResource::preload($tenants->items());
 
         return TenantResource::collection($tenants);
     }
@@ -42,7 +64,8 @@ final class TenantController
     /**
      * Provision a workspace.
      *
-     * Creates the tenant, its counter and primary domain, and invites the owner by email.
+     * Creates the tenant, its counter and primary domain, starts its subscription (the active trial plan
+     * unless `plan_id` is given, then `periods` periods of it) and invites the owner by email.
      * Running it again for the same slug fills in only what is missing.
      */
     #[Response(status: 201, type: TenantResource::class)]
@@ -54,6 +77,8 @@ final class TenantController
             (string) $request->validated('owner_email'),
             $request->validated('owner_name'),
             (string) $request->validated('timezone', 'UTC'),
+            $request->filled('plan_id') ? Plan::query()->findOrFail($request->validated('plan_id')) : null,
+            (int) $request->validated('periods', 1),
         );
 
         return (new TenantResource($result['tenant']))->response()->setStatusCode(201);

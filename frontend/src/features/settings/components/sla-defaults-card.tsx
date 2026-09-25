@@ -47,7 +47,7 @@ function SlaDefaultsForm({ tenantId, values, defaults }: LoadedSection<'sla'>) {
     <form
       noValidate
       aria-label={labels.title}
-      className="flex max-w-xl flex-col gap-5 rounded-lg border border-border p-4"
+      className="flex max-w-xl flex-col gap-5 rounded-lg border border-border p-4 bg-surface"
       onSubmit={(event) => {
         event.preventDefault()
         void form.handleSubmit()

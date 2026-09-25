@@ -29,7 +29,13 @@
     @apply bg-background text-sm text-foreground;
   }
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role="button"]:not(:disabled),
+  /* Options of selects and comboboxes, menu items and tabs are clickable too. */
+  [role="option"]:not([aria-disabled="true"]):not([data-disabled]),
+  [role="menuitem"]:not([aria-disabled="true"]):not([data-disabled]),
+  [role="menuitemradio"]:not([aria-disabled="true"]):not([data-disabled]),
+  [role="menuitemcheckbox"]:not([aria-disabled="true"]):not([data-disabled]),
+  [role="tab"]:not([aria-disabled="true"]):not([data-disabled]) {
     cursor: pointer;
   }
   /* Visible focus for every interactive element; components with their own ring (shadcn) override this. */

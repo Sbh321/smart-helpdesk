@@ -160,7 +160,7 @@ export function ParameterBar({
               value={params.range}
               onChange={(range) => onChange({ range })}
             />
-            <div className="flex h-8 items-center gap-2 rounded-md border border-dashed border-border px-2.5">
+            <div className="flex h-8 items-center gap-2 rounded-md border border-dashed border-border px-2.5 bg-surface">
               <Switch
                 id={compareId}
                 checked={params.compare}

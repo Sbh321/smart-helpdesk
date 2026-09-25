@@ -1,6 +1,6 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { PasswordField } from '@/components/shared/password-field'
 import { TextField } from '@/components/shared/text-field'
@@ -54,7 +54,7 @@ export function PlatformLoginForm({ redirect }: { redirect?: string }) {
         return
       }
       // Back to the console page that sent the admin here (the platform docs hand-off, M5-06), else the tenants.
-      await navigate({ href: platformRedirect(redirect) ?? '/platform/tenants', replace: true })
+      await navigate({ href: platformRedirect(redirect) ?? '/platform', replace: true })
     },
   })
 
@@ -93,6 +93,11 @@ export function PlatformLoginForm({ redirect }: { redirect?: string }) {
               id="platform-login-password"
               label={copy.auth.passwordLabel}
               autoComplete="current-password"
+              action={
+                <Link to="/platform/forgot-password" className="text-primary text-sm hover:underline">
+                  {copy.platform.login.forgot}
+                </Link>
+              }
               value={field.state.value}
               onValueChange={field.handleChange}
               onBlur={field.handleBlur}

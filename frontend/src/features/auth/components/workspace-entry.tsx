@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/sonner'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import {
   forgetWorkspace,
@@ -80,16 +81,18 @@ export function WorkspaceEntry() {
                   </span>
                   <ArrowRightIcon aria-hidden="true" className="size-4 text-muted-foreground" />
                 </Link>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label={fill(copy.workspaceEntry.forget, { name: item.name })}
-                  onClick={() => forget(item)}
-                  className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground"
-                >
-                  <XIcon aria-hidden="true" />
-                </Button>
+                <Hint label={fill(copy.workspaceEntry.forget, { name: item.name })}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={fill(copy.workspaceEntry.forget, { name: item.name })}
+                    onClick={() => forget(item)}
+                    className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    <XIcon aria-hidden="true" />
+                  </Button>
+                </Hint>
               </li>
             ))}
           </ul>
@@ -148,6 +151,12 @@ export function WorkspaceEntry() {
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
           {copy.workspaceEntry.findLink}
+        </Link>
+      </p>
+      <p className="text-center text-muted-foreground text-sm">
+        {copy.workspaceEntry.newPrompt}{' '}
+        <Link to="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+          {copy.workspaceEntry.newLink}
         </Link>
       </p>
     </div>

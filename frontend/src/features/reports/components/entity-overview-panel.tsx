@@ -241,7 +241,7 @@ function LifecycleTrace({
       .filter(Boolean)
       .join(' · ')
   const table = (
-    <div className="rounded-md border border-border">
+    <div className="overflow-hidden rounded-card border border-border bg-surface shadow-1">
       <table className="w-full text-sm">
         <caption className="sr-only">{text.lifecycle.tableLabel}</caption>
         <TableHeader>

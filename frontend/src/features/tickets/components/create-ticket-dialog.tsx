@@ -256,7 +256,7 @@ export function CreateTicketDialog({
           </form.Field>
         </FieldGroup>
         <div className="grid gap-3 sm:grid-cols-2">
-          <section className="rounded-lg border border-dashed border-border p-4">
+          <section className="rounded-lg border border-dashed border-border p-4 bg-surface">
             <h2 className="text-sm font-medium">{copy.tickets.detail.attachments}</h2>
             <AttachmentsField key={uploadCycle} onChange={setAttachments} />
           </section>
@@ -314,7 +314,7 @@ export function CreateTicketDialog({
         <PlusIcon aria-hidden="true" />
         {copy.tickets.create.open}
       </DialogTrigger>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{copy.tickets.create.title}</DialogTitle>
           <DialogDescription>{copy.tickets.create.description}</DialogDescription>

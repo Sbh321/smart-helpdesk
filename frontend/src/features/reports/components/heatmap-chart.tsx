@@ -1,4 +1,5 @@
 import type { ChartMeasure, ChartRow } from '@/components/shared/charts/series-chart'
+import { Hint } from '@/components/ui/tooltip'
 import { copy } from '@/copy/en'
 import { formatMeasure } from '@/lib/format/measure'
 
@@ -45,13 +46,16 @@ export function HeatmapChart({ rows, measure, label }: HeatmapChartProps) {
               {HOURS.map((hour) => {
                 const value = values.get(`${day}-${hour}`) ?? null
                 return (
-                  <span
+                  <Hint
                     key={hour}
-                    data-value={value ?? 0}
-                    title={`${copy.reports.weekdays[dayIndex]} ${hour}:00 — ${formatMeasure(value ?? 0, measure.unit)}`}
-                    className="h-6 rounded-xs"
-                    style={{ backgroundColor: shade(value) }}
-                  />
+                    label={`${copy.reports.weekdays[dayIndex]} ${hour}:00 · ${formatMeasure(value ?? 0, measure.unit)}`}
+                  >
+                    <span
+                      data-value={value ?? 0}
+                      className="h-6 rounded-xs"
+                      style={{ backgroundColor: shade(value) }}
+                    />
+                  </Hint>
                 )
               })}
             </div>

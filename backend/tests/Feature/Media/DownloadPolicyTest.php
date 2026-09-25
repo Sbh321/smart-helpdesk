@@ -9,6 +9,7 @@ use App\Modules\Media\Models\MediaItem;
 use App\Modules\Media\Support\MediaKeys;
 use App\Modules\Tickets\Models\Ticket;
 use App\Modules\Tickets\Models\TicketComment;
+use Illuminate\Support\Facades\Storage;
 
 require_once __DIR__.'/MediaTestSupport.php';
 require_once __DIR__.'/../Tickets/TicketTestHelpers.php';
@@ -174,4 +175,70 @@ describe('variants', function (): void {
         actingWithPermissions(['media.view']);
         $this->getJson("/v1/media/{$item->id}/variants/thumb")->assertForbidden();
     });
+});
+
+/**
+ * Signs through a disk of its own (tenancy re-creates `local` per tenant) that echoes the signing
+ * options into the URL, so a test can read what storage was asked to send.
+ */
+function echoSigningOptions(): void
+{
+    config([
+        'filesystems.disks.media-echo' => ['driver' => 'local', 'root' => mediaTestRoot().'/echo'],
+        'helpdesk.media.presign_disk' => 'media-echo',
+    ]);
+    Storage::disk('media-echo')->buildTemporaryUrlsUsing(
+        fn (string $path, DateTimeInterface $expiration, array $options): string => 'https://files.test/'.$path.'?'.http_build_query($options),
+    );
+}
+
+/** @return array<string, string> */
+function openedWith(MediaItem $item): array
+{
+    $location = (string) test()->get("/v1/media/{$item->id}/open")->assertRedirect()->headers->get('Location');
+    parse_str((string) parse_url($location, PHP_URL_QUERY), $options);
+
+    /** @var array<string, string> $options */
+    return $options;
+}
+
+it('opens images, PDF and text in the browser with the stored type, and CSV as plain text', function (string $filename, string $mime, string $servedAs): void {
+    actingAsRole($this->acme, 'agent');
+    $item = mediaItemIn($this->acme, attributes: ['name' => $filename, 'mime_type' => $mime]);
+    echoSigningOptions();
+
+    $options = openedWith($item);
+
+    expect($options['ResponseContentType'])->toBe($servedAs)
+        ->and($options['ResponseContentDisposition'])->toStartWith('inline; filename="'.$filename.'"');
+})->with([
+    'png' => ['screen.png', 'image/png', 'image/png'],
+    'webp' => ['photo.webp', 'image/webp', 'image/webp'],
+    'pdf' => ['invoice.pdf', 'application/pdf', 'application/pdf'],
+    'text' => ['server.log', 'text/plain', 'text/plain; charset=utf-8'],
+    'csv' => ['export.csv', 'text/csv', 'text/plain; charset=utf-8'],
+]);
+
+it('sends Office files and archives as a download even when asked to open them', function (string $filename, string $mime): void {
+    actingAsRole($this->acme, 'agent');
+    $item = mediaItemIn($this->acme, attributes: ['name' => $filename, 'mime_type' => $mime]);
+    echoSigningOptions();
+
+    $options = openedWith($item);
+
+    expect($options['ResponseContentDisposition'])->toStartWith('attachment;')
+        ->and($options)->not->toHaveKey('ResponseContentType');
+})->with([
+    'docx' => ['plan.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    'zip' => ['logs.zip', 'application/zip'],
+]);
+
+it('opens a file under the same rules as a download', function (): void {
+    $trashed = mediaItemIn($this->acme, 'trashed');
+    $attached = mediaItemIn($this->acme);
+    linkTo($attached, 'ticket', $this->ticket->id);
+    actingWithPermissions(['media.view']);
+
+    $this->getJson("/v1/media/{$trashed->id}/open")->assertNotFound();
+    $this->getJson("/v1/media/{$attached->id}/open")->assertForbidden()->assertJsonPath('code', 'forbidden');
 });

@@ -82,6 +82,46 @@ test('an uploaded file travels with the comment and is listed on it', async () =
   await expect.element(panel.getByRole('list', { name: 'Files to attach' })).not.toBeInTheDocument()
 })
 
+test('files chosen from the library travel with the comment and open in the lightbox', async () => {
+  let sent: { media_ids?: string[] } = {}
+  worker.events.on('request:start', async ({ request }) => {
+    if (request.method === 'POST' && request.url.endsWith('/comments')) sent = await request.clone().json()
+  })
+  const { screen, panel } = await openComments()
+  await panel.getByRole('textbox', { name: 'Message' }).fill('See the earlier screenshot.')
+  await panel.getByRole('button', { name: 'Choose from library' }).click()
+  const picker = screen.getByRole('dialog', { name: 'Choose from the Media library' })
+  await expect.element(picker.getByRole('button', { name: 'Use file' })).toBeDisabled()
+  await picker.getByRole('button', { name: 'Select screenshot-27.png' }).click()
+  await picker.getByRole('button', { name: 'Select report-26.pdf' }).click()
+  await expect.element(picker.getByText('2 selected')).toBeVisible()
+  await picker.getByRole('button', { name: 'Use 2 files' }).click()
+  await expect.element(picker).not.toBeInTheDocument()
+
+  const tiles = panel.getByRole('list', { name: 'Files to attach' })
+  await expect
+    .element(tiles.getByRole('listitem').filter({ hasText: 'screenshot-27.png' }))
+    .toMatchTextContent(/From the library/)
+  await panel.getByRole('button', { name: 'Choose from library' }).click()
+  await expect
+    .element(
+      screen
+        .getByRole('dialog', { name: 'Choose from the Media library' })
+        .getByRole('button', { name: 'screenshot-27.png (already added)' }),
+    )
+    .toBeDisabled()
+  await userEvent.keyboard('{Escape}')
+
+  await panel.getByRole('button', { name: 'Send reply to the Contact' }).click()
+  const comment = panel.getByRole('listitem').filter({ hasText: 'See the earlier screenshot.' })
+  await expect.element(comment.getByRole('list', { name: 'Attached files' })).toBeVisible()
+  expect(sent.media_ids).toHaveLength(2)
+  await comment.getByRole('button', { name: 'Preview report-26.pdf' }).click()
+  const box = screen.getByRole('dialog', { name: 'report-26.pdf' })
+  await expect.element(box.getByTitle('report-26.pdf')).toBeInTheDocument()
+  await expect.element(box.getByText(/ of 2: report-26\.pdf$/)).toBeInTheDocument()
+})
+
 test('a comment body is rendered as text: markup in it stays inert', async () => {
   const { panel } = await openComments()
   await panel

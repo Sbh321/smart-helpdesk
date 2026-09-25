@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Agents\AgentsServiceProvider;
 use App\Modules\Audit\AuditServiceProvider;
 use App\Modules\Automation\AutomationServiceProvider;
+use App\Modules\Billing\BillingServiceProvider;
 use App\Modules\Contacts\ContactsServiceProvider;
 use App\Modules\Demo\DemoServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
@@ -26,6 +27,7 @@ return [
     AgentsServiceProvider::class,
     AuditServiceProvider::class,
     AutomationServiceProvider::class,
+    BillingServiceProvider::class,
     ContactsServiceProvider::class,
     DemoServiceProvider::class,
     IdentityServiceProvider::class,

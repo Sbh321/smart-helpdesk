@@ -14,6 +14,7 @@ export {
   dataTableColumnHelper,
   dataTableFeatures,
 } from './data-table-columns'
+export { DataTablePagination, type DataTablePaginationProps } from './data-table-pagination'
 export { DateRangeFilter, type DateRangeFilterProps } from './date-range-filter'
 export { FilterBar, type FilterBarProps } from './filter-bar'
 export { type FilterChip, FilterChips } from './filter-chips'

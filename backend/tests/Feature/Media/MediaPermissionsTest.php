@@ -25,6 +25,7 @@ const MEDIA_ROUTE_PERMISSIONS = [
     'media.usage' => ['GET', '/v1/media/usage', 'media.view'],
     'media.show' => ['GET', '/v1/media/{ready}', 'media.view'],
     'media.download' => ['GET', '/v1/media/{ready}/download', 'media.view'],
+    'media.open' => ['GET', '/v1/media/{ready}/open', 'media.view'],
     'media.variant' => ['GET', '/v1/media/{ready}/variants/thumb', 'media.view'],
     'media.update' => ['PATCH', '/v1/media/{ready}', 'media.manage'],
     'media.trash' => ['POST', '/v1/media/{ready}/trash', 'media.manage'],

@@ -13,6 +13,9 @@ use Illuminate\Validation\Validator;
 
 final class UploadIntentRequest extends FormRequest
 {
+    /** A receipt is a photo, a screenshot or a PDF. */
+    private const RECEIPT_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf'];
+
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -21,10 +24,14 @@ final class UploadIntentRequest extends FormRequest
             'size' => ['required', 'integer', 'min:1', 'max:'.AllowedMedia::maxBytes()],
             // Advisory: browsers send '' for types they do not know; the stored type comes from the extension.
             'mime' => ['present', 'nullable', 'string', 'max:127'],
-            // Where the file starts: the Tickets folder, or Branding for a workspace logo (settings.manage).
-            'purpose' => ['sometimes', 'string', Rule::in(['attachment', 'branding']), function (string $attribute, mixed $value, Closure $fail): void {
+            // Where the file starts: the Tickets folder, Branding for a workspace logo (settings.manage), or
+            // Billing for a payment receipt (billing.manage, ADR-0025 §4).
+            'purpose' => ['sometimes', 'string', Rule::in(['attachment', 'branding', 'receipt']), function (string $attribute, mixed $value, Closure $fail): void {
                 if ($value === 'branding' && $this->user()?->can('settings.manage') !== true) {
                     $fail('Only workspace administrators can upload branding files.');
+                }
+                if ($value === 'receipt' && $this->user()?->can('billing.manage') !== true) {
+                    $fail('Only people who manage billing can upload receipts.');
                 }
             }],
         ];
@@ -47,6 +54,8 @@ final class UploadIntentRequest extends FormRequest
                 $validator->errors()->add('filename', 'This file type is not allowed.');
             } elseif (! AllowedMedia::acceptsDeclared($extension, (string) $this->input('mime'))) {
                 $validator->errors()->add('mime', 'The file type does not match the file name.');
+            } elseif ($this->input('purpose') === 'receipt' && ! in_array($extension, self::RECEIPT_EXTENSIONS, true)) {
+                $validator->errors()->add('filename', 'A receipt must be an image (PNG, JPG, GIF, WebP) or a PDF.');
             }
         }];
     }

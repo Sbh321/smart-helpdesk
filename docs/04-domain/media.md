@@ -99,7 +99,7 @@ Tests: `tests/Feature/Media/*` (upload flow, folders, items, trash and quota, do
 
 ## API
 
-`GET/POST /v1/media`, `POST /media/intent`, `POST /media/{id}/complete`, `GET /media/{id}/download`, `GET /media/{id}/variants/{name}`, `PATCH /media/{id}` (rename, move, tags), `POST /media/{id}/trash|restore`, `DELETE /media/{id}` (purge), `GET/POST/PATCH/DELETE /media/folders`, `GET /media/usage`.
+`GET/POST /v1/media`, `POST /media/intent`, `POST /media/{id}/complete`, `GET /media/{id}/download`, `GET /media/{id}/open` (inline for images, PDF and text; otherwise a download), `GET /media/{id}/variants/{name}`, `PATCH /media/{id}` (rename, move, tags), `POST /media/{id}/trash|restore`, `DELETE /media/{id}` (purge), `GET/POST/PATCH/DELETE /media/folders`, `GET /media/usage`.
 
 ## Not in the MVP
 

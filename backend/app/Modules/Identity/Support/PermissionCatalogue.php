@@ -35,6 +35,8 @@ final class PermissionCatalogue
         // Entity change logs and as-of views (ADR-0022 §8, security.md §History).
         'history' => ['view'],
         'audit' => ['view'],
+        // The workspace's subscription and receipt payments (ADR-0025).
+        'billing' => ['manage'],
     ];
 
     public const OWNER = 'owner';
@@ -71,6 +73,7 @@ final class PermissionCatalogue
         $admin = [
             ...$manager,
             'settings.manage', 'users.manage', 'roles.manage', 'integrations.manage', 'mail.manage', 'audit.view',
+            'billing.manage',
         ];
 
         return [

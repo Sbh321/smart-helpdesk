@@ -35,7 +35,7 @@ function RoleCard({
 }) {
   const headingId = `role-${role.id}-name`
   return (
-    <li className="space-y-3 rounded-lg border border-border p-4" aria-labelledby={headingId}>
+    <li className="space-y-3 rounded-lg border border-border p-4 bg-surface" aria-labelledby={headingId}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <h4 id={headingId} className="font-medium">

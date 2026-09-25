@@ -1,5 +1,6 @@
 import axe from 'axe-core'
 import { expect, test } from 'vitest'
+import { page, userEvent } from 'vitest/browser'
 import { render } from 'vitest-browser-react'
 import { SlaIndicator, type SlaState } from './sla-indicator'
 
@@ -51,9 +52,11 @@ test('the compact form shows the time and keeps the state for screen readers; ki
   await expect.element(screen.getByText('20 minutes left', { exact: true })).toBeVisible()
   await expect.element(screen.getByText('Due soon', { exact: true })).toHaveClass('sr-only')
   await expect.element(screen.getByText('Response', { exact: true })).toBeVisible()
-  expect(screen.container.querySelector('[title]')?.getAttribute('title')).toBe('Due 18 Sep 2026, 09:20')
   const results = await axe.run(screen.container)
   expect(results.violations).toEqual([])
+  // The exact due time is a hint on hover (the shared tooltip, not a native title).
+  await userEvent.hover(screen.getByText('20 minutes left', { exact: true }))
+  await expect.element(page.getByText('Due 18 Sep 2026, 09:20')).toBeVisible()
 })
 
 test('no timer or a cancelled one reads as a dash', async () => {

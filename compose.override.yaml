@@ -25,7 +25,6 @@ services:
   proxy:
     environment:
       TLS_MODE: internal
-      MONITOR_AUTH: "off"
       MAIL_WEB_UPSTREAM: mailpit:8025
   postgres:
     ports: ["127.0.0.1:${DEV_DB_PORT:-55439}:5432"]

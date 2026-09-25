@@ -1,28 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { FolderPlusIcon, ImagesIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { FolderInputIcon, FolderPlusIcon, HardDriveIcon, Trash2Icon, UploadIcon } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
-import {
-  DataTable,
-  FilterBar,
-  MultiSelectFilter,
-  SearchFilter,
-  SelectFilter,
-} from '@/components/shared/data-table'
-import { EmptyState } from '@/components/shared/empty-state'
-import { ErrorState } from '@/components/shared/error-state'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { SettingsPage } from '@/components/shared/settings-page'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
-import { tagQueries } from '@/features/contacts'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useCan, useSession } from '@/lib/auth'
 import { formatFileSize } from '@/lib/format/file-size'
 import { useListParams } from '@/lib/list-params'
+import { cn } from '@/lib/utils'
 import {
   deleteFolder,
   type MediaFolder,
@@ -34,88 +31,112 @@ import {
   trashMedia,
   updateMedia,
 } from '../api/media-queries'
-import { AttachmentUploader } from './attachment-uploader'
-import { mediaColumns } from './media-columns'
+import { visibleFolders } from '../folder-tree'
+import { AttachmentUploader, type AttachmentUploaderHandle } from './attachment-uploader'
+import { MediaBrowser } from './media-browser'
+import type { MediaRowActions } from './media-columns'
 import { type FolderDialogTarget, MediaFolderDialog } from './media-folder-dialog'
-import { MediaFolderTree } from './media-folder-tree'
 import { MediaItemDialog } from './media-item-dialog'
 
-const NO_OPTIONS: never[] = []
-const STATE_OPTIONS = [
-  { value: 'ready', label: copy.media.stateReady },
-  { value: 'trashed', label: copy.media.stateTrashed },
-]
+const text = copy.media
 
 /** A destructive action waiting for its `ConfirmDialog`. */
 type Pending =
   | { kind: 'trash'; item: MediaItem }
   | { kind: 'purge'; item: MediaItem }
   | { kind: 'folder'; folder: MediaFolder }
+  | { kind: 'bulkTrash'; items: MediaItem[] }
 
-const CONFIRM = {
-  trash: copy.media.confirm.trash,
-  purge: copy.media.confirm.purge,
-  folder: copy.media.confirm.folder,
+/** Runs one request per item; resolves to the number done and the first failure's message. */
+async function eachItem(items: MediaItem[], run: (item: MediaItem) => Promise<unknown>) {
+  const results = await Promise.allSettled(items.map(run))
+  const failed = results.filter((result) => result.status === 'rejected')
+  const reason = failed[0]?.status === 'rejected' ? failed[0].reason : null
+  return {
+    done: results.length - failed.length,
+    failed: failed.length,
+    reason: reason instanceof Error ? reason.message : text.failed,
+  }
 }
 
+/**
+ * The media library (docs/04-domain/media.md): storage use, an upload field that also takes files
+ * dropped anywhere on the browser (into the open folder), and the shared `MediaBrowser` with folders,
+ * filters, grid or table, previews in the lightbox, per-item actions and bulk move or trash.
+ */
 export function MediaLibraryScreen() {
   const { session } = useSession()
   const tenantId = session?.tenant.id ?? ''
-  const timeZone = session?.tenant.timezone ?? 'UTC'
   const canView = useCan('media.view')
   const canManage = useCan('media.manage')
   const canUpload = useCan('media.upload')
   const client = useQueryClient()
   const list = useListParams(mediaListSchema)
+  const uploader = useRef<AttachmentUploaderHandle>(null)
   const [folderDialog, setFolderDialog] = useState<FolderDialogTarget | null>(null)
   const [editing, setEditing] = useState<MediaItem | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
+  const [selected, setSelected] = useState<MediaItem[]>([])
   const folderId = list.params.filters.folder_id?.[0] ?? null
   const enabled = canView && tenantId !== ''
-  const items = useQuery({ ...mediaQueries.list(tenantId, list.apiQuery), enabled })
   const folders = useQuery({ ...mediaQueries.folders(tenantId), enabled })
   const usage = useQuery({ ...mediaQueries.usage(tenantId), enabled })
-  const tags = useQuery({ ...tagQueries.options(tenantId), enabled })
   const refresh = () => client.invalidateQueries({ queryKey: queryKeys.media.all(tenantId) })
 
   const restore = useMutation({
     mutationFn: (item: MediaItem) => restoreMedia(item.id),
     onSuccess: async () => {
       await refresh()
-      toast.success(copy.media.restored)
+      toast.success(text.restored)
     },
   })
 
-  const selectedFolder = folders.data?.find((folder) => folder.id === folderId) ?? null
-  const columns = useMemo(
+  const move = useMutation({
+    mutationFn: async ({ items, folder }: { items: MediaItem[]; folder: MediaFolder | null }) =>
+      eachItem(items, (item) => updateMedia(item.id, { folder_id: folder?.id ?? null })),
+    onSuccess: async (result, { items, folder }) => {
+      await refresh()
+      setSelected([])
+      const name = folder?.name ?? text.noFolder
+      if (result.failed === 0) toast.success(fill(text.bulkMoved, { count: items.length, folder: name }))
+      else toast.error(fill(text.bulkPartly, { ...result, count: items.length }))
+    },
+  })
+
+  const actions = useMemo<MediaRowActions | null>(
     () =>
-      mediaColumns(
-        timeZone,
-        canManage
-          ? {
-              onEdit: setEditing,
-              onTrash: (item) => setPending({ kind: 'trash', item }),
-              onPurge: (item) => setPending({ kind: 'purge', item }),
-              onRestore: (item) => restore.mutate(item),
-              busyId: restore.isPending ? (restore.variables?.id ?? null) : null,
-            }
-          : null,
-      ),
-    [timeZone, canManage, restore.mutate, restore.isPending, restore.variables],
+      canManage
+        ? {
+            onEdit: setEditing,
+            onTrash: (item) => setPending({ kind: 'trash', item }),
+            onPurge: (item) => setPending({ kind: 'purge', item }),
+            onRestore: (item) => restore.mutate(item),
+            busyId: restore.isPending ? (restore.variables?.id ?? null) : null,
+          }
+        : null,
+    [canManage, restore.mutate, restore.isPending, restore.variables],
   )
 
   async function uploaded(id: string) {
     try {
       if (folderId) await updateMedia(id, { folder_id: folderId })
       await refresh()
-      toast.success(copy.media.uploaded)
+      toast.success(text.uploaded)
     } catch {
-      toast.error(copy.media.uploadFailed)
+      toast.error(text.uploadFailed)
     }
   }
 
   async function confirmPending() {
     if (!pending) return
+    if (pending.kind === 'bulkTrash') {
+      const result = await eachItem(pending.items, (item) => trashMedia(item.id))
+      await refresh()
+      setSelected([])
+      if (result.failed === 0) toast.success(fill(text.bulkTrashed, { count: result.done }))
+      else toast.error(fill(text.bulkPartly, { ...result, count: pending.items.length }))
+      return
+    }
     if (pending.kind === 'trash') await trashMedia(pending.item.id)
     if (pending.kind === 'purge') await purgeMedia(pending.item.id)
     if (pending.kind === 'folder') {
@@ -123,135 +144,119 @@ export function MediaLibraryScreen() {
       list.update({ filters: { folder_id: pending.folder.parent_id ? [pending.folder.parent_id] : [] } })
     }
     await refresh()
-    toast.success(CONFIRM[pending.kind].done)
+    toast.success(text.confirm[pending.kind].done)
   }
 
   if (!canView) return <ForbiddenState />
 
-  const pendingName = pending ? (pending.kind === 'folder' ? pending.folder.name : pending.item.name) : ''
-  const emptyState =
-    list.activeFilterCount > 0 ? (
-      <EmptyState
-        icon={ImagesIcon}
-        title={copy.media.noMatchesTitle}
-        description={copy.media.empty}
-        action={
-          <Button type="button" variant="outline" onClick={list.clearFilters}>
-            {copy.filters.clear}
-          </Button>
-        }
-      />
-    ) : (
-      <EmptyState icon={ImagesIcon} title={copy.media.emptyTitle} description={copy.media.emptyBody} />
-    )
+  const confirm =
+    pending === null
+      ? null
+      : pending.kind === 'bulkTrash'
+        ? {
+            title: fill(text.bulkTrash.title, { count: pending.items.length }),
+            description: text.bulkTrash.body,
+            action: text.bulkTrash.action,
+          }
+        : {
+            title: text.confirm[pending.kind].title,
+            description: fill(text.confirm[pending.kind].body, {
+              name: pending.kind === 'folder' ? pending.folder.name : pending.item.name,
+            }),
+            action: text.confirm[pending.kind].action,
+          }
+
+  const folderFooter = (folder: MediaFolder | null) =>
+    canManage ? (
+      <div className="flex flex-wrap gap-2 border-border border-t pt-3">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setFolderDialog({ mode: 'create', parent: folder })}
+        >
+          <FolderPlusIcon aria-hidden="true" />
+          {text.createFolder}
+        </Button>
+        {folder && !folder.system_key ? (
+          <>
+            <Button size="sm" variant="outline" onClick={() => setFolderDialog({ mode: 'rename', folder })}>
+              {text.rename}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => setPending({ kind: 'folder', folder })}>
+              {text.deleteFolder}
+            </Button>
+          </>
+        ) : null}
+      </div>
+    ) : null
+
+  const bulkActions = (items: MediaItem[]) =>
+    canManage ? (
+      <>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button type="button" variant="outline" size="sm" disabled={move.isPending} />}
+          >
+            <FolderInputIcon aria-hidden="true" />
+            {text.moveTo}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="max-h-72 min-w-52 overflow-y-auto">
+            <DropdownMenuItem onClick={() => move.mutate({ items, folder: null })}>
+              {text.noFolder}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {visibleFolders(folders.data ?? [], new Set(folders.data?.map((folder) => folder.id))).map(
+              ({ folder, level }) => (
+                <DropdownMenuItem
+                  key={folder.id}
+                  onClick={() => move.mutate({ items, folder })}
+                  style={{ paddingInlineStart: `${0.375 + (level - 1) * 0.875}rem` }}
+                >
+                  {folder.name}
+                </DropdownMenuItem>
+              ),
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setPending({ kind: 'bulkTrash', items })}
+        >
+          <Trash2Icon aria-hidden="true" />
+          {text.bulkTrash.action}
+        </Button>
+      </>
+    ) : null
 
   return (
-    <SettingsPage title={copy.media.title} description={copy.media.description}>
-      {usage.data ? (
-        <div className="space-y-1 rounded-lg border border-border p-3 text-sm">
-          <p>
-            {fill(copy.media.usedOf, {
-              used: formatFileSize(usage.data.used_bytes, copy.media.units),
-              quota: formatFileSize(usage.data.quota_bytes, copy.media.units),
-            })}
-          </p>
-          <progress
-            className="w-full"
-            aria-label={copy.media.used}
-            max={usage.data.quota_bytes}
-            value={usage.data.used_bytes}
-          />
-        </div>
-      ) : null}
-      {canUpload ? <AttachmentUploader onUploaded={(id) => void uploaded(id)} /> : null}
-      {restore.error ? <FormErrorBanner title={copy.media.failed} error={restore.error} /> : null}
-      <div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)]">
-        <aside className="space-y-3 self-start rounded-lg border border-border p-3">
-          <h3 className="font-medium">{copy.media.folders}</h3>
-          {folders.isPending ? (
-            <Skeleton className="h-20 w-full" />
-          ) : folders.isError ? (
-            <ErrorState error={folders.error} onRetry={() => void folders.refetch()} />
-          ) : (
-            <MediaFolderTree
-              folders={folders.data}
-              selectedId={folderId}
-              onSelect={(id) => list.update({ filters: { folder_id: id ? [id] : [] } })}
-            />
-          )}
-          {canManage && folders.isSuccess ? (
-            <div className="flex flex-wrap gap-2 border-t border-border pt-3">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setFolderDialog({ mode: 'create', parent: selectedFolder })}
-              >
-                <FolderPlusIcon aria-hidden="true" />
-                {copy.media.createFolder}
-              </Button>
-              {selectedFolder && !selectedFolder.system_key ? (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setFolderDialog({ mode: 'rename', folder: selectedFolder })}
-                  >
-                    {copy.media.rename}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setPending({ kind: 'folder', folder: selectedFolder })}
-                  >
-                    {copy.media.deleteFolder}
-                  </Button>
-                </>
-              ) : null}
-            </div>
-          ) : null}
-        </aside>
-        <div className="min-w-0">
-          <DataTable
-            id="media-library"
-            label={copy.media.tableLabel}
-            columns={columns}
-            data={items.data?.data}
-            rowCount={items.data?.meta.total}
-            state={list.params}
-            onStateChange={list.update}
-            defaultSort={mediaListSchema.defaultSort}
-            getRowId={(item) => item.id}
-            isFetching={items.isFetching && items.isPlaceholderData}
-            error={items.error}
-            onRetry={() => void items.refetch()}
-            emptyState={emptyState}
-            toolbar={
-              <FilterBar activeCount={list.activeFilterCount} onClear={list.clearFilters}>
-                <SearchFilter
-                  label={copy.media.search}
-                  placeholder={copy.media.searchPlaceholder}
-                  value={list.params.search}
-                  onChange={list.setSearch}
-                />
-                <MultiSelectFilter
-                  label={copy.media.tagFilter}
-                  options={tags.data ?? NO_OPTIONS}
-                  value={list.params.filters.tag ?? []}
-                  onChange={(value) => list.setFilter('tag', value)}
-                  isLoading={tags.isPending}
-                />
-                <SelectFilter
-                  label={copy.media.stateFilter}
-                  options={STATE_OPTIONS}
-                  value={list.params.filters.state}
-                  defaultValue="ready"
-                  onChange={(value) => list.setFilter('state', value === 'trashed' ? 'trashed' : undefined)}
-                />
-              </FilterBar>
-            }
-          />
-        </div>
-      </div>
+    <SettingsPage
+      title={text.title}
+      description={text.description}
+      actions={
+        canUpload ? (
+          <Button type="button" onClick={() => uploader.current?.choose()}>
+            <UploadIcon aria-hidden="true" />
+            {text.upload}
+          </Button>
+        ) : null
+      }
+    >
+      {usage.data ? <StorageMeter used={usage.data.used_bytes} quota={usage.data.quota_bytes} /> : null}
+      {canUpload ? <AttachmentUploader handle={uploader} onUploaded={(id) => void uploaded(id)} /> : null}
+      {restore.error ? <FormErrorBanner title={text.failed} error={restore.error} /> : null}
+      <MediaBrowser
+        list={list}
+        mode="manage"
+        selected={selected}
+        onSelectedChange={canManage ? setSelected : undefined}
+        actions={actions}
+        folderFooter={folderFooter}
+        onFilesDropped={canUpload ? (files) => uploader.current?.add(files) : undefined}
+        bulkActions={bulkActions}
+        viewKey="sh.media.view"
+      />
       <MediaFolderDialog target={folderDialog} onClose={() => setFolderDialog(null)} />
       <MediaItemDialog item={editing} folders={folders.data ?? []} onClose={() => setEditing(null)} />
       <ConfirmDialog
@@ -260,12 +265,49 @@ export function MediaLibraryScreen() {
           if (!open) setPending(null)
         }}
         destructive
-        title={pending ? CONFIRM[pending.kind].title : ''}
-        description={pending ? fill(CONFIRM[pending.kind].body, { name: pendingName }) : ''}
-        confirmLabel={pending ? CONFIRM[pending.kind].action : ''}
-        failedTitle={copy.media.failed}
+        title={confirm?.title ?? ''}
+        description={confirm?.description ?? ''}
+        confirmLabel={confirm?.action ?? ''}
+        failedTitle={text.failed}
         onConfirm={confirmPending}
       />
     </SettingsPage>
+  )
+}
+
+function StorageMeter({ used, quota }: { used: number; quota: number }) {
+  const percent = quota > 0 ? Math.min(100, Math.round((used / quota) * 100)) : 0
+  return (
+    <section
+      aria-label={text.storage}
+      className="flex items-center gap-4 rounded-card border border-border bg-surface p-4 shadow-1"
+    >
+      <span
+        aria-hidden="true"
+        className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+      >
+        <HardDriveIcon className="size-5" />
+      </span>
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+          <p className="font-medium">
+            {fill(text.usedOf, {
+              used: formatFileSize(used, text.units),
+              quota: formatFileSize(quota, text.units),
+            })}
+          </p>
+          <p className="text-muted-foreground text-xs tabular-nums">{fill(text.usedPercent, { percent })}</p>
+        </div>
+        <progress
+          aria-label={text.used}
+          max={quota}
+          value={used}
+          className={cn(
+            'block h-2 w-full overflow-hidden rounded-full',
+            percent >= 90 ? 'accent-destructive' : 'accent-primary',
+          )}
+        />
+      </div>
+    </section>
   )
 }

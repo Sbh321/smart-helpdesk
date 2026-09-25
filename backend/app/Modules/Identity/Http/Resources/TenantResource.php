@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Http\Resources;
 
+use App\Modules\Billing\Http\Resources\SubscriptionResource;
+use App\Modules\Billing\Support\Subscriptions;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Settings\Settings;
 use Illuminate\Http\Request;
@@ -17,7 +19,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 final class TenantResource extends JsonResource
 {
     /**
-     * @return array{id: string, slug: string, name: string, status: string, timezone: string, settings_version: int, branding: array{primary: string|null, logo_url: string|null, logo_dark_url: string|null}, features: array{realtime: bool, exports: bool}}
+     * @return array{id: string, slug: string, name: string, status: string, timezone: string, settings_version: int, branding: array{primary: string|null, logo_url: string|null, logo_dark_url: string|null}, features: array{realtime: bool, exports: bool}, subscription: SubscriptionResource}
      */
     public function toArray(Request $request): array
     {
@@ -42,6 +44,8 @@ final class TenantResource extends JsonResource
                 'realtime' => (bool) $settings->get('features.realtime', false),
                 'exports' => (bool) $settings->get('features.exports', true),
             ],
+            // The plan and its state, for the trial, grace and read-only banner (ADR-0025 §6).
+            'subscription' => new SubscriptionResource(app(Subscriptions::class)->statusOf((string) $this->id)),
         ];
     }
 

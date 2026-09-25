@@ -34,6 +34,10 @@ const PERMISSION_ALLOW_LIST = [
     'notifications.read-all',
     // WebSocket channel authorisation: each channel checks its own permission (Realtime\Support\Channels).
     'realtime.auth',
+    // Self sign-up (ADR-0025 §8): before any workspace exists; throttled, verified by email.
+    'signup.address',
+    'signup.store',
+    'signup.verify',
 ];
 
 /** Routes that run before anyone is signed in. */
@@ -45,10 +49,13 @@ const PRE_AUTH_ROUTES = [
     'auth.password.forgot',
     'auth.password.reset',
     'auth.workspace-reminder',
+    'signup.address',
+    'signup.store',
+    'signup.verify',
 ];
 
 /** Routes that belong to no workspace: system routes and `Routes/central.php` (M5-02). */
-const CENTRAL_ROUTES = ['system.ping', 'system.health', 'auth.workspace-reminder'];
+const CENTRAL_ROUTES = ['system.ping', 'system.health', 'auth.workspace-reminder', 'signup.address', 'signup.store', 'signup.verify'];
 
 /**
  * Middleware with groups and aliases resolved, exactly as the kernel runs them. The router turns
@@ -135,7 +142,12 @@ it('authenticates every tenant API route that is not pre-authentication', functi
 });
 
 it('guards every platform route with the platform guard', function (): void {
-    $open = ['platform.auth.login', 'platform.csrf-cookie'];
+    $open = [
+        'platform.auth.login', 'platform.csrf-cookie',
+        // Account recovery and invitations (ADR-0025 §7): no one is signed in yet.
+        'platform.auth.forgot-password', 'platform.auth.reset-password',
+        'platform.auth.invitation', 'platform.auth.invitation.accept',
+    ];
     $unguarded = [];
 
     foreach (platformRoutes() as $route) {

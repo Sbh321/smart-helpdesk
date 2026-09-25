@@ -12,6 +12,9 @@ use App\Modules\Agents\Models\Skill;
 use App\Modules\Agents\Models\Team;
 use App\Modules\Agents\Models\TeamMember;
 use App\Modules\Audit\Models\AuditLog;
+use App\Modules\Billing\Models\Plan;
+use App\Modules\Billing\Models\Subscription;
+use App\Modules\Billing\Models\SubscriptionPayment;
 use App\Modules\Contacts\Models\Contact;
 use App\Modules\Contacts\Models\Organization;
 use App\Modules\Contacts\Models\Tag;
@@ -29,7 +32,9 @@ use App\Modules\Media\Models\Mediable;
 use App\Modules\Media\Models\MediaFolder;
 use App\Modules\Media\Models\MediaItem;
 use App\Modules\Notifications\Models\Notification;
+use App\Modules\Platform\Models\PlatformInvitation;
 use App\Modules\Platform\Models\PlatformUser;
+use App\Modules\Platform\Models\WorkspaceSignup;
 use App\Modules\Reporting\Models\EntityChange;
 use App\Modules\Reporting\Models\ReportDailySnapshot;
 use App\Modules\Reporting\Models\ReportExport;
@@ -158,6 +163,13 @@ final class TenantModelInventory
         Domain::class,
         TenantCounter::class,
         PlatformUser::class,
+        PlatformInvitation::class,
+        WorkspaceSignup::class,
+        // Billing (ADR-0025): plans are control-plane data; subscriptions and payments are central rows
+        // keyed by tenant, filtered explicitly by the two workspace endpoints.
+        Plan::class,
+        Subscription::class,
+        SubscriptionPayment::class,
     ];
 
     /**
@@ -170,6 +182,9 @@ final class TenantModelInventory
         'domains',
         'tenant_counters',
         'password_reset_tokens',
+        'subscriptions',
+        'subscription_payments',
+        'workspace_signups',
     ];
 
     /**

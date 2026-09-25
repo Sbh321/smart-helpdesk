@@ -9,8 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/sonner'
 import { Textarea } from '@/components/ui/textarea'
 import { copy } from '@/copy/en'
-import { AttachmentsField, type AttachmentUploaderState } from '@/features/media'
-import { apiUrl } from '@/lib/api/client'
+import { AttachmentsField, type AttachmentUploaderState, MediaChips } from '@/features/media'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useCan } from '@/lib/auth'
 import { formatInZone } from '@/lib/datetime/format'
@@ -83,7 +82,7 @@ export function CommentsPanel({
                 <li
                   key={comment.id}
                   className={cn(
-                    'rounded-lg border p-3 text-sm',
+                    'rounded-lg border bg-surface p-3 text-sm',
                     // The marker is the edge, the icon and the label, not a tinted surface: a tint
                     // under body text cost contrast (brand-coloured links fell to 4.47:1).
                     internal
@@ -114,18 +113,9 @@ export function CommentsPanel({
                   </div>
                   <SafeCommentMarkdown body={comment.body} />
                   {comment.attachments.length > 0 ? (
-                    <ul className="mt-3 flex flex-wrap gap-2">
-                      {comment.attachments.map((item) => (
-                        <li key={item.id}>
-                          <a
-                            className="text-primary underline"
-                            href={apiUrl(`/v1/media/${item.id}/download`)}
-                          >
-                            {item.name}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="mt-3">
+                      <MediaChips items={comment.attachments} label={copy.comments.attachments} />
+                    </div>
                   ) : null}
                 </li>
               )
@@ -148,7 +138,9 @@ export function CommentsPanel({
           // colleagues is never mistaken for a message to the customer (roadmap M4-05).
           className={cn(
             'space-y-3 rounded-lg border p-4',
-            internalMode ? 'border-warning/40 border-s-4 border-s-warning bg-warning/5' : 'border-border',
+            internalMode
+              ? 'border-warning/40 border-s-4 border-s-warning bg-warning/5'
+              : 'border-border bg-surface',
           )}
           onSubmit={(event) => {
             event.preventDefault()

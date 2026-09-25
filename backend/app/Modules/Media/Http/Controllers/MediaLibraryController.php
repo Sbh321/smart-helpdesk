@@ -117,6 +117,19 @@ final class MediaLibraryController
         return redirect()->away($storage->downloadUrl($media->storage_key, $media->name, self::URL_TTL_SECONDS));
     }
 
+    /**
+     * Open a media item in the browser.
+     *
+     * Redirects to a short-lived URL that shows the original in place: images, PDF and plain text
+     * (CSV and logs as text). Any other type is sent as a download, like `GET /media/{media}/download`.
+     */
+    public function open(Request $request, MediaItem $media, MediaStorage $storage, MediaUses $uses): RedirectResponse
+    {
+        $this->authorizeRead($request, $media, $uses);
+
+        return redirect()->away($storage->viewUrl($media->storage_key, $media->name, $media->mime_type, self::URL_TTL_SECONDS));
+    }
+
     /** Download a variant of a media item. */
     public function variant(Request $request, MediaItem $media, string $name, MediaStorage $storage, MediaUses $uses): RedirectResponse
     {

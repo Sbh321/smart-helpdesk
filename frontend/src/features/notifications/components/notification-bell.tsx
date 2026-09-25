@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { toast } from '@/components/ui/sonner'
+import { Hint } from '@/components/ui/tooltip'
 import { copy, fill } from '@/copy/en'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useSession } from '@/lib/auth'
@@ -80,16 +81,18 @@ export function NotificationBell({ workspace }: { workspace: string }) {
         invalidate={[queryKeys.notifications.all(tenantId), queryKeys.session.me()]}
       />
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          render={<Button variant="ghost" size="icon-sm" aria-label={label} className="relative" />}
-        >
-          <BellIcon aria-hidden="true" />
-          {unread > 0 ? (
-            <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-medium text-primary-foreground">
-              {unread > 99 ? '99+' : unread}
-            </span>
-          ) : null}
-        </PopoverTrigger>
+        <Hint label={label}>
+          <PopoverTrigger
+            render={<Button variant="ghost" size="icon-sm" aria-label={label} className="relative" />}
+          >
+            <BellIcon aria-hidden="true" />
+            {unread > 0 ? (
+              <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-medium text-primary-foreground">
+                {unread > 99 ? '99+' : unread}
+              </span>
+            ) : null}
+          </PopoverTrigger>
+        </Hint>
         <PopoverContent align="end" className="w-80">
           <PopoverHeader>
             <PopoverTitle>{shell.label}</PopoverTitle>

@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Modules\Billing\Http\Middleware\EnsureSubscriptionWritable;
 use App\Modules\Integrations\Http\Middleware\RestrictApiClients;
+use App\Modules\Platform\Http\Middleware\EnsurePlatformAdminActive;
 use App\Modules\Platform\Http\Middleware\UsePlatformSession;
 use App\Modules\Platform\Http\Middleware\ValidatePlatformCsrfToken;
 use App\Modules\Tenancy\Http\Middleware\EnsureCentralContext;
@@ -54,6 +56,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth:sanctum,api',
             EnsureTenantMembership::class,
             RestrictApiClients::class,
+            // After the grace period an expired subscription makes the workspace read-only (ADR-0025 §6).
+            EnsureSubscriptionWritable::class,
             'throttle:api-clients',
         ]);
         $middleware->group('tenant.guest', [
@@ -68,6 +72,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddQueuedCookiesToResponse::class,
             StartSession::class,
             ValidatePlatformCsrfToken::class,
+            // A deactivated admin is signed out on the next request (ADR-0025 §7).
+            EnsurePlatformAdminActive::class,
         ]);
 
         // The platform cookie settings must be in place before the session starts. Without a priority, the
@@ -81,6 +87,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(AuthenticatesRequests::class, EnsureTenantActive::class);
         $middleware->appendToPriorityList(AuthenticatesRequests::class, EnsureTenantMembership::class);
         $middleware->appendToPriorityList(EnsureTenantMembership::class, RestrictApiClients::class);
+        $middleware->appendToPriorityList(RestrictApiClients::class, EnsureSubscriptionWritable::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // RFC 9457 problem details for the API hosts (docs/03-architecture/error-handling.md).

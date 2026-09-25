@@ -71,9 +71,9 @@ Caddy issues certificates from its internal CA (`tls internal`); trust its root 
 | https://app.shp.localhost/globex | Globex workspace |
 | https://api.shp.localhost/v1 | REST API (`/v1/ping` for a quick check) |
 | https://admin.shp.localhost | Platform super admin |
-| https://monitor.shp.localhost/horizon | Horizon (queues) |
-| https://monitor.shp.localhost/telescope | Telescope (dev only) |
-| https://monitor.shp.localhost/health | Health dashboard / JSON |
+| https://monitor.shp.localhost/horizon | Horizon (queues). Every `monitor.` page needs the platform pass: open it with the console's *Monitoring* button (admin.shp.localhost, `admin@platform.test`) or visit it and sign in when sent to the console (ADR-0024) |
+| https://monitor.shp.localhost/telescope | Telescope (local only, dark theme) |
+| https://monitor.shp.localhost/health | Health dashboard (the results of the scheduled checks; the JSON with fresh checks is `api.…/v1/health`) |
 | https://monitor.shp.localhost/storage | RustFS console (bucket `helpdesk`; redirects to `/rustfs/console/`; login is `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY`) |
 | https://monitor.shp.localhost/mail | Stalwart admin API (profile `mail`, after `just mail-init`) |
 | https://docs.shp.localhost | OpenAPI UI |
@@ -208,7 +208,7 @@ deploy env:              cd infra/tofu/envs/{{env}} && tofu apply && cd ../../..
 - Tests use the `helpdesk_test` database created by `infra/postgres/init/10-roles-and-databases.sh` and run against PostgreSQL, never SQLite. Run them inside the `app` container (`just test-backend`).
 - `phpunit.xml` sets its values as `<server … force="true">`. Compose injects `backend/.env` into the container, and Laravel reads `$_SERVER` first, so plain `<env>` entries would leave the tests on the dev database.
 - `Tests\TestCase` uses `RefreshDatabase` and migrates through `pgsql_owner`, while the tests query as `helpdesk_app`. It refuses to refresh any database whose name does not end in `_test`.
-- Telescope is at `monitor.shp.localhost/telescope` in local only.
+- Telescope is at `monitor.shp.localhost/telescope` in local only, behind the platform pass like the rest of the monitor host.
 
 ## Coding agents
 

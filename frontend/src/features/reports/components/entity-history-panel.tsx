@@ -209,7 +209,7 @@ function AsOfView({
     <section
       id="entity-as-of"
       aria-labelledby={headingId}
-      className="flex scroll-mt-4 flex-col gap-3 rounded-lg border border-border p-4"
+      className="flex scroll-mt-4 flex-col gap-3 rounded-lg border border-border p-4 bg-surface"
     >
       <div>
         <h2 id={headingId} className="text-sm font-semibold">
@@ -277,7 +277,7 @@ function AsOfView({
           {differences.length === 0 ? (
             <p className="text-sm text-muted-foreground">{fill(text.asOf.unchanged, { date })}</p>
           ) : (
-            <div className="rounded-md border border-border">
+            <div className="overflow-hidden rounded-card border border-border bg-surface shadow-1">
               <table className="w-full text-sm">
                 <caption className="sr-only">{text.asOf.differences}</caption>
                 <TableHeader>
@@ -447,7 +447,7 @@ export function EntityHistoryPanel({ entity, id }: EntityHistoryPanelProps) {
         ) : (
           <ol aria-label={text.timeline.label} className="flex flex-col gap-3">
             {items.map((item) => (
-              <li key={item.key} className="rounded-lg border border-border p-3 text-sm">
+              <li key={item.key} className="rounded-lg border border-border p-3 text-sm bg-surface">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <p>
                     <span className="font-medium">{item.title}</span>{' '}

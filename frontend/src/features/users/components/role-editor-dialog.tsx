@@ -85,7 +85,7 @@ function PermissionPicker({
           const state = groupState(value, names)
           const group = groupLabel(resource)
           return (
-            <fieldset key={resource} className="space-y-2 rounded-lg border border-border p-3">
+            <fieldset key={resource} className="space-y-2 rounded-lg border border-border p-3 bg-surface">
               <legend className="px-1 text-sm font-medium">{group}</legend>
               <CheckboxItem
                 id={`role-group-${resource}`}

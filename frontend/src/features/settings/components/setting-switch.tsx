@@ -49,7 +49,7 @@ export function SettingSwitch({
   }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-2 rounded-lg border border-border p-4">
+    <div className="flex max-w-2xl flex-col gap-2 rounded-lg border border-border p-4 bg-surface">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <p id={`${id}-label`} className="text-sm font-medium">
