@@ -24,6 +24,8 @@ const PERMISSION_ALLOW_LIST = [
     'auth.invitations.accept',
     'auth.password.forgot',
     'auth.password.reset',
+    // The workspace finder (M5-02): answers the same for every address and only mails the owner.
+    'auth.workspace-reminder',
     'me.show',
     'me.preferences.update',
     // A user's own inbox: every query is limited to the signed-in user.
@@ -42,7 +44,11 @@ const PRE_AUTH_ROUTES = [
     'auth.invitations.accept',
     'auth.password.forgot',
     'auth.password.reset',
+    'auth.workspace-reminder',
 ];
+
+/** Routes that belong to no workspace: system routes and `Routes/central.php` (M5-02). */
+const CENTRAL_ROUTES = ['system.ping', 'system.health', 'auth.workspace-reminder'];
 
 /**
  * Middleware with groups and aliases resolved, exactly as the kernel runs them. The router turns
@@ -170,8 +176,8 @@ it('never exposes a tenant route without tenant resolution', function (): void {
             ], true),
         );
 
-        // /v1/ping and /v1/health are system routes outside the tenant groups.
-        if (! $resolves && ! in_array(routeName($route), ['system.ping', 'system.health'], true)) {
+        // System routes and the workspace finder run outside the tenant groups.
+        if (! $resolves && ! in_array(routeName($route), CENTRAL_ROUTES, true)) {
             $unresolved[] = routeName($route);
         }
     }

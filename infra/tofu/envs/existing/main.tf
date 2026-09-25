@@ -9,7 +9,7 @@ terraform {
 }
 
 locals {
-  hosts = ["@", "app", "api", "admin", "monitor", "docs", "files", "mail"]
+  hosts = ["@", "app", "api", "admin", "monitor", "docs", "platform-docs", "files", "mail"]
 }
 
 module "network" {

@@ -1,18 +1,24 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { CheckCircle2Icon } from 'lucide-react'
+import { ArrowLeftIcon, MailCheckIcon } from 'lucide-react'
 import { useState } from 'react'
+import { PasswordField } from '@/components/shared/password-field'
 import { TextField } from '@/components/shared/text-field'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { toast } from '@/components/ui/sonner'
-import { copy } from '@/copy/en'
+import { copy, fill } from '@/copy/en'
 import { mergeMessages } from '@/lib/forms/messages'
 import { requestPasswordReset, resetPassword } from '../api/auth-requests'
 import { authErrorMessage, fieldErrorsOf, isFieldError } from '../auth-errors'
 import { forgotPasswordSchema, resetPasswordSchema } from '../schemas'
 import { AuthErrorBanner } from './auth-error-banner'
+import { SentPanel } from './sent-panel'
+
+/** A 422 on `workspace` (the slug in the URL) has no field to sit on, so it is shown as a banner. */
+function WorkspaceErrors({ errors, title }: { errors?: string[]; title: string }) {
+  return errors && errors.length > 0 ? <AuthErrorBanner title={title} message={errors.join(' ')} /> : null
+}
 
 function BackToLogin({ workspace }: { workspace: string }) {
   return (
@@ -20,8 +26,9 @@ function BackToLogin({ workspace }: { workspace: string }) {
       to="/$workspace/login"
       params={{ workspace }}
       search={{}}
-      className="text-sm underline underline-offset-4 hover:text-primary"
+      className="inline-flex items-center gap-1.5 self-center text-muted-foreground text-sm hover:text-foreground"
     >
+      <ArrowLeftIcon aria-hidden="true" className="size-4" />
       {copy.auth.forgotPassword.backToLogin}
     </Link>
   )
@@ -33,7 +40,7 @@ function BackToLogin({ workspace }: { workspace: string }) {
  */
 export function RequestPasswordResetForm({ workspace }: { workspace: string }) {
   const [banner, setBanner] = useState<string | null>(null)
-  const [sent, setSent] = useState(false)
+  const [sentTo, setSentTo] = useState<string | null>(null)
   const [serverErrors, setServerErrors] = useState<Record<string, string[]>>({})
 
   const form = useForm({
@@ -54,18 +61,29 @@ export function RequestPasswordResetForm({ workspace }: { workspace: string }) {
         setBanner(authErrorMessage(error))
         return
       }
-      setSent(true)
+      setSentTo(value.email.trim())
     },
   })
 
-  if (sent) {
+  if (sentTo) {
     return (
-      <div className="flex flex-col gap-4">
-        <Alert>
-          <CheckCircle2Icon aria-hidden="true" />
-          <AlertTitle>{copy.auth.forgotPassword.sent}</AlertTitle>
-          <AlertDescription>{copy.auth.forgotPassword.body}</AlertDescription>
-        </Alert>
+      <div className="flex flex-col gap-6">
+        <SentPanel
+          icon={MailCheckIcon}
+          title={copy.auth.forgotPassword.sentHeading}
+          body={fill(copy.auth.forgotPassword.sentBody, { email: sentTo, workspace })}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={() => {
+            form.reset()
+            setSentTo(null)
+          }}
+        >
+          {copy.auth.forgotPassword.tryAnother}
+        </Button>
         <BackToLogin workspace={workspace} />
       </div>
     )
@@ -82,15 +100,9 @@ export function RequestPasswordResetForm({ workspace }: { workspace: string }) {
     >
       {banner ? <AuthErrorBanner title={copy.auth.forgotPassword.failed} message={banner} /> : null}
 
+      <WorkspaceErrors errors={serverErrors.workspace} title={copy.auth.forgotPassword.failed} />
+
       <FieldGroup>
-        <TextField
-          id="forgot-workspace"
-          label={copy.auth.workspaceLabel}
-          value={workspace}
-          onValueChange={() => undefined}
-          readOnly
-          errors={serverErrors.workspace}
-        />
         <form.Field name="email">
           {(field) => (
             <TextField
@@ -98,6 +110,7 @@ export function RequestPasswordResetForm({ workspace }: { workspace: string }) {
               label={copy.auth.emailLabel}
               type="email"
               autoComplete="username"
+              autoFocus
               value={field.state.value}
               onValueChange={field.handleChange}
               onBlur={field.handleBlur}
@@ -174,16 +187,9 @@ export function SetNewPasswordForm({
     >
       {banner ? <AuthErrorBanner title={copy.auth.resetPassword.failed} message={banner} /> : null}
 
-      <FieldGroup>
-        <TextField
-          id="reset-workspace"
-          label={copy.auth.workspaceLabel}
-          value={workspace}
-          onValueChange={() => undefined}
-          readOnly
-          errors={serverErrors.workspace}
-        />
+      <WorkspaceErrors errors={serverErrors.workspace} title={copy.auth.resetPassword.failed} />
 
+      <FieldGroup>
         <form.Field name="email">
           {(field) => (
             <TextField
@@ -201,10 +207,10 @@ export function SetNewPasswordForm({
 
         <form.Field name="password">
           {(field) => (
-            <TextField
+            <PasswordField
               id="reset-password"
               label={copy.auth.passwordLabel}
-              type="password"
+              description={copy.auth.password.rules}
               autoComplete="new-password"
               value={field.state.value}
               onValueChange={field.handleChange}
@@ -216,10 +222,9 @@ export function SetNewPasswordForm({
 
         <form.Field name="password_confirmation">
           {(field) => (
-            <TextField
+            <PasswordField
               id="reset-password-confirmation"
               label={copy.auth.passwordConfirmationLabel}
-              type="password"
               autoComplete="new-password"
               value={field.state.value}
               onValueChange={field.handleChange}

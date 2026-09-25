@@ -185,3 +185,12 @@ Items referenced by `MVP-SHORTCUT` markers written while building the deployment
 |---|---|---|---|---|
 | V1-PL-15 | Storage hostname in single-host mode | the proxy strips `/files`, which breaks presigned signatures; split layout is unaffected | `AWS_PRESIGN_ENDPOINT`, `Caddyfile.single` | S |
 | V1-PL-16 | Encrypted off-site database archives with `spatie/laravel-backup`, `backup:monitor`/`BackupsCheck`, `storage:sync-backup` | needs backend dependency, `config/backup.php`, a `backups` disk and schedules; the host dump timer + `backup.yml -e fetch_backup=true` cover the MVP | `helpdesk_backup` role, `docs/09-infrastructure/backups.md` | M |
+
+## Added to V1 during milestone 5 (2026-09-25)
+
+Items referenced by `MVP-SHORTCUT` markers written while building milestone 5.
+
+| ID | Item | Why deferred | Seam | Size |
+|---|---|---|---|---|
+| V1-ID-01 | Central address directory for the workspace finder (email hash → tenant, kept in step with `users`) | the finder visits each active workspace once, fine for tens of workspaces | `SendWorkspaceReminder` | S |
+| V1-PL-17 | Platform documentation in single-host mode | the platform-docs host exists only in the split layout | `Caddyfile.single`, `PlatformServiceProvider` | S |

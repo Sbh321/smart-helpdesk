@@ -85,6 +85,10 @@ Both use Laravel signed URLs that point at the **SPA** route, which posts the to
 
 Invitation and reset tokens are stored with `tenant_id`; the API initialises the tenant from the token row, and the workspace in the link must match it.
 
+### Workspace finder (M5-02)
+
+`POST /v1/auth/workspace-reminder {email}` belongs to no workspace (route file `Identity/Routes/central.php`, `api` middleware only). It always answers `202 {"data":{"status":"sent"}}` and queues `SendWorkspaceReminder` on `notifications`, so neither the answer nor its timing depends on the address. The job visits each **active** workspace inside that workspace's own tenancy context (row-level security stays in force; no query reads users across tenants) and, when the address belongs to an **active** user in one or more of them, sends one `WorkspaceReminder` mail listing each workspace's name and `https://app.<domain>/<slug>/login`; otherwise it sends nothing. Throttle `workspace-reminder`: 3 a minute per client and address, 20 an hour per client. Invalid addresses get the usual 422 `validation_failed`. MVP-SHORTCUT: one query per active workspace; V1: a central address directory (V1-ID-01).
+
 ## 3. API clients (Passport client credentials)
 
 ```mermaid

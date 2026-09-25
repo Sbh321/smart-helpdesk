@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router'
-import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
+import { BookOpenIcon, ExternalLinkIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { copy } from '@/copy/en'
-import { useSession } from '@/lib/auth'
+import { hasPermission, useSession } from '@/lib/auth'
+import { useRuntimeConfig } from '@/lib/config'
 import { useMediaQuery, WIDE_QUERY } from '@/lib/use-media-query'
 import { cn } from '@/lib/utils'
 import { NAV_GROUPS, visibleNavItems } from './nav-items'
@@ -37,6 +38,7 @@ function readCollapsed(): boolean {
 export function Sidebar({ workspace }: { workspace: string }) {
   const { session, permissions } = useSession()
   const items = visibleNavItems(permissions)
+  const { docsUrl } = useRuntimeConfig()
   const wide = useMediaQuery(WIDE_QUERY)
   const [stored, setStored] = useState(readCollapsed)
   const [narrowOpen, setNarrowOpen] = useState(false)
@@ -124,6 +126,10 @@ export function Sidebar({ workspace }: { workspace: string }) {
         )
       })}
 
+      {hasPermission(permissions, 'integrations.manage') ? (
+        <DevelopersGroup docsUrl={docsUrl} collapsed={collapsed} />
+      ) : null}
+
       <Button
         type="button"
         variant="ghost"
@@ -136,5 +142,61 @@ export function Sidebar({ workspace }: { workspace: string }) {
         {collapsed ? <PanelLeftOpenIcon aria-hidden="true" /> : <PanelLeftCloseIcon aria-hidden="true" />}
       </Button>
     </nav>
+  )
+}
+
+/**
+ * The API reference lives on the docs host and needs the same workspace session (M3-06), so it is a
+ * plain link that opens in a new tab rather than a route (M5-01). Shown to the people who build
+ * integrations: holders of `integrations.manage`.
+ */
+function DevelopersGroup({ docsUrl, collapsed }: { docsUrl: string; collapsed: boolean }) {
+  const label = copy.nav.apiReference
+  const link = (
+    <a
+      href={docsUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={collapsed ? `${label} ${copy.common.opensInNewTab}` : undefined}
+      className={cn(
+        'flex items-center gap-2 rounded-lg px-2 py-1.5 text-muted-foreground text-sm transition-colors',
+        'hover:bg-muted hover:text-foreground',
+        'focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2',
+        collapsed && 'justify-center px-0',
+      )}
+    >
+      <BookOpenIcon aria-hidden="true" className="size-4 shrink-0" />
+      {collapsed ? null : (
+        <>
+          {label}
+          <ExternalLinkIcon aria-hidden="true" className="ms-auto size-3.5 shrink-0" />
+          <span className="sr-only">{copy.common.opensInNewTab}</span>
+        </>
+      )}
+    </a>
+  )
+
+  return (
+    <div className="flex w-full flex-col gap-0.5">
+      {collapsed ? null : (
+        <h2 className="px-2 pt-2 pb-1 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+          {copy.nav.groups.developers}
+        </h2>
+      )}
+      <ul className="flex flex-col gap-0.5">
+        <li>
+          {collapsed ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger render={link} />
+                <TooltipContent side="right">{label}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            link
+          )}
+        </li>
+      </ul>
+    </div>
   )
 }

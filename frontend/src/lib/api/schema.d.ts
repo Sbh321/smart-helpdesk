@@ -2551,6 +2551,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/workspace-reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Email me my workspace
+         * @description Sends the address a list of the workspaces it can sign in to, with a sign-in link for each. The
+         *     answer is the same whether or not the address has an account, and the lookup runs on the queue,
+         *     so neither the answer nor its timing tells a caller anything about the address.
+         */
+        post: operations["auth.workspace-reminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/oauth/token": {
         parameters: {
             query?: never;
@@ -4567,6 +4589,11 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
             secret: string;
+        };
+        /** WorkspaceReminderRequest */
+        WorkspaceReminderRequest: {
+            /** Format: email */
+            email: string;
         };
         /**
          * WorkspaceUserResource
@@ -10800,6 +10827,39 @@ export interface operations {
             };
             401: components["responses"]["Unauthenticated"];
             404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+            /** @description Problem details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.workspace-reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceReminderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": 202;
+                };
+            };
             422: components["responses"]["ValidationException"];
             /** @description Problem details (RFC 9457) */
             default: {

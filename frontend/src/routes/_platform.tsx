@@ -1,7 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Outlet, redirect, useNavigate } from '@tanstack/react-router'
-import { LogOutIcon, ShieldIcon } from 'lucide-react'
+import { BookOpenIcon, LogOutIcon, ShieldIcon } from 'lucide-react'
 import { AppearanceMenu } from '@/components/shared/appearance-menu'
+import { ExternalLinkButton } from '@/components/shared/external-link-button'
 import { MAIN_CONTENT_ID, SkipLink } from '@/components/shared/skip-link'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -26,9 +27,9 @@ import { initials } from '@/lib/format/initials'
  * MVP-SHORTCUT: a sign-in page and a read-only tenant list only; V1: the full console (V1-PL-13).
  */
 export const Route = createFileRoute('/_platform')({
-  beforeLoad: async ({ context }) => {
+  beforeLoad: async ({ context, location }) => {
     if (!(await ensurePlatformSession(context.queryClient))) {
-      throw redirect({ to: '/platform/login', replace: true })
+      throw redirect({ to: '/platform/login', search: { redirect: location.href }, replace: true })
     }
   },
   component: PlatformLayout,
@@ -56,6 +57,10 @@ function PlatformLayout() {
           <ShieldIcon aria-hidden="true" className="size-5 text-primary" />
           {copy.platform.heading}
         </span>
+        <ExternalLinkButton href="/platform/docs" variant="ghost" size="sm" className="ms-auto">
+          <BookOpenIcon aria-hidden="true" />
+          {copy.platform.platformDocs}
+        </ExternalLinkButton>
         {/* The account menu of the workspace shell (M4-02): who is signed in, theme and density, sign-out.
             The bar itself carries no appearance controls (docs/06-design-system/ux-review.md G7). */}
         <DropdownMenu>

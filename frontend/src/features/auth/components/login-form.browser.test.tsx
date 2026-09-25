@@ -36,15 +36,52 @@ async function openLogin(path = '/acme/login') {
 
 async function fillCredentials(screen: Awaited<ReturnType<typeof openLogin>>['screen']) {
   await screen.getByLabelText(copy.auth.emailLabel).fill('priya@acme.test')
-  await screen.getByLabelText(copy.auth.passwordLabel).fill('correct horse battery')
+  await screen.getByLabelText(copy.auth.passwordLabel, { exact: true }).fill('correct horse battery')
 }
 
-test('shows the workspace from the URL and never asks the visitor to type it', async () => {
-  const { screen } = await openLogin()
+test('shows the workspace from the URL as context with a way to change it, never as a field', async () => {
+  const { screen, currentPath } = await openLogin()
 
-  const workspace = screen.getByLabelText(copy.auth.workspaceLabel)
-  await expect.element(workspace).toHaveValue('acme')
-  await expect.element(workspace).toHaveAttribute('readonly')
+  await expect.element(screen.getByTestId('workspace-chip-name')).toHaveTextContent('acme')
+  expect(screen.getByRole('textbox', { name: copy.auth.workspaceLabel }).query()).toBeNull()
+
+  await screen.getByRole('link', { name: new RegExp(copy.auth.login.changeWorkspace) }).click()
+  await expect
+    .element(screen.getByRole('heading', { level: 1, name: copy.workspaceEntry.heading }))
+    .toBeVisible()
+  expect(currentPath()).toBe('/')
+})
+
+test('the password can be shown and hidden, and the reset link follows it in tab order (M5-03)', async () => {
+  const { screen } = await openLogin()
+  const password = screen.getByLabelText(copy.auth.passwordLabel, { exact: true })
+  await password.fill('secret words')
+  await expect.element(password).toHaveAttribute('type', 'password')
+
+  const toggle = screen.getByRole('button', { name: copy.auth.password.show })
+  await toggle.click()
+  await expect.element(password).toHaveAttribute('type', 'text')
+  await expect
+    .element(screen.getByRole('button', { name: copy.auth.password.hide }))
+    .toHaveAttribute('aria-pressed', 'true')
+
+  const order = [...document.querySelectorAll('input, button, a[href]')].map(
+    (element) => element.getAttribute('aria-label') ?? element.getAttribute('id') ?? element.textContent,
+  )
+  expect(order.indexOf('login-password')).toBeLessThan(order.indexOf(copy.auth.login.forgot))
+})
+
+test('remembers the workspace on this device after signing in (M5-03)', async () => {
+  window.localStorage.removeItem('sh.recent-workspaces')
+  mockSuccessfulSignIn(['tickets.view'])
+  const { screen } = await openLogin()
+  await fillCredentials(screen)
+  await screen.getByRole('button', { name: copy.auth.login.submit }).click()
+
+  await expect.element(screen.getByRole('heading', { level: 1, name: copy.dashboard.title })).toBeVisible()
+  const stored = JSON.parse(window.localStorage.getItem('sh.recent-workspaces') ?? '[]') as { slug: string }[]
+  expect(stored.map((item) => item.slug)).toEqual(['acme'])
+  window.localStorage.removeItem('sh.recent-workspaces')
 })
 
 test('maps a 422 to the fields it names, tied to the inputs with aria-describedby', async () => {

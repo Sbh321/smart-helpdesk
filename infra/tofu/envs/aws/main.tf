@@ -39,7 +39,7 @@ provider "aws" {
 provider "cloudflare" {}
 
 locals {
-  hosts = ["@", "app", "api", "admin", "monitor", "docs", "files", "mail"] # ADR-0021
+  hosts = ["@", "app", "api", "admin", "monitor", "docs", "platform-docs", "files", "mail"] # ADR-0021, ADR-0024
 }
 
 # Newest official Debian 13 image (owner: Debian, https://wiki.debian.org/Cloud/AmazonEC2Image).

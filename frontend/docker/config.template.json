@@ -3,5 +3,7 @@
   "appMode": "${APP_MODE}",
   "platformDomain": "${PLATFORM_DOMAIN}",
   "storagePublicEndpoint": "${STORAGE_PUBLIC_ENDPOINT}",
+  "docsUrl": "${DOCS_URL}",
+  "platformDocsUrl": "${PLATFORM_DOCS_URL}",
   "realtime": { "enabled": ${REALTIME_ENABLED}, "key": "${REVERB_APP_KEY}", "host": "${REALTIME_HOST}", "path": "${REALTIME_PATH}" }
 }

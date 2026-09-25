@@ -9,6 +9,8 @@ export const appUrl = process.env.E2E_BASE_URL ?? 'https://app.shp.localhost'
 const platformDomain = new URL(appUrl).hostname.replace(/^app\./, '')
 /** The API host (ADR-0021): the SPA on `app` calls `api` with the session cookie. */
 export const apiUrl = process.env.E2E_API_URL ?? `https://api.${platformDomain}`
+/** The landing site on the apex host (M5-04). */
+export const landingUrl = process.env.E2E_LANDING_URL ?? `https://${platformDomain}`
 export const mailpitUrl = process.env.E2E_MAILPIT ?? `https://mail.${platformDomain}`
 /** webhook-echo's port published on the host loopback (infra/compose/tools.yaml). */
 export const echoUrl = process.env.E2E_WEBHOOK_ECHO ?? 'http://127.0.0.1:9100'

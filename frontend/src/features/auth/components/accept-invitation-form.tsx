@@ -2,12 +2,13 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { PasswordField } from '@/components/shared/password-field'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { toast } from '@/components/ui/sonner'
 import { copy } from '@/copy/en'
-import { workspaceHref } from '@/lib/auth'
+import { rememberWorkspace, workspaceHref } from '@/lib/auth'
 import { mergeMessages } from '@/lib/forms/messages'
 import { acceptInvitation } from '../api/auth-requests'
 import { reloadSession } from '../api/session-queries'
@@ -51,6 +52,7 @@ export function AcceptInvitationForm({ workspace, token }: { workspace: string; 
       toast.success(copy.auth.acceptInvitation.success)
       // The API may or may not start a session here, so ask rather than assume.
       const session = await reloadSession(queryClient)
+      if (session) rememberWorkspace({ slug: session.tenant.slug, name: session.tenant.name })
       await (session
         ? navigate({ href: workspaceHref(session), replace: true })
         : navigate({ to: '/$workspace/login', params: { workspace }, search: {}, replace: true }))
@@ -68,22 +70,21 @@ export function AcceptInvitationForm({ workspace, token }: { workspace: string; 
     >
       {banner ? <AuthErrorBanner title={copy.auth.acceptInvitation.failed} message={banner} /> : null}
 
-      <FieldGroup>
-        <TextField
-          id="invitation-workspace"
-          label={copy.auth.workspaceLabel}
-          value={workspace}
-          onValueChange={() => undefined}
-          readOnly
-          errors={serverErrors.workspace}
+      {serverErrors.workspace ? (
+        <AuthErrorBanner
+          title={copy.auth.acceptInvitation.failed}
+          message={serverErrors.workspace.join(' ')}
         />
+      ) : null}
 
+      <FieldGroup>
         <form.Field name="name">
           {(field) => (
             <TextField
               id="invitation-name"
               label={copy.auth.nameLabel}
               autoComplete="name"
+              autoFocus
               value={field.state.value}
               onValueChange={field.handleChange}
               onBlur={field.handleBlur}
@@ -94,10 +95,10 @@ export function AcceptInvitationForm({ workspace, token }: { workspace: string; 
 
         <form.Field name="password">
           {(field) => (
-            <TextField
+            <PasswordField
               id="invitation-password"
               label={copy.auth.passwordLabel}
-              type="password"
+              description={copy.auth.password.rules}
               autoComplete="new-password"
               value={field.state.value}
               onValueChange={field.handleChange}
@@ -109,10 +110,9 @@ export function AcceptInvitationForm({ workspace, token }: { workspace: string; 
 
         <form.Field name="password_confirmation">
           {(field) => (
-            <TextField
+            <PasswordField
               id="invitation-password-confirmation"
               label={copy.auth.passwordConfirmationLabel}
-              type="password"
               autoComplete="new-password"
               value={field.state.value}
               onValueChange={field.handleChange}

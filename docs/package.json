@@ -1,0 +1,18 @@
+{
+  "name": "smart-helpdesk-platform-docs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The platform documentation (this folder) as a VitePress site for platform super admins (roadmap M5-05, M5-06).",
+  "type": "module",
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "dev": "vitepress dev . --port 5180",
+    "build": "vitepress build .",
+    "preview": "vitepress preview . --port 5180"
+  },
+  "devDependencies": {
+    "mermaid": "11.17.2",
+    "vitepress": "1.6.4",
+    "vue": "3.5.43"
+  }
+}

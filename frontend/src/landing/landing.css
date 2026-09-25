@@ -1,0 +1,16 @@
+/* The landing site's stylesheet (M5-04): the application's tokens and utilities, and its own sources. */
+@import "../styles/globals.css";
+@source "./";
+@source "../components/shared/brand-mark.tsx";
+@source "../components/ui/button.tsx";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Marketing text reads at the base size; the application's dense text-sm stays in the application. */
+  body {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+}

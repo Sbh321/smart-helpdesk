@@ -19,6 +19,8 @@ return [
         'admin' => env('ADMIN_HOST', 'admin.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
         'monitor' => env('MONITOR_HOST', 'monitor.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
         'docs' => env('DOCS_HOST', 'docs.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
+        // The platform documentation for platform super admins (ADR-0024, M5-06).
+        'platform_docs' => env('PLATFORM_DOCS_HOST', 'platform-docs.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
         'files' => env('FILES_HOST', 'files.'.env('PLATFORM_DOMAIN', 'shp.localhost')),
         'mail' => env('MAIL_DOMAIN', env('PLATFORM_DOMAIN', 'shp.localhost')),
     ],
@@ -71,13 +73,18 @@ return [
     // Platform super admins on the admin host (ADR-0021).
     'platform' => [
         'session_cookie' => env('SESSION_PLATFORM_COOKIE', 'shp_platform_session'),
+        // The platform docs pass (ADR-0024): a host-only cookie on the platform-docs host, and the
+        // single-use hand-off link from the console that sets it.
+        'docs_cookie' => env('PLATFORM_DOCS_COOKIE', 'shp_platform_docs'),
+        'docs_pass_minutes' => (int) env('PLATFORM_DOCS_PASS_MINUTES', 480),
+        'docs_handoff_seconds' => 60,
     ],
 
     // On-prem single-tenant mode: every request runs in this tenant (slug).
     'single_tenant' => env('TENANCY_SINGLE_TENANT'),
 
     'reserved_slugs' => [
-        'app', 'api', 'admin', 'monitor', 'docs', 'files', 'mail', 'www', 'login', 'logout', 'invite',
+        'app', 'api', 'admin', 'monitor', 'docs', 'platform-docs', 'files', 'mail', 'www', 'login', 'logout', 'invite',
         'reset-password', 'select-workspace', 'assets', 'static', 'platform', 'health', 'status',
     ],
 

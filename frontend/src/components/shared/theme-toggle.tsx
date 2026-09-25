@@ -17,9 +17,17 @@ function announcementFor(choice: ThemeChoice, resolved: ResolvedTheme): string {
 
 /**
  * Light / Dark / System segmented control (themes.md). Each option is a toggle button with a visible
- * label; the resulting theme is announced through a polite live region.
+ * label (read out but hidden on narrow screens with `compact`); the resulting theme is announced through a
+ * polite live region.
  */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  compact = false,
+}: {
+  className?: string
+  /** Below `sm` the labels are read out but not shown, so the control fits a phone header (M5-03). */
+  compact?: boolean
+}) {
   const { theme, resolvedTheme, setTheme } = useTheme()
   const [announced, setAnnounced] = useState<ThemeChoice | null>(null)
 
@@ -51,7 +59,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             className={cn(selected ? 'border-input bg-surface text-foreground' : 'text-muted-foreground')}
           >
             <Icon aria-hidden="true" />
-            {copy.theme[choice]}
+            <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{copy.theme[choice]}</span>
           </Button>
         )
       })}

@@ -77,6 +77,7 @@ Caddy issues certificates from its internal CA (`tls internal`); trust its root 
 | https://monitor.shp.localhost/storage | RustFS console (bucket `helpdesk`; redirects to `/rustfs/console/`; login is `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY`) |
 | https://monitor.shp.localhost/mail | Stalwart admin API (profile `mail`, after `just mail-init`) |
 | https://docs.shp.localhost | OpenAPI UI |
+| https://platform-docs.shp.localhost | Platform documentation (`docs/` as a site) for platform admins; the console's *Platform docs* button signs you in (ADR-0024). `cd docs && pnpm dev` previews it at http://localhost:5180 without the gate |
 | https://files.shp.localhost | S3 endpoint used by presigned URLs |
 | https://mail.shp.localhost | Mailpit (all outgoing mail in dev, also what Stalwart relays: `just mail-init`, `just mail-send-test you@example.com stalwart`, `just mail-dkim-check`; docker.md §Mail). Inbound (M3-19): with `MAIL_INBOUND_ENABLED=true` in `backend/.env` and the mail profile running, `just mail-reply <mailpit-id> "text"` answers a message in Mailpit as its recipient, `just mail-inject [file.eml]` delivers any message to Stalwart on port 25 (default: a new ticket for `acme`), and the scheduler fetches within a minute (`just mail-fetch` fetches now); see email.md §As built (M3-19) |
 | http://localhost:9100 | webhook-echo (`dev` and `demo` profiles): verifies and prints signed webhook deliveries (see §Webhooks below) |

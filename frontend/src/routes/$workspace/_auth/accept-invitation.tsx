@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { AuthLayout } from '@/components/layout/auth-layout'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { copy, fill } from '@/copy/en'
-import { AcceptInvitationForm } from '@/features/auth'
+import { AcceptInvitationForm, WorkspaceChip } from '@/features/auth'
 
 const searchSchema = z.object({
   /** The 64-character invitation token from the emailed link (docs/07-api/authentication.md §2). */
@@ -23,6 +23,7 @@ function AcceptInvitationPage() {
     <AuthLayout
       title={copy.auth.acceptInvitation.heading}
       description={fill(copy.auth.acceptInvitation.body, { workspace })}
+      eyebrow={<WorkspaceChip workspace={workspace} changeable={false} />}
     >
       {token ? (
         <AcceptInvitationForm workspace={workspace} token={token} />

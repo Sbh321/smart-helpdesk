@@ -35,6 +35,9 @@ services:
     image: ${PROXY_IMAGE:-smart-helpdesk-proxy:local}
     build:
       context: ./frontend
+      # docs/ for the platform documentation site built into the image (Dockerfile, M5-06).
+      additional_contexts:
+        docs: ./docs
       args:
         NODE_IMAGE: ${NODE_IMAGE:-node:24-alpine}
         CADDY_IMAGE: ${CADDY_IMAGE:-caddy:2.11-alpine}
@@ -71,6 +74,7 @@ services:
           - admin.${PLATFORM_DOMAIN}
           - monitor.${PLATFORM_DOMAIN}
           - docs.${PLATFORM_DOMAIN}
+          - platform-docs.${PLATFORM_DOMAIN}
           - files.${PLATFORM_DOMAIN}
     depends_on:
       app: { condition: service_healthy }

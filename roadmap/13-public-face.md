@@ -1,0 +1,68 @@
+# Milestone 5 — Public face and documentation
+
+**Milestone status:** `[x]` Done — 6 of 6 tasks done (2026-09-25). The AWS release (new DNS record, redeploy) waits for the owner.
+
+Goal: the parts of the product a visitor, a new user or an integrator meets before they are inside a
+workspace — the marketing site, sign-in and account recovery, the way to find one's workspace, and the
+documentation entry points — reach the standard of the redesigned application (Milestone 4). The
+engineering documentation becomes a site that platform super admins read on their own host.
+
+Owner decisions (2026-09-24): the platform documentation is the `docs/` folder rendered like the
+support-saas platform docs; it is readable only by a signed-in platform super admin, reached from a
+button in the platform console; the workspace finder emails a person their workspaces.
+
+## Order
+
+```text
+M5-01 → M5-02 → M5-03 → M5-04 → M5-05 → M5-06
+```
+
+---
+
+### `[x]` M5-01 Developer entry points — S
+- **Done (2026-09-25):** `docsUrl` and `platformDocsUrl` in `config.json` (entrypoint defaults for split and single layouts) and `useRuntimeConfig()`; `ExternalLinkButton` (new tab, `noopener noreferrer`, announced); tenant: *Developers → API reference* at the foot of the sidebar (icon with tooltip when collapsed), an *API reference* button beside *Create* on the API clients and webhooks pages, a command-palette entry — all only with `integrations.manage`; console: *Platform docs* button opening `/platform/docs` in a new tab, which forwards to `platformDocsUrl` (the signed hand-off arrives with M5-06). Tests: shell browser test (agent sees no link, integration manager gets `https://docs.…` with `_blank` and `noopener`), console test asserts the button; config fixtures updated.
+- **Do:** add `docsUrl` and `platformDocsUrl` to the runtime `config.json` (split and single host layouts); in the tenant SPA, an "API reference" link that opens the docs host in a new tab for users holding `integrations.manage` (sidebar, the API clients and webhooks settings pages, the command palette); in the platform console, a "Platform docs" button that opens the platform documentation in a new tab.
+- **Acceptance:** a developer or admin reaches the API reference in one click from inside the workspace; an agent without `integrations.manage` sees no link; the links open in a new tab with `noopener`; the admin console shows the platform docs button.
+- **Depends:** —
+- **Tests:** config schema test; shell browser test for the permission-gated link; platform console browser test for the button.
+- **Docs:** frontend.md §Runtime configuration, 07-api/documentation.md §Access.
+
+### `[x]` M5-02 Workspace finder — M
+- **Done (2026-09-25):** `POST /v1/auth/workspace-reminder` in a new `Routes/central.php` route file (pre-authentication, no workspace; `ModuleServiceProvider` loads it); 202 with a fixed body; `SendWorkspaceReminder` on `notifications` visits each active workspace through `$tenant->run()` and sends one `WorkspaceReminder` mail (name and sign-in link per workspace, a button when there is one); throttle 3/min per client and address, 20/h per client. MVP-SHORTCUT → V1-ID-01. Tests: 7 feature tests (one workspace with link, two in one mail and case-insensitive, unknown answered identically with nothing sent, suspended workspace and disabled user never listed, no tenant context left, 422, 429). OpenAPI and `schema.d.ts` regenerated.
+- **Do:** `POST /v1/auth/workspace-reminder {email}` answers 202 with the same body whatever the address, throttled per IP and per address; a queued job finds the active users with that address in active workspaces and sends one email listing each workspace with its sign-in link, or nothing when there are none. The lookup visits workspaces one at a time inside their tenant context, so row-level security stays in force.
+- **Acceptance:** no response difference between a known and an unknown address (status, body, timing does not depend on the lookup); a suspended workspace or disabled user is never listed; the mail shows the workspace name and link only.
+- **Depends:** —
+- **Tests:** feature tests (known, unknown, suspended, disabled, two workspaces, throttle), a mail content test, an isolation test that the job leaves no tenant context behind.
+- **Docs:** 07-api/authentication.md §Workspace finder, 04-domain email notifications list.
+
+### `[x]` M5-03 Sign-in and account recovery redesign — L
+- **Done (2026-09-25):** `AuthLayout` rebuilt (form column + `lg` brand panel with an example ticket in the product's tokens, `platform` variant), `BrandMark`, `ThemeToggle compact`; workspace entry with this device's recent workspaces (remove one, five at most), pasted-address normalising and a live address preview, and the finder at `/?find=true`; `WorkspaceChip` replaces the read-only workspace fields; `PasswordField` (show/hide, caps-lock hint, rules on new passwords); reset request and finder end on `SentPanel`; the platform sign-in uses the frame and returns to the requested console page (`?redirect=`, console paths only). A contrast failure found by axe (initials on a primary tint, 4.38:1) was fixed before merge. Checked in a browser at 360, 390, 768, 1280 and 1440 px in both themes (no sideways scroll). Tests: 5 new browser tests for the entry and finder, 3 new sign-in tests (chip, password toggle and tab order, remembered workspace), unit tests for the recent list, the input normaliser and the console redirect; all 41 E2E pass unchanged.
+- **Do:** a new pre-authentication frame (brand panel with the product's value and a quiet visual, form panel, theme control, footer links to the landing page and the status of legal pages); workspace entry with a live address preview, workspaces used on this device offered first (stored in the browser, removable), and "Find my workspace" by email (M5-02); sign-in with the workspace shown as a changeable chip, password visibility toggle and caps-lock hint; forgot-password and reset with clear sent and done states and the next step; invitation acceptance showing the workspace and the password rules; the platform console sign-in on the same frame.
+- **Acceptance:** every flow works with keyboard only; axe clean in both themes; usable at 360 px; existing sign-in, reset and invitation E2E pass with updated selectors; no change to the authentication API except M5-02.
+- **Depends:** M5-02
+- **Tests:** browser tests for the recent-workspace list, the finder, the password toggle; E2E for sign-in, reset and invitation updated; axe scans.
+- **Docs:** frontend.md §Authentication screens, page-patterns.md §Pre-authentication pages.
+
+### `[x]` M5-04 Landing site — L
+- **Done (2026-09-25):** static marketing page on the apex host from Tailark Mist layouts (MIT notice at `/third-party-licences.txt` and in the source): sticky header with a no-JS phone menu, hero with a real queue screenshot (light and dark WebP, preloaded), channels, four feature cards with illustrations drawn in the product's tokens and worked-out numbers (priority 71.7 → P2 with the default weights; duplicate similarity 0.43 computed with the real word set; assignment by lowest load), a cropped ticket screenshot, six supporting features, four steps, a seven-question FAQ as `details`, a call to action and a footer. Prerendered at build (`pnpm build:landing`, React `renderToStaticMarkup`), 50 KiB HTML + 46 KB CSS (10 KB gzip) + 1.4 KB script; hashed assets cached immutably. `/go/find` added to the apex redirects. Axe found a dimmed row below 4.5:1; fixed before merge. `e2e/landing.spec.ts` (10 tests: four widths, axe in both themes, skip link and remembered theme, phone menu, entry points, metadata, licence and caching) passes; CI builds the landing too.
+- **Do:** replace the one-paragraph apex page with a marketing page built from Tailark blocks (MIT, notice kept), adapted to the design tokens: navigation, hero with the value proposition and the primary call to action, a real product screenshot, feature sections for the verified channels (web, email, API), explainable priority, automatic assignment, duplicate detection and SLA monitoring, a how-it-works strip, FAQ, final call to action and footer. Built as its own Vite entry into `/srv/landing`; no invented customers, testimonials, statistics or prices.
+- **Acceptance:** responsive at 360, 768, 1024 and 1440 px without horizontal scroll; keyboard reachable with visible focus; `prefers-reduced-motion` honoured; axe clean in both themes; "Open the app" and "API reference" links keep working; page metadata (title, description, Open Graph, favicon); images served in a modern format with explicit sizes.
+- **Depends:** —
+- **Tests:** Playwright checks at the four widths (no horizontal scroll, links resolve, axe), a smoke check of the apex host.
+- **Docs:** 01-research row for Tailark, frontend.md §Landing site, THIRD-PARTY notice.
+
+### `[x]` M5-05 Platform documentation site — M
+- **Done (2026-09-25):** VitePress 1.6.4 in `docs/` (own `package.json` and lock file; Mermaid 11.17.2 to match the report renderer): sidebar from the folder tree with titles from each page's first heading, `README.md` as folder overviews, local search, light/dark in the application's brand blue, `noindex`. A markdown-it rule sends links that leave `docs/` (and folders without an overview) to GitHub; inline code renders with `v-pre`, which fixed a Vue interpolation of `{{json .State.Health}}` in the runbooks; two `<Workspace>` placeholders in email.md became code. All 131 pages build with no dead links; `.github/workflows/docs.yml` builds it on every change. Checked in a browser (overview, architecture diagrams in dark, ADR index at 390 px).
+- **Do:** render `docs/` as a VitePress site (`docs/.vitepress`): sidebar built from the folder tree, local search, Mermaid diagrams, light and dark themes, links that leave `docs/` rewritten to the repository on GitHub; the build fails on a broken link.
+- **Acceptance:** every page of `docs/` renders; diagrams render; search finds a page by a word in its body; the build is reproducible from the lock file.
+- **Depends:** —
+- **Tests:** the site build in CI (dead links fail it).
+- **Docs:** 01-research row for VitePress, 00-project documentation map.
+
+### `[x]` M5-06 Platform docs host behind the platform sign-in — M
+- **Done (2026-09-25):** [ADR-0024](../docs/adr/0024-platform-docs-host.md). Backend: `PlatformDocsPass` (HMAC-signed, 60 s, single-use hand-off link; encrypted host-only pass cookie, 8 h), `PlatformDocsController` (`POST /platform-api/docs/handoff`, `GET /_session/start`, `GET /_session/check` on the platform-docs host with cookie encryption only). A test caught that Laravel's `cookie()` fills in `session.domain`; the pass is built with `Cookie::create` so it stays host-only. Proxy: `platform-docs` host with `forward_auth` (original URI forwarded), `noindex`, the docs site built into the image from the `docs` build context (compose `additional_contexts`, CI `build-contexts`); on-demand TLS list, network alias, OpenTofu host lists, smoke check. Console: `/platform/docs` asks for the link and follows it, with an error state and retry; the platform sign-in returns there. Tests: 8 backend feature tests, a console browser test (sign-in round trip, `next` passed on, retry). Walked through in a browser on the dev stack: guest → console sign-in → the page asked for; the header button opens the docs in a new tab; the pass is host-only, Secure, HttpOnly, Lax and absent on the app host. MVP-SHORTCUT: split layout only (V1-PL-17).
+- **Do:** ADR-0024 adds `platform-docs.<domain>` to the host layout; the proxy serves the built site there behind `forward_auth`: a platform super admin's button in the console asks the API for a short-lived signed hand-off link, the platform-docs host exchanges it for its own host-only cookie, and every request is checked against it; a visitor without it is sent to the console, which hands off automatically after sign-in. DNS record, on-demand TLS allow list, network alias, smoke check.
+- **Acceptance:** a signed-in platform admin reaches the docs in one click and stays signed in while reading; a tenant user, a guest and an expired or tampered cookie never see a page; a disabled admin loses access on the next request.
+- **Depends:** M5-01, M5-05
+- **Tests:** feature tests for the hand-off and the check endpoint (valid, expired, tampered, disabled admin, tenant session); smoke check of the host.
+- **Docs:** ADR-0024, adr/0021 superseded note, environments.md, security.md, terraform.md host list.

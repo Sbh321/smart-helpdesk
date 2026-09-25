@@ -104,11 +104,12 @@ Host layout per [ADR-0021](../adr/0021-host-layout-and-tenant-resolution.md). `{
 	tls {$TLS}
 }
 
-# landing page
+# landing page (prerendered at image build, M5-04; /go/app, /go/find and /go/docs redirect to the other hosts)
 {$PLATFORM_DOMAIN} {
 	import common
 	import tls_mode
 	root * /srv/landing
+	header /assets/* Cache-Control "public, max-age=31536000, immutable"
 	file_server
 }
 

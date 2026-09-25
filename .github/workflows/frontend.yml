@@ -47,6 +47,7 @@ jobs:
 
       - run: pnpm test:browser
       - run: pnpm build
+      - run: pnpm build:landing
 
       - uses: actions/upload-artifact@v4
         with:

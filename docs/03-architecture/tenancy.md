@@ -104,7 +104,7 @@ The SQL contract, the setting lifecycle and the tests are in [08-database/tenanc
 | Package configuration | `backend/config/tenancy.php`: our `Tenant`, `Domain` and UUID v7 generator, empty `central_domains` (hosts never identify tenants), package routes off |
 | Bootstrappers | `RlsTenancyBootstrapper` (ours), plus stancl's cache, filesystem and queue bootstrappers |
 | Middleware groups | `tenant` (`ResolveTenantFromPrincipal` → `EnsureTenantActive` → `auth:sanctum` → `EnsureTenantMembership`), `tenant.guest` (`InitializeTenancyFromWorkspace` → `EnsureTenantActive`), `platform` (`EnsureCentralContext`), all declared in `bootstrap/app.php` with the priority list adjusted so tenancy runs before authentication and membership right after it |
-| Module routes | `app/Modules/<M>/Routes/api.php` (tenant, `/v1`), `Routes/public.php` (pre-authentication, `/v1`), `Routes/platform.php` (`/platform-api`). Hosts are bound only when `HOST_LAYOUT=split` |
+| Module routes | `app/Modules/<M>/Routes/api.php` (tenant, `/v1`), `Routes/public.php` (pre-authentication, `/v1`), `Routes/central.php` (pre-authentication outside any workspace, `/v1`, e.g. the workspace finder), `Routes/platform.php` (`/platform-api`). Hosts are bound only when `HOST_LAYOUT=split` |
 | Model conventions | `App\Modules\Tenancy\Concerns\BelongsToTenant` and the table registry `Support\TenantTables`, documented in the module README |
 | Tables | `tenants`, `domains`, `tenant_counters`, `tenant_settings`, plus `users`, `sessions`, `password_reset_tokens` and `personal_access_tokens` reshaped for tenancy |
 

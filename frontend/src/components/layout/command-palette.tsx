@@ -1,11 +1,12 @@
 import { Link } from '@tanstack/react-router'
-import { SearchIcon } from 'lucide-react'
+import { BookOpenIcon, ExternalLinkIcon, SearchIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { copy } from '@/copy/en'
-import { useSession } from '@/lib/auth'
+import { hasPermission, useSession } from '@/lib/auth'
+import { useRuntimeConfig } from '@/lib/config'
 import { visibleNavItems } from './nav-items'
 
 /**
@@ -17,6 +18,7 @@ export function CommandPalette({ workspace }: { workspace: string }) {
   const [open, setOpen] = useState(false)
   const { permissions } = useSession()
   const items = visibleNavItems(permissions)
+  const { docsUrl } = useRuntimeConfig()
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -73,6 +75,22 @@ export function CommandPalette({ workspace }: { workspace: string }) {
                 </li>
               )
             })}
+            {hasPermission(permissions, 'integrations.manage') ? (
+              <li>
+                <a
+                  href={docsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                >
+                  <BookOpenIcon aria-hidden="true" className="size-4" />
+                  {copy.nav.apiReference}
+                  <ExternalLinkIcon aria-hidden="true" className="ms-auto size-3.5" />
+                  <span className="sr-only">{copy.common.opensInNewTab}</span>
+                </a>
+              </li>
+            ) : null}
           </ul>
         </div>
         <p className="text-xs text-muted-foreground">{copy.shell.commandPalette.soon}</p>

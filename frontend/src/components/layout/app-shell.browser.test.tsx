@@ -127,3 +127,31 @@ test('the navigation is grouped and collapses to an icon rail that keeps its lab
   await expect.element(nav.getByRole('heading', { level: 2, name: copy.nav.groups.records })).toBeVisible()
   expect(window.localStorage.getItem('sh.nav-collapsed')).toBe('false')
 })
+
+test('the API reference link opens the docs host in a new tab, only for integration managers (M5-01)', async () => {
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ['tickets.view'] }) }),
+    ),
+  )
+  const agent = await renderApp('/acme')
+  await expect
+    .element(agent.screen.getByRole('heading', { level: 1, name: copy.dashboard.title }))
+    .toBeVisible()
+  expect(agent.screen.getByRole('link', { name: new RegExp(copy.nav.apiReference) }).query()).toBeNull()
+  agent.screen.unmount()
+
+  worker.use(
+    http.get(apiUrl('/me'), () =>
+      HttpResponse.json({ data: sessionFixture({ permissions: ['integrations.manage'] }) }),
+    ),
+  )
+  const developer = await renderApp('/acme')
+  const link = developer.screen
+    .getByRole('navigation', { name: copy.nav.primary })
+    .getByRole('link', { name: new RegExp(copy.nav.apiReference) })
+  await expect.element(link).toBeVisible()
+  expect(link.element().getAttribute('href')).toBe('https://docs.shp.test')
+  expect(link.element().getAttribute('target')).toBe('_blank')
+  expect(link.element().getAttribute('rel')).toContain('noopener')
+})

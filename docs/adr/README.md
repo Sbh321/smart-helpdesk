@@ -29,3 +29,4 @@ Documentation that contradicts an accepted ADR is a bug ([principles](../00-proj
 | [0021](0021-host-layout-and-tenant-resolution.md) | Host layout on `shp.subhambhandari.com.np`; tenant from session or client | Accepted |
 | [0022](0022-reporting-and-history.md) | Reporting module: change capture, derived read models, report catalogue | Accepted |
 | [0023](0023-minimal-replaceable-algorithms.md) | Minimal academic baseline algorithms behind replaceable strategies | Accepted |
+| [0024](0024-platform-docs-host.md) | Platform documentation host behind the platform sign-in | Accepted |

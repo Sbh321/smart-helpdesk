@@ -75,6 +75,13 @@ export async function platformLogin(input: { email: string; password: string }):
   await platformRequest('POST', '/auth/login', input)
 }
 
+/** A one-time link that signs the admin in to the platform documentation host (ADR-0024, M5-06). */
+export async function platformDocsHandoff(next: string): Promise<string> {
+  await ensurePlatformCsrfCookie()
+  const response = await platformRequest<{ data: { url: string } }>('POST', '/docs/handoff', { next })
+  return response.data.url
+}
+
 export async function platformLogout(): Promise<void> {
   await ensurePlatformCsrfCookie()
   await platformRequest('POST', '/auth/logout')

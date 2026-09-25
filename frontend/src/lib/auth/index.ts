@@ -11,6 +11,13 @@ export {
   workspaceHref,
   workspaceOfPath,
 } from './guards'
+export {
+  forgetWorkspace,
+  type RecentWorkspace,
+  readRecentWorkspaces,
+  rememberedWorkspaceName,
+  rememberWorkspace,
+} from './recent-workspaces'
 export type { MaybeSession, Session, SessionTenant, SessionUser } from './session'
 export {
   SessionContext,
@@ -19,3 +26,4 @@ export {
   useCan,
   useSession,
 } from './session-context'
+export { normaliseWorkspaceInput } from './workspace-input'

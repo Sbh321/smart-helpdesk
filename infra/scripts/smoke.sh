@@ -55,6 +55,7 @@ else
   check 200 "${app}/${workspace}"
   check 200 "https://admin.${domain}/"
   check 302 "https://docs.${domain}/"   # the API reference needs a sign-in (M3-06)
+  check 302 "https://platform-docs.${domain}/"   # the platform docs need the platform sign-in (M5-06)
   check '403|404' "${api}/api/v1/ping"   # no /api prefix on the api host
 fi
 check 401 "${api}/v1/me" -H 'Accept: application/json'   # protected routes need a session or token

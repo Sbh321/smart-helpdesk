@@ -14,6 +14,7 @@ export type LoginInput = components['schemas']['LoginRequest']
 export type AcceptInvitationInput = components['schemas']['AcceptInvitationRequest']
 export type ForgotPasswordInput = components['schemas']['ForgotPasswordRequest']
 export type ResetPasswordInput = components['schemas']['ResetPasswordRequest']
+export type WorkspaceReminderInput = components['schemas']['WorkspaceReminderRequest']
 
 export async function login(body: LoginInput): Promise<void> {
   await ensureCsrfCookie()
@@ -38,4 +39,10 @@ export async function requestPasswordReset(body: ForgotPasswordInput): Promise<v
 export async function resetPassword(body: ResetPasswordInput): Promise<void> {
   await ensureCsrfCookie()
   await unwrapBody(api().POST('/auth/password/reset', { body }))
+}
+
+/** "Email me my workspace" (M5-02): always 202, whatever the address. */
+export async function requestWorkspaceReminder(body: WorkspaceReminderInput): Promise<void> {
+  await ensureCsrfCookie()
+  await unwrapBody(api().POST('/auth/workspace-reminder', { body }))
 }

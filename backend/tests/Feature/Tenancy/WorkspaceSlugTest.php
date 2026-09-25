@@ -24,4 +24,5 @@ it('rejects malformed and reserved slugs', function (mixed $slug, string $messag
     'reserved api' => ['api', 'reserved'],
     'reserved admin' => ['admin', 'reserved'],
     'reserved select-workspace' => ['select-workspace', 'reserved'],
+    'reserved platform-docs' => ['platform-docs', 'reserved'],
 ]);

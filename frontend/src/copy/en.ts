@@ -5,14 +5,66 @@ export const copy = {
     tagline: 'Support tickets with explainable automation.',
     skipToContent: 'Skip to content',
   },
+  common: {
+    /** Read after a link that opens another site in a new tab (M5-01). */
+    opensInNewTab: '(opens in a new tab)',
+  },
   workspaceEntry: {
-    heading: 'Open your workspace',
-    body: 'Enter the workspace name your administrator gave you.',
+    heading: 'Sign in to your workspace',
+    body: 'Enter the workspace your team uses. You can paste the address you were sent.',
     label: 'Workspace',
     description: 'For example: acme',
+    /** Shown under the field as the visitor types (M5-03). */
+    preview: 'You will sign in at {address}',
     submit: 'Continue',
     required: 'Enter a workspace.',
     invalid: 'A workspace may contain lowercase letters, digits and hyphens only.',
+    recentHeading: 'Recently used on this device',
+    recentOpen: 'Sign in to {name}',
+    forget: 'Forget {name} on this device',
+    forgotten: '{name} is no longer listed on this device.',
+    or: 'or',
+    otherWorkspace: 'Use another workspace',
+    findPrompt: 'Don’t know your workspace?',
+    findLink: 'Find it by email',
+  },
+  /** "Email me my workspace" (M5-02, M5-03). */
+  workspaceFinder: {
+    heading: 'Find your workspace',
+    body: 'Enter your work email. We will send you a sign-in link for every workspace it belongs to.',
+    submit: 'Email me my workspaces',
+    submitting: 'Sending…',
+    failed: 'The email could not be sent',
+    sentHeading: 'Check your inbox',
+    sentBody:
+      'If {email} belongs to an account, a message listing its workspaces is on its way. It can take a minute to arrive; check your spam folder too.',
+    tryAnother: 'Use a different email',
+    back: 'Back to workspace sign-in',
+  },
+  /** The frame of the pre-authentication pages (M5-03). */
+  authFrame: {
+    home: 'Smart Helpdesk home',
+    tenantHeadline: 'Every ticket prioritised, assigned and on time, with the reason shown.',
+    tenantPoints: [
+      'Priority you can read: impact, urgency, customer tier and waiting time, each with its share of the score.',
+      'Fair assignment to the eligible agent with the most spare capacity.',
+      'SLA timers that pause, warn and escalate on your working hours.',
+    ],
+    platformHeadline: 'Platform administration',
+    platformPoints: [
+      'Every workspace on this installation, with its status and plan.',
+      'Separate sign-in and session from the workspaces.',
+      'The platform documentation, one click away.',
+    ],
+    preview: {
+      label: 'Example ticket',
+      number: '#1042',
+      title: 'Cannot log in to the billing portal',
+      priority: 'P2 · score 61.7',
+      why: 'Urgency 35.0 + impact 26.7',
+      assigned: 'Assigned to Asha, lowest load',
+      sla: 'First response due in 42 min',
+    },
   },
   theme: {
     label: 'Theme',
@@ -44,17 +96,26 @@ export const copy = {
     passwordConfirmationLabel: 'Confirm password',
     nameLabel: 'Your name',
     login: {
-      heading: 'Sign in',
-      body: 'Sign in to the {workspace} workspace.',
+      heading: 'Welcome back',
+      body: 'Sign in with your work email.',
       submit: 'Sign in',
       submitting: 'Signing in…',
       forgot: 'Forgot your password?',
       failed: 'Sign-in failed',
       changeWorkspace: 'Use a different workspace',
+      /** The workspace chip above the form (M5-03). */
+      workspaceChip: 'Workspace',
+      change: 'Change',
+    },
+    password: {
+      show: 'Show password',
+      hide: 'Hide password',
+      capsLock: 'Caps Lock is on.',
+      rules: 'At least 12 characters. A passphrase of a few words is easiest to remember.',
     },
     acceptInvitation: {
       heading: 'Accept your invitation',
-      body: 'Choose a password to finish setting up your account in the {workspace} workspace.',
+      body: 'You were invited to the {workspace} workspace. Choose a password to finish setting up your account.',
       submit: 'Create my account',
       submitting: 'Creating your account…',
       missingToken: 'This invitation link is incomplete. Ask your administrator to send a new one.',
@@ -63,16 +124,20 @@ export const copy = {
     },
     forgotPassword: {
       heading: 'Reset your password',
-      body: 'We send a reset link to your email address if an account exists in the {workspace} workspace.',
+      body: 'Enter the email you sign in to {workspace} with, and we will send you a link to choose a new password.',
       submit: 'Send the reset link',
       submitting: 'Sending…',
       sent: 'If that address belongs to an account, a reset link is on its way.',
+      sentHeading: 'Check your inbox',
+      sentBody:
+        'If {email} has an account in {workspace}, a reset link is on its way. The link works for 60 minutes; check your spam folder if it does not arrive.',
+      tryAnother: 'Use a different email',
       failed: 'The reset link could not be sent',
       backToLogin: 'Back to sign in',
     },
     resetPassword: {
       heading: 'Choose a new password',
-      body: 'Set a new password for your account in the {workspace} workspace.',
+      body: 'Choose a new password for your account in {workspace}. Other signed-in sessions will be signed out.',
       submit: 'Save the new password',
       submitting: 'Saving…',
       failed: 'The password could not be reset',
@@ -108,7 +173,10 @@ export const copy = {
       records: 'Records',
       insight: 'Insight',
       admin: 'Administration',
+      developers: 'Developers',
     },
+    /** Opens the API reference on the docs host in a new tab (M5-01); shown with integrations.manage. */
+    apiReference: 'API reference',
     collapse: 'Collapse the navigation',
     expand: 'Expand the navigation',
 
@@ -1870,6 +1938,10 @@ export const copy = {
     },
     signOut: 'Sign out',
     signedInAs: 'Signed in as {name}',
+    /** Opens the platform documentation (docs/ as a site) in a new tab (M5-01, M5-06). */
+    platformDocs: 'Platform docs',
+    openingDocs: 'Opening the platform documentation…',
+    docsFailed: 'The platform documentation could not be opened',
     emptyTitle: 'No workspaces yet',
     emptyBody: 'Workspaces created on this installation appear here.',
     columns: {

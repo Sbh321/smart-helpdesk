@@ -25,6 +25,9 @@ Researched 2026-09-17 against registry.npmjs.org dist-tags and primary docs. Sel
 | sonner 2.0.8 | shadcn toast. | **Required** |
 | react-day-picker 10 | shadcn calendar for date-range filters. | Useful |
 | vaul, embla, input-otp | stale or unneeded. | Rejected |
+| VitePress 1.6.4 (+ Vue 3.5.43) | Static documentation site generator on Vite: Markdown in place, local full-text search, light/dark, `rewrites` for `README.md` overviews, dead-link check at build. The sibling support-saas platform renders its docs the same way. Separate package in `docs/` (own lock file), used only at build time. | **Platform docs site (M5-05)**; not part of the application bundle |
+| Mermaid 11.17.2 | Renders the `mermaid` code fences of `docs/` in the browser; the same major line as `@mermaid-js/mermaid-cli` in the report pipeline, so diagrams look alike in both. Mermaid 12.0 (2026-09-10) is two weeks old. | **Pinned 11.17.2** in `docs/` |
+| Tailark blocks (github.com/tailark/blocks, MIT, 2025-07) | Copy-paste marketing sections (hero, features, FAQ, call to action, footer, login) built on shadcn and Tailwind 4, with a **Base UI** variant of every kit (Dusk, Mist, Veil). Source to adapt, not a package: blocks import `next/link`, `next/image` and a few `motion/react` animations, all replaced here. | **Adapted for the landing site (M5-04)**: Mist kit layouts rewritten on our tokens and `Button`, no `motion`; MIT notice served at `/third-party-licences.txt` and kept in the source header. No new dependency |
 
 Decision recorded in [ADR-0002](../adr/0002-ui-primitive-strategy.md).
 

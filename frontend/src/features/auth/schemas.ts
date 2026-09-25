@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { copy } from '@/copy/en'
+import { normaliseWorkspaceInput } from '@/lib/auth/workspace-input'
 
 const { validation } = copy.auth
 
@@ -47,12 +48,22 @@ export const resetPasswordSchema = z
   .refine((value) => value.password === value.password_confirmation, passwordsMatch)
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>
 
-/** The workspace segment as typed on the entry page. */
-export const workspaceSchema = z.object({
-  workspace: z
-    .string()
-    .trim()
-    .min(1, copy.workspaceEntry.required)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, copy.workspaceEntry.invalid),
-})
-export type WorkspaceValues = z.infer<typeof workspaceSchema>
+/**
+ * The workspace as typed on the entry page (M5-03): a slug, a name with capitals, or the whole address
+ * that was sent; checked after `normaliseWorkspaceInput`, so a pasted link is accepted as its slug.
+ */
+export function workspaceEntrySchema(platformDomain: string) {
+  return z.object({
+    workspace: z
+      .string()
+      .transform((value) => normaliseWorkspaceInput(value, platformDomain))
+      .pipe(
+        z
+          .string()
+          .min(1, copy.workspaceEntry.required)
+          .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, copy.workspaceEntry.invalid),
+      ),
+  })
+}
+
+export const workspaceFinderSchema = z.object({ email: emailField })

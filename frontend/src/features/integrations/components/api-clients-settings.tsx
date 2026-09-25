@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
+import { ExternalLinkButton } from '@/components/shared/external-link-button'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { SettingsPage } from '@/components/shared/settings-page'
@@ -28,6 +29,7 @@ import { copy, fill } from '@/copy/en'
 import { CheckboxGroup } from '@/features/users'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useCan, useSession } from '@/lib/auth'
+import { useRuntimeConfig } from '@/lib/config'
 import { formatInZone } from '@/lib/datetime/format'
 import { mergeMessages } from '@/lib/forms/messages'
 import { useServerErrors } from '@/lib/forms/use-server-errors'
@@ -261,6 +263,7 @@ export function ApiClientsSettings() {
   const scopes = useQuery({ ...apiClientQueries.scopes(tenantId), enabled: allowed && tenantId !== '' })
   const scopeDescriptions = new Map((scopes.data ?? []).map((scope) => [scope.scope, scope.description]))
   const [creating, setCreating] = useState(false)
+  const { docsUrl } = useRuntimeConfig()
   const [revoking, setRevoking] = useState<ApiClient | null>(null)
 
   if (!allowed) return <ForbiddenState />
@@ -270,10 +273,13 @@ export function ApiClientsSettings() {
       title={text.title}
       description={text.intro}
       actions={
-        <Button onClick={() => setCreating(true)}>
-          <PlusIcon aria-hidden="true" />
-          {text.create}
-        </Button>
+        <>
+          <ExternalLinkButton href={docsUrl}>{copy.nav.apiReference}</ExternalLinkButton>
+          <Button onClick={() => setCreating(true)}>
+            <PlusIcon aria-hidden="true" />
+            {text.create}
+          </Button>
+        </>
       }
     >
       {clients.isPending ? (

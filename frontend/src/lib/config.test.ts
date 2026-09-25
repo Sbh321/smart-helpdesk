@@ -6,6 +6,8 @@ const validConfig = {
   appMode: 'tenant',
   platformDomain: 'shp.localhost',
   storagePublicEndpoint: 'https://files.shp.localhost',
+  docsUrl: 'https://docs.shp.localhost',
+  platformDocsUrl: 'https://platform-docs.shp.localhost',
   realtime: { enabled: false },
 }
 

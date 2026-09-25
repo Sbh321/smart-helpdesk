@@ -13,6 +13,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 
 final class IdentityServiceProvider extends ModuleServiceProvider
@@ -43,6 +44,13 @@ final class IdentityServiceProvider extends ModuleServiceProvider
 
             return Limit::perMinute(5)->by($key);
         });
+
+        // The workspace finder (M5-02) mails whoever owns the address: three requests a minute per address and
+        // client, and twenty an hour per client, so it can neither flood an inbox nor probe many addresses.
+        RateLimiter::for('workspace-reminder', fn (Request $request): array => [
+            Limit::perMinute(3)->by('workspace-reminder:'.$request->ip().'|'.hash('sha256', Str::lower((string) $request->input('email', '')))),
+            Limit::perHour(20)->by('workspace-reminder-ip:'.$request->ip()),
+        ]);
 
         // Every invitation sends a mail: twenty a minute per user keeps a mistake from flooding inboxes.
         RateLimiter::for('user-invitations', fn (Request $request): Limit => Limit::perMinute(20)

@@ -252,7 +252,7 @@ For AWS, GCP or Hetzner, copy `envs/reference` to `envs/<provider>`, change the 
 
 ## AWS environment (deployed 2026-09-21)
 
-`envs/aws` wires `providers/aws/{network,compute,firewall}` with `providers/cloudflare/dns`: the owner's domain `subhambhandari.com.np` is on Cloudflare, so the eight fixed hosts (ADR-0021) become records in that zone instead of a delegated Route 53 zone. Files stay in RustFS on the VM (`storage_profile=true`), the path the M3-14 restore rehearsal covered; the S3 module is not used.
+`envs/aws` wires `providers/aws/{network,compute,firewall}` with `providers/cloudflare/dns`: the owner's domain `subhambhandari.com.np` is on Cloudflare, so the fixed hosts (ADR-0021, plus `platform-docs` from ADR-0024) become records in that zone instead of a delegated Route 53 zone. Files stay in RustFS on the VM (`storage_profile=true`), the path the M3-14 restore rehearsal covered; the S3 module is not used.
 
 | Choice | Value | Why |
 |---|---|---|

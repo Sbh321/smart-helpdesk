@@ -117,6 +117,21 @@ table                 the same numbers, drill-down on each count
 - Chart and table complement each other: the chart shows the pattern, the table the exact values; the accessible table equivalent is always one click away ([data-visualization](data-visualization.md)).
 - Drill-down keeps the clicked measure, so "3 Resolved" lists three records.
 
+## Pre-authentication pages
+
+Sign-in, workspace entry and finder, password reset, invitation and the platform sign-in (M5-03) share `AuthLayout`:
+
+| Slot | Content |
+|---|---|
+| Header | `BrandMark` linking to the landing site; `ThemeToggle compact` (labels read out, shown from `sm`) |
+| Eyebrow | the `WorkspaceChip` when the page belongs to a workspace (never a read-only field) |
+| Heading | one `h1` (`text-3xl`), one sentence under it |
+| Form | fields in reading order; the primary button full width; secondary links after the field they relate to, so tab order matches the screen |
+| Done state | `SentPanel` (a status with its own `h2`) naming what was sent where, plus "use a different …" and a way back |
+| Brand panel | from `lg` only, an `aside` after the form: headline, three points, a decorative example ticket (`aria-hidden`); nothing in it is needed to complete the page |
+
+Rules: no workspace, account or address is ever confirmed or denied before sign-in (the finder and the reset request always answer the same way); the page works at 360 px without sideways scrolling; storage is a convenience (recent workspaces), never required.
+
 ## Checklist for a new page
 
 1. Pick the pattern and reuse its components; if none fits, add the pattern here before writing the second page that needs it.

@@ -63,6 +63,8 @@ Caddy maps the docs host onto those two routes ([frontend/docker/Caddyfile](../0
 
 As built in M3-06: the `viewApiDocs` gate allows workspace users holding `integrations.manage` (owners, admins, developers) and Platform Super Admins. The workspace session cookie is set for the whole platform domain, so it reaches the docs host and the tenant resolves from the session exactly as on the API (`ResolveTenantFromPrincipal`, `EnsureTenantActive`, `auth:web`, `EnsureTenantMembership`, `can:viewApiDocs`). A guest is redirected to the SPA sign-in; a signed-in user without the permission gets 403. The platform cookie is host-only on the admin host and never reaches the docs host, so Platform Super Admins read the same document under `/platform-api/docs` there; the admin host already proxies `/platform-api/*`, so no Caddy change was needed.
 
+Entry points (M5-01): users with `integrations.manage` reach the reference from the sidebar (*Developers → API reference*), from the API clients and webhooks settings pages and from the command palette; each opens `docsUrl` from `config.json` in a new tab.
+
 Problem-detail `type` URIs (`https://docs.<domain>/errors/<code>`) resolve to the docs host; the per-code error pages are a V1 item (today they answer like the reference itself).
 
 ## Conventions that keep inference accurate

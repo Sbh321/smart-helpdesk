@@ -21,10 +21,13 @@ jobs:
             context: ./backend
             file: backend/Dockerfile
             target: production
+            build-contexts: ''
           - image: proxy
             context: ./frontend
             file: frontend/Dockerfile
             target: runtime
+            # The platform documentation site is built from docs/ into the proxy image (M5-06).
+            build-contexts: docs=./docs
 
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +53,7 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.file }}
           target: ${{ matrix.target }}
+          build-contexts: ${{ matrix.build-contexts }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

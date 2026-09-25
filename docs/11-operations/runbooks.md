@@ -95,7 +95,7 @@ Only available when `APP_ENV != production`. Takes under a minute; rehearse befo
 - **Symptoms**: browser TLS warnings on one of the `*.shp` hosts; Caddy logs `obtaining certificate failed`.
 - **Diagnosis**: `docker compose logs proxy | jq 'select(.logger=="tls")'`; confirm DNS for the failing host (`dig app.shp.subhambhandari.com.np`), that ports 80/443 are reachable from the internet (ufw, provider firewall), and rate-limit messages from Let's Encrypt.
 - **Fix**: correct DNS/firewall; Caddy retries automatically; for customer-provided certificates replace files in `certs/` and `docker compose exec proxy caddy reload --config /etc/caddy/Caddyfile`; for `tls internal` roots that expired (10 years, unlikely) re-trust the new root.
-- **Prevention**: `caddy-data` volume persisted and backed up, uptime monitor with TLS expiry check for all eight hosts.
+- **Prevention**: `caddy-data` volume persisted and backed up, uptime monitor with TLS expiry check for all nine hosts.
 
 ## Outbound mail: relay (port 25 blocked)
 

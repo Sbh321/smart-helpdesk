@@ -15,6 +15,8 @@ export const testConfig: RuntimeConfig = {
   appMode: 'tenant',
   platformDomain: 'shp.test',
   storagePublicEndpoint: 'https://files.shp.test',
+  docsUrl: 'https://docs.shp.test',
+  platformDocsUrl: 'https://platform-docs.shp.test',
   realtime: { enabled: false },
 }
 

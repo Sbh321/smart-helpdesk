@@ -35,6 +35,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
      * Route files per module (docs/03-architecture/tenancy.md §Tenant resolution):
      *  - Routes/api.php      authenticated tenant API on the api host under /v1
      *  - Routes/public.php   pre-authentication tenant API (workspace in the body) under /v1
+     *  - Routes/central.php  pre-authentication API that belongs to no workspace (the workspace finder, M5-02) under /v1
      *  - Routes/platform.php platform API on the admin host under /platform-api
      * Hosts are only bound in the split layout; single-host installs strip /api at the proxy.
      */
@@ -43,6 +44,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
         $files = [
             'api.php' => ['prefix' => 'v1', 'middleware' => ['api', 'tenant'], 'host' => 'api'],
             'public.php' => ['prefix' => 'v1', 'middleware' => ['api', 'tenant.guest'], 'host' => 'api'],
+            'central.php' => ['prefix' => 'v1', 'middleware' => ['api'], 'host' => 'api'],
             'platform.php' => ['prefix' => 'platform-api', 'middleware' => ['api', 'platform'], 'host' => 'admin'],
         ];
 

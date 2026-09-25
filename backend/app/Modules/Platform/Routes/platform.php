@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Platform\Http\Controllers\PlatformAuthController;
+use App\Modules\Platform\Http\Controllers\PlatformDocsController;
 use App\Modules\Platform\Http\Controllers\TenantController;
 use App\Support\Http\Controllers\ApiDocsController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,11 @@ Route::middleware('auth:platform')->group(function (): void {
     Route::patch('/tenants/{tenant}', [TenantController::class, 'update'])->name('platform.tenants.update');
     Route::post('/tenants/{tenant}/suspend', [TenantController::class, 'suspend'])->name('platform.tenants.suspend');
     Route::post('/tenants/{tenant}/reactivate', [TenantController::class, 'reactivate'])->name('platform.tenants.reactivate');
+
+    // A one-time link to the platform documentation host (ADR-0024, M5-06).
+    Route::post('/docs/handoff', [PlatformDocsController::class, 'handoff'])
+        ->middleware('throttle:30,1')
+        ->name('platform.docs.handoff');
 
     // The tenant API reference for Platform Super Admins (docs/07-api/documentation.md §Access). The docs
     // host cannot serve them: the platform cookie is host-only on the admin host.

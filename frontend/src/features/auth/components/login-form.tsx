@@ -2,11 +2,12 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { PasswordField } from '@/components/shared/password-field'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { copy } from '@/copy/en'
-import { afterSignInHref } from '@/lib/auth'
+import { afterSignInHref, rememberWorkspace } from '@/lib/auth'
 import { mergeMessages } from '@/lib/forms/messages'
 import { login } from '../api/auth-requests'
 import { reloadSession } from '../api/session-queries'
@@ -47,6 +48,7 @@ export function LoginForm({ workspace, redirect }: { workspace: string; redirect
         setBanner(copy.auth.errors.unexpected)
         return
       }
+      rememberWorkspace({ slug: session.tenant.slug, name: session.tenant.name })
       await navigate({ href: afterSignInHref(session, redirect), replace: true })
     },
   })
@@ -62,17 +64,11 @@ export function LoginForm({ workspace, redirect }: { workspace: string; redirect
     >
       {banner ? <AuthErrorBanner title={copy.auth.login.failed} message={banner} /> : null}
 
-      <FieldGroup>
-        <TextField
-          id="login-workspace"
-          label={copy.auth.workspaceLabel}
-          value={workspace}
-          onValueChange={() => undefined}
-          readOnly
-          autoComplete="organization"
-          errors={serverErrors.workspace}
-        />
+      {serverErrors.workspace ? (
+        <AuthErrorBanner title={copy.auth.login.failed} message={serverErrors.workspace.join(' ')} />
+      ) : null}
 
+      <FieldGroup>
         <form.Field name="email">
           {(field) => (
             <TextField
@@ -92,15 +88,24 @@ export function LoginForm({ workspace, redirect }: { workspace: string; redirect
 
         <form.Field name="password">
           {(field) => (
-            <TextField
+            <PasswordField
               id="login-password"
               label={copy.auth.passwordLabel}
-              type="password"
               autoComplete="current-password"
               value={field.state.value}
               onValueChange={field.handleChange}
               onBlur={field.handleBlur}
               errors={mergeMessages(field.state.meta.errors, serverErrors.password)}
+              action={
+                <Link
+                  to="/$workspace/reset-password"
+                  params={{ workspace }}
+                  search={{}}
+                  className="font-medium text-primary text-sm underline-offset-4 hover:underline"
+                >
+                  {copy.auth.login.forgot}
+                </Link>
+              }
             />
           )}
         </form.Field>
@@ -108,25 +113,11 @@ export function LoginForm({ workspace, redirect }: { workspace: string; redirect
 
       <form.Subscribe selector={(state) => state.isSubmitting}>
         {(isSubmitting) => (
-          <Button type="submit" size="lg" disabled={isSubmitting}>
+          <Button type="submit" size="lg" disabled={isSubmitting} className="mt-1">
             {isSubmitting ? copy.auth.login.submitting : copy.auth.login.submit}
           </Button>
         )}
       </form.Subscribe>
-
-      <div className="flex flex-wrap justify-between gap-2 text-sm">
-        <Link
-          to="/$workspace/reset-password"
-          params={{ workspace }}
-          search={{}}
-          className="underline underline-offset-4 hover:text-primary"
-        >
-          {copy.auth.login.forgot}
-        </Link>
-        <Link to="/" className="text-muted-foreground underline underline-offset-4 hover:text-primary">
-          {copy.auth.login.changeWorkspace}
-        </Link>
-      </div>
     </form>
   )
 }

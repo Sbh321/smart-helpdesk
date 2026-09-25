@@ -117,10 +117,44 @@ test('signing in opens the tenant list in words, and the account menu signs out'
   expect(screen.getByRole('group', { name: copy.theme.label }).query()).toBeNull()
   expect(await blocking()).toEqual([])
 
+  // The platform documentation opens in a new tab through the console's hand-off page (M5-01).
+  const docs = screen.getByRole('link', { name: new RegExp(copy.platform.platformDocs) })
+  expect(docs.element().getAttribute('href')).toBe('/platform/docs')
+  expect(docs.element().getAttribute('target')).toBe('_blank')
+  expect(docs.element().getAttribute('rel')).toContain('noopener')
+
   await screen.getByRole('button', { name: copy.nav.account }).click()
   await expect.element(screen.getByText(`Signed in as ${ADMIN.name}`)).toBeVisible()
   await expect.element(screen.getByRole('menuitemradio', { name: copy.theme.dark })).toBeVisible()
   await screen.getByRole('menuitem', { name: copy.platform.signOut }).click()
   await expect.poll(() => app.currentPath()).toBe('/platform/login')
   expect(state.signedIn).toBe(false)
+})
+
+test('a signed-out visitor to the docs hand-off signs in and comes back to it; a failed hand-off can be retried', async () => {
+  const state = { signedIn: false }
+  platformApi(state)
+  let calls = 0
+  let next: unknown = null
+  worker.use(
+    http.post('*/platform-api/docs/handoff', async ({ request }) => {
+      calls += 1
+      next = ((await request.json()) as { next: string }).next
+      return problem(503, 'service_unavailable')
+    }),
+  )
+  const app = await renderApp('/platform/docs?next=%2Fadr%2F')
+  const { screen } = app
+  await expect.poll(() => app.currentPath()).toBe('/platform/login')
+
+  await screen.getByRole('textbox', { name: copy.auth.emailLabel }).fill('admin@platform.test')
+  await screen.getByLabelText(copy.auth.passwordLabel, { exact: true }).fill('password')
+  await screen.getByRole('button', { name: copy.auth.login.submit }).click()
+
+  await expect.poll(() => app.currentPath()).toBe('/platform/docs')
+  await expect.element(screen.getByText(copy.platform.docsFailed)).toBeVisible()
+  expect(next).toBe('/adr/')
+
+  await screen.getByRole('button', { name: /try again|retry/i }).click()
+  await expect.poll(() => calls).toBe(2)
 })

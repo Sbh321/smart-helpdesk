@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { AuthLayout } from '@/components/layout/auth-layout'
-import { copy, fill } from '@/copy/en'
-import { LoginForm } from '@/features/auth'
+import { copy } from '@/copy/en'
+import { LoginForm, WorkspaceChip } from '@/features/auth'
 
 const searchSchema = z.object({
   /** Where to go after signing in; sanitised to a same-origin path before it is used. */
@@ -19,7 +19,11 @@ function LoginPage() {
   const { redirect } = Route.useSearch()
 
   return (
-    <AuthLayout title={copy.auth.login.heading} description={fill(copy.auth.login.body, { workspace })}>
+    <AuthLayout
+      title={copy.auth.login.heading}
+      description={copy.auth.login.body}
+      eyebrow={<WorkspaceChip workspace={workspace} />}
+    >
       <LoginForm workspace={workspace} redirect={redirect} />
     </AuthLayout>
   )

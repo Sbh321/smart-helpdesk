@@ -22,6 +22,7 @@ import { Route as WorkspaceAuthAcceptInvitationRouteImport } from './routes/$wor
 import { Route as WorkspaceAuthLoginRouteImport } from './routes/$workspace/_auth/login'
 import { Route as WorkspaceAuthResetPasswordRouteImport } from './routes/$workspace/_auth/reset-password'
 import { Route as PlatformPlatformIndexRouteImport } from './routes/_platform.platform.index'
+import { Route as PlatformPlatformDocsRouteImport } from './routes/_platform.platform.docs'
 import { Route as PlatformPlatformTenantsRouteImport } from './routes/_platform.platform.tenants'
 import { Route as WorkspaceAppAgentsAgentIdRouteImport } from './routes/$workspace/_app/agents/$agentId'
 import { Route as WorkspaceAppCategoriesCategoryIdRouteImport } from './routes/$workspace/_app/categories/$categoryId'
@@ -121,6 +122,11 @@ const WorkspaceAuthResetPasswordRoute =
 const PlatformPlatformIndexRoute = PlatformPlatformIndexRouteImport.update({
   id: '/platform/',
   path: '/platform/',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformPlatformDocsRoute = PlatformPlatformDocsRouteImport.update({
+  id: '/platform/docs',
+  path: '/platform/docs',
   getParentRoute: () => PlatformRoute,
 } as any)
 const PlatformPlatformTenantsRoute = PlatformPlatformTenantsRouteImport.update({
@@ -338,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/reset-password': typeof WorkspaceAuthResetPasswordRoute
+  '/platform/docs': typeof PlatformPlatformDocsRoute
   '/platform/tenants': typeof PlatformPlatformTenantsRoute
   '/$workspace/': typeof WorkspaceAppIndexRoute
   '/platform/': typeof PlatformPlatformIndexRoute
@@ -384,6 +391,7 @@ export interface FileRoutesByTo {
   '/$workspace/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/reset-password': typeof WorkspaceAuthResetPasswordRoute
+  '/platform/docs': typeof PlatformPlatformDocsRoute
   '/platform/tenants': typeof PlatformPlatformTenantsRoute
   '/platform': typeof PlatformPlatformIndexRoute
   '/$workspace/agents/$agentId': typeof WorkspaceAppAgentsAgentIdRoute
@@ -434,6 +442,7 @@ export interface FileRoutesById {
   '/$workspace/_auth/accept-invitation': typeof WorkspaceAuthAcceptInvitationRoute
   '/$workspace/_auth/login': typeof WorkspaceAuthLoginRoute
   '/$workspace/_auth/reset-password': typeof WorkspaceAuthResetPasswordRoute
+  '/_platform/platform/docs': typeof PlatformPlatformDocsRoute
   '/_platform/platform/tenants': typeof PlatformPlatformTenantsRoute
   '/$workspace/_app/': typeof WorkspaceAppIndexRoute
   '/_platform/platform/': typeof PlatformPlatformIndexRoute
@@ -483,6 +492,7 @@ export interface FileRouteTypes {
     | '/$workspace/accept-invitation'
     | '/$workspace/login'
     | '/$workspace/reset-password'
+    | '/platform/docs'
     | '/platform/tenants'
     | '/$workspace/'
     | '/platform/'
@@ -529,6 +539,7 @@ export interface FileRouteTypes {
     | '/$workspace/accept-invitation'
     | '/$workspace/login'
     | '/$workspace/reset-password'
+    | '/platform/docs'
     | '/platform/tenants'
     | '/platform'
     | '/$workspace/agents/$agentId'
@@ -578,6 +589,7 @@ export interface FileRouteTypes {
     | '/$workspace/_auth/accept-invitation'
     | '/$workspace/_auth/login'
     | '/$workspace/_auth/reset-password'
+    | '/_platform/platform/docs'
     | '/_platform/platform/tenants'
     | '/$workspace/_app/'
     | '/_platform/platform/'
@@ -715,6 +727,13 @@ declare module '@tanstack/react-router' {
       path: '/platform'
       fullPath: '/platform/'
       preLoaderRoute: typeof PlatformPlatformIndexRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/_platform/platform/docs': {
+      id: '/_platform/platform/docs'
+      path: '/platform/docs'
+      fullPath: '/platform/docs'
+      preLoaderRoute: typeof PlatformPlatformDocsRouteImport
       parentRoute: typeof PlatformRoute
     }
     '/_platform/platform/tenants': {
@@ -1090,11 +1109,13 @@ const WorkspaceRouteWithChildren = WorkspaceRoute._addFileChildren(
 )
 
 interface PlatformRouteChildren {
+  PlatformPlatformDocsRoute: typeof PlatformPlatformDocsRoute
   PlatformPlatformTenantsRoute: typeof PlatformPlatformTenantsRoute
   PlatformPlatformIndexRoute: typeof PlatformPlatformIndexRoute
 }
 
 const PlatformRouteChildren: PlatformRouteChildren = {
+  PlatformPlatformDocsRoute: PlatformPlatformDocsRoute,
   PlatformPlatformTenantsRoute: PlatformPlatformTenantsRoute,
   PlatformPlatformIndexRoute: PlatformPlatformIndexRoute,
 }

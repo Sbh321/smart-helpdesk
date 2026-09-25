@@ -2,17 +2,25 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { PasswordField } from '@/components/shared/password-field'
 import { TextField } from '@/components/shared/text-field'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { copy } from '@/copy/en'
 import { AuthErrorBanner, authErrorMessage, loginSchema } from '@/features/auth'
 import { isApiError } from '@/lib/api/errors'
+import { sanitiseRedirect } from '@/lib/auth'
 import { mergeMessages } from '@/lib/forms/messages'
 import { platformLogin, reloadPlatformSession } from '../api'
 
+/** Only console paths are followed after sign-in, so a crafted `?redirect=` cannot leave the admin host. */
+export function platformRedirect(value: string | undefined): string | undefined {
+  const path = sanitiseRedirect(value)
+  return path?.startsWith('/platform/') && path !== '/platform/login' ? path : undefined
+}
+
 /** Sign-in for Platform Super Admins on the admin host (`POST /platform-api/auth/login`). */
-export function PlatformLoginForm() {
+export function PlatformLoginForm({ redirect }: { redirect?: string }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [banner, setBanner] = useState<string | null>(null)
@@ -45,7 +53,8 @@ export function PlatformLoginForm() {
         setBanner(copy.auth.errors.unexpected)
         return
       }
-      await navigate({ to: '/platform/tenants', replace: true })
+      // Back to the console page that sent the admin here (the platform docs hand-off, M5-06), else the tenants.
+      await navigate({ href: platformRedirect(redirect) ?? '/platform/tenants', replace: true })
     },
   })
 
@@ -80,10 +89,9 @@ export function PlatformLoginForm() {
 
         <form.Field name="password">
           {(field) => (
-            <TextField
+            <PasswordField
               id="platform-login-password"
               label={copy.auth.passwordLabel}
-              type="password"
               autoComplete="current-password"
               value={field.state.value}
               onValueChange={field.handleChange}

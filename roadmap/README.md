@@ -13,6 +13,7 @@ The MVP plan for Smart Helpdesk, derived from the architecture and domain decisi
 | [03-week-2-product.md](03-week-2-product.md) | Milestone 2 tasks: settings, agents and shifts, SLA with calendars, priority, assignment, ticket UI, comments, media library, notifications, duplicates |
 | [04-week-3-hardening-demo.md](04-week-3-hardening-demo.md) | Milestone 3 tasks: dashboard, API clients, webhooks, mail server, inbound email, deployment, RLS, experiments, performance, E2E, demo |
 | [05-ui-revamp.md](05-ui-revamp.md) | Milestone 4 tasks: UX redesign of the built SPA (shell, ticket queue and detail, automation explainability, SLA, dashboard, reporting, record pages, developer platform, settings) |
+| [13-public-face.md](13-public-face.md) | Milestone 5 tasks: developer entry points, workspace finder, sign-in redesign, landing site, platform documentation site and its host |
 | [05-testing-plan.md](05-testing-plan.md) | What is tested when; E2E scenarios; exit criteria |
 | [06-documentation-plan.md](06-documentation-plan.md) | Documentation produced per milestone; report artefact schedule |
 | [07-risk-register.md](07-risk-register.md) | Risks with probability, impact, mitigation, fallback, trigger; cut list |

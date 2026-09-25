@@ -31,7 +31,7 @@ provider "digitalocean" {
 }
 
 locals {
-  hosts = ["@", "app", "api", "admin", "monitor", "docs", "files", "mail"] # ADR-0021
+  hosts = ["@", "app", "api", "admin", "monitor", "docs", "platform-docs", "files", "mail"] # ADR-0021, ADR-0024
 }
 
 module "network" {

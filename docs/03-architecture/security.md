@@ -194,6 +194,10 @@ Residual risks: the setting lives on the PostgreSQL session, so a connection poo
 `password_reset_tokens` carry `tenant_id` but no policy, because they are read before a tenant is known,
 and rely on the application checks and their tests.
 
+## Platform documentation access (ADR-0024, M5-06)
+
+`platform-docs.<domain>` serves the built `docs/` site only to a Platform Super Admin holding a docs pass. The console's `POST /platform-api/docs/handoff` (platform guard) returns a link signed with HMAC-SHA256 over admin id, expiry, nonce and target path with the application key, valid 60 s and single use (nonce kept in the cache). `/_session/start` exchanges it for `shp_platform_docs`: host-only (built with `Cookie::create`, because Laravel's `cookie()` would fill in `session.domain` and send it to every host), `Secure`, `HttpOnly`, `SameSite=Lax`, encrypted by `EncryptCookies`, eight hours. Caddy's `forward_auth` asks `/_session/check` before every file: 204 for a valid pass of an existing admin, otherwise a redirect to the console's `/platform/docs?next=…`, which requires the platform sign-in and hands off again. `next` is limited to same-host paths on both sides. The routes have no session, tenant or CSRF middleware. Tests: `tests/Feature/Platform/PlatformDocsAccessTest.php` (hand-off, single use, expiry, tampering, guests, a hand-written cookie without the key, a tenant session, deleted admin, host-only attributes).
+
 ## Security headers (Caddy)
 
 `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy` (SPA: `default-src 'self'; img-src 'self' data: <storage-endpoint>; connect-src 'self' <storage-endpoint> wss://<host>`), `Permissions-Policy` minimal.

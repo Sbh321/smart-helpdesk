@@ -7,6 +7,8 @@ const config: RuntimeConfig = {
   appMode: 'tenant',
   platformDomain: 'shp.test',
   storagePublicEndpoint: 'https://files.shp.test',
+  docsUrl: 'https://docs.shp.test',
+  platformDocsUrl: 'https://platform-docs.shp.test',
   realtime: { enabled: true, key: 'public-key', host: 'api.shp.test', path: '' },
 }
 

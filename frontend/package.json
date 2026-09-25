@@ -22,7 +22,9 @@
     "test:browser": "vitest run --project browser",
     "test:watch": "vitest --project unit",
     "e2e": "playwright test",
-    "api:types": "pnpm dlx --package=openapi-typescript@7.13.0 --package=typescript@5.9.3 openapi-typescript ../backend/openapi.json --empty-objects-unknown -o src/lib/api/schema.d.ts"
+    "api:types": "pnpm dlx --package=openapi-typescript@7.13.0 --package=typescript@5.9.3 openapi-typescript ../backend/openapi.json --empty-objects-unknown -o src/lib/api/schema.d.ts",
+    "build:landing": "vite build -c vite.landing.config.ts && vite build -c vite.landing.config.ts --ssr ../src/landing/render.tsx --outDir ../dist-landing-ssr && node scripts/prerender-landing.mjs",
+    "dev:landing": "vite -c vite.landing.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

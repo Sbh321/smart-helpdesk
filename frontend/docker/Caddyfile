@@ -16,7 +16,7 @@
 
 # Ask endpoint for on-demand TLS (loopback inside the container, never published).
 http://127.0.0.1:5555 {
-	@allowed expression `{query.domain} in ["{$PLATFORM_DOMAIN}", "app.{$PLATFORM_DOMAIN}", "api.{$PLATFORM_DOMAIN}", "admin.{$PLATFORM_DOMAIN}", "monitor.{$PLATFORM_DOMAIN}", "docs.{$PLATFORM_DOMAIN}", "files.{$PLATFORM_DOMAIN}", "mail.{$PLATFORM_DOMAIN}"]`
+	@allowed expression `{query.domain} in ["{$PLATFORM_DOMAIN}", "app.{$PLATFORM_DOMAIN}", "api.{$PLATFORM_DOMAIN}", "admin.{$PLATFORM_DOMAIN}", "monitor.{$PLATFORM_DOMAIN}", "docs.{$PLATFORM_DOMAIN}", "platform-docs.{$PLATFORM_DOMAIN}", "files.{$PLATFORM_DOMAIN}", "mail.{$PLATFORM_DOMAIN}"]`
 	respond @allowed 200
 	respond 403
 }
@@ -78,8 +78,16 @@ http://127.0.0.1:5555 {
 	handle /go/docs {
 		redir https://docs.{$PLATFORM_DOMAIN}/ 302
 	}
+	# The workspace finder on the sign-in page (M5-02, M5-03).
+	handle /go/find {
+		redir https://app.{$PLATFORM_DOMAIN}/?find=true 302
+	}
+	# The prerendered landing site (M5-04); its hashed assets never change, the page itself always revalidates.
 	handle {
 		root * /srv/landing
+		header /assets/* Cache-Control "public, max-age=31536000, immutable"
+		header /images/* Cache-Control "public, max-age=86400"
+		header / Cache-Control "no-cache"
 		file_server
 	}
 }
@@ -150,6 +158,28 @@ docs.{$PLATFORM_DOMAIN} {
 	handle {
 		rewrite * /docs/api
 		reverse_proxy app:8080
+	}
+}
+
+# The platform documentation for platform super admins (ADR-0024, M5-06): the built docs/ site, served
+# only after the API accepts the host-only docs pass cookie; /_session/* sets it from the console hand-off.
+platform-docs.{$PLATFORM_DOMAIN} {
+	import common
+	header X-Frame-Options DENY
+	header X-Robots-Tag "noindex, nofollow"
+	handle /_session/* {
+		reverse_proxy app:8080
+	}
+	handle {
+		forward_auth app:8080 {
+			uri /_session/check
+			# The address as requested, before try_files rewrote it to a file.
+			header_up X-Forwarded-Uri {http.request.orig_uri}
+		}
+		root * /srv/platform-docs
+		header /assets/* Cache-Control "private, max-age=31536000, immutable"
+		try_files {path} {path}.html {path}/index.html
+		file_server
 	}
 }
 

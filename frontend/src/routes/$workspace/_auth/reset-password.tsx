@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { AuthLayout } from '@/components/layout/auth-layout'
 import { copy, fill } from '@/copy/en'
-import { RequestPasswordResetForm, SetNewPasswordForm } from '@/features/auth'
+import { RequestPasswordResetForm, SetNewPasswordForm, WorkspaceChip } from '@/features/auth'
 
 const searchSchema = z.object({
   /** Present when the visitor followed the emailed link; absent when they asked for one. */
@@ -21,7 +21,11 @@ function ResetPasswordPage() {
   const heading = token ? copy.auth.resetPassword : copy.auth.forgotPassword
 
   return (
-    <AuthLayout title={heading.heading} description={fill(heading.body, { workspace })}>
+    <AuthLayout
+      title={heading.heading}
+      description={fill(heading.body, { workspace })}
+      eyebrow={<WorkspaceChip workspace={workspace} />}
+    >
       {token ? (
         <SetNewPasswordForm workspace={workspace} token={token} email={email} />
       ) : (

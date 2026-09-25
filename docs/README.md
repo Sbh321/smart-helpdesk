@@ -23,7 +23,7 @@ Planning and design documentation for **Smart Helpdesk**, a multi-tenant support
 | [06-design-system](06-design-system/tokens.md) | principles, tokens, themes, typography, spacing, components, page patterns, accessibility, UX review |
 | [07-api](07-api/conventions.md) | conventions, authentication, pagination and filtering, errors, versioning, webhooks, documentation |
 | [08-database](08-database/overview.md) | overview, entities, indexing, tenancy, migrations |
-| [09-infrastructure](09-infrastructure/docker.md) | docker, local development, production, terraform, ansible, backups, disaster recovery, CI/CD |
+| [09-infrastructure](09-infrastructure/docker.md) | docker, local development, environments (hosts, services, credentials), production, terraform, ansible, backups, disaster recovery, CI/CD |
 | [10-quality](10-quality/testing.md) | testing, code quality, security testing, performance testing, definition of done |
 | [11-operations](11-operations/observability.md) | observability, queues, scheduler, logs, runbooks |
 | [12-academic](12-academic/university-requirements.md) | university requirements (from the CACS452 guideline), algorithm contribution, result analysis plan, report mapping, report generation, demo plan |
@@ -35,3 +35,4 @@ Planning and design documentation for **Smart Helpdesk**, a multi-tenant support
 - Terminology follows [00-project/terminology.md](00-project/terminology.md).
 - A document that contradicts an ADR is a bug; fix the document or write a superseding ADR.
 - No placeholder pages: a page exists only when it has content.
+- This folder is also a site (M5-05): `cd docs && pnpm install && pnpm dev` (http://localhost:5180), `pnpm build` fails on a broken link. The sidebar follows the folder tree and each page's first heading; `README.md` is a folder's overview; links that leave `docs/` open the file on GitHub; `superpowers/` (agent working notes) is not published. Deployed at `platform-docs.<domain>` for signed-in platform super admins (M5-06).

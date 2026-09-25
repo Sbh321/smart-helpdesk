@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
+import { ExternalLinkButton } from '@/components/shared/external-link-button'
 import { ForbiddenState } from '@/components/shared/forbidden-state'
 import { FormErrorBanner } from '@/components/shared/form-error-banner'
 import { SettingsPage } from '@/components/shared/settings-page'
@@ -36,6 +37,7 @@ import { CheckboxGroup } from '@/features/users'
 import { isApiError } from '@/lib/api/errors'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useCan, useSession } from '@/lib/auth'
+import { useRuntimeConfig } from '@/lib/config'
 import { formatInZone } from '@/lib/datetime/format'
 import { mergeMessages } from '@/lib/forms/messages'
 import { useServerErrors } from '@/lib/forms/use-server-errors'
@@ -394,6 +396,7 @@ export function WebhooksSettings() {
   const [dialog, setDialog] = useState<{ webhook: Webhook | null; rotated: WebhookWithSecret | null } | null>(
     null,
   )
+  const { docsUrl } = useRuntimeConfig()
   const [pending, setPending] = useState<PendingAction | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -456,10 +459,13 @@ export function WebhooksSettings() {
       title={text.title}
       description={text.intro}
       actions={
-        <Button onClick={() => setDialog({ webhook: null, rotated: null })}>
-          <PlusIcon aria-hidden="true" />
-          {text.create}
-        </Button>
+        <>
+          <ExternalLinkButton href={docsUrl}>{copy.nav.apiReference}</ExternalLinkButton>
+          <Button onClick={() => setDialog({ webhook: null, rotated: null })}>
+            <PlusIcon aria-hidden="true" />
+            {text.create}
+          </Button>
+        </>
       }
     >
       {webhooks.isPending ? (

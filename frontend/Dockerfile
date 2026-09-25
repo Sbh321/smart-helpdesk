@@ -9,12 +9,23 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
-RUN pnpm exec vite build
+RUN pnpm exec vite build && pnpm build:landing
+
+# The platform documentation (docs/ as a VitePress site, M5-05). docs/ is outside this build context, so it
+# comes in as the named context `docs` (compose additional_contexts, CI build-contexts).
+FROM ${NODE_IMAGE} AS platform-docs
+RUN corepack enable
+WORKDIR /docs
+COPY --from=docs package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+COPY --from=docs . .
+RUN pnpm build
 
 FROM ${CADDY_IMAGE} AS runtime
 RUN apk add --no-cache gettext
 COPY --from=build /app/dist /srv/app
-COPY docker/landing /srv/landing
+COPY --from=build /app/dist-landing /srv/landing
+COPY --from=platform-docs /docs/.vitepress/dist /srv/platform-docs
 COPY docker/config.template.json /etc/shp/config.template.json
 COPY docker/Caddyfile /etc/caddy/Caddyfile
 COPY docker/Caddyfile.single /etc/caddy/Caddyfile.single

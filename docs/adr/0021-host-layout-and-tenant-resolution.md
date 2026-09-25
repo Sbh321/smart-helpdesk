@@ -1,5 +1,7 @@
 # ADR-0021 Host layout on `shp.subhambhandari.com.np` and tenant resolution without tenant subdomains
 
+**Note (2026-09-25):** [ADR-0024](0024-platform-docs-host.md) adds a ninth host, `platform-docs.<domain>`, for the platform documentation.
+
 **Status:** Accepted (2026-09-17). Supersedes decision 3 (identification) of [ADR-0006](0006-multi-tenancy-model.md) and the per-tenant TLS part of [ADR-0012](0012-deployment-architecture.md). Data isolation (shared schema, stancl single-database mode, RLS) is unchanged.
 
 ## Context
