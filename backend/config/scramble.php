@@ -71,25 +71,25 @@ return [
             ```
 
             ```json
-            { "token_type": "Bearer", "expires_in": 3600, "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi..." }
+            { "token_type": "Bearer", "expires_in": 3600, "access_token": "ACCESS_TOKEN" }
             ```
 
             `scope` is optional (space-separated); leaving it out grants every scope the client has. Asking for a
             scope the client was not given answers `400 invalid_scope`; a wrong id or secret, a revoked client or
             a suspended workspace answers `401 invalid_client`. At most 10 token requests a minute per client.
 
-            **3. Call the API with the token** on every request:
+            **3. Call the API with the token** (below in the shell variable `ACCESS_TOKEN`) on every request:
 
             ```bash
             curl -g "$API/v1/tickets?filter[status]=open" \
               -H "Accept: application/json" \
-              -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi..."
+              -H "Authorization: Bearer $ACCESS_TOKEN"
 
             curl -X POST "$API/v1/tickets" \
               -H "Accept: application/json" \
               -H "Content-Type: application/json" \
-              -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi..." \
-              -H "Idempotency-Key: 7f9c2e1a-order-1042" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Idempotency-Key: order-1042" \
               -d '{"title": "Printer offline", "description": "Floor 2 printer shows error E-05.",
                    "contact_id": "CONTACT_UUID", "category_id": "CATEGORY_UUID", "impact": 2, "urgency": 3}'
             ```
