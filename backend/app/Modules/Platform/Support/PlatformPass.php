@@ -42,7 +42,8 @@ final readonly class PlatformPass
     public function handoffUrl(PlatformUser $admin, string $target, string $next, Session $console): string
     {
         $token = Str::random(48);
-        Cache::put(self::cacheKey($token), $admin->id, $this->clock->now()->addMinutes(self::minutes()));
+        // A lifetime, not an instant from Clock: the cache store expires entries on real time.
+        Cache::put(self::cacheKey($token), $admin->id, self::minutes() * 60);
         $console->push(self::SESSION_KEY, $token);
 
         $query = [
