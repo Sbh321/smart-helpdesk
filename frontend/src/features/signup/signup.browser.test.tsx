@@ -29,7 +29,14 @@ function signupApi() {
       const body = (await request.json()) as { token: string }
       return body.token === 'good'
         ? HttpResponse.json(
-            { data: { slug: 'himal', name: 'Himal Support', email: 'asha@himal.test' } },
+            {
+              data: {
+                slug: 'himal',
+                name: 'Himal Support',
+                email: 'asha@himal.test',
+                support_email: 'support+himal@shp.localhost',
+              },
+            },
             { status: 201 },
           )
         : problem(422, 'link_expired', {
@@ -93,6 +100,9 @@ test('the email link creates the workspace and leads to its sign-in', async () =
   await expect
     .element(screen.getByRole('link', { name: 'Sign in to Himal Support' }))
     .toHaveAttribute('href', '/himal/login')
+  await expect
+    .element(screen.getByRole('textbox', { name: copy.signup.supportEmail }))
+    .toHaveValue('support+himal@shp.localhost')
   expect(await blocking()).toEqual([])
 })
 

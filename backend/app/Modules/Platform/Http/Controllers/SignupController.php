@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Platform\Http\Controllers;
 
 use App\Modules\Audit\Audit;
+use App\Modules\Billing\Models\Subscription;
+use App\Modules\Mail\Support\MailIdentity;
 use App\Modules\Platform\Actions\ProvisionTenant;
 use App\Modules\Platform\Models\WorkspaceSignup;
 use App\Modules\Platform\Notifications\VerifySignup;
+use App\Modules\Platform\Notifications\WorkspaceWelcome;
 use App\Modules\Platform\Support\PlatformException;
 use App\Modules\Platform\Support\SignupAddress;
 use App\Modules\Platform\Support\SignupSettings;
@@ -100,11 +103,12 @@ final readonly class SignupController
     }
 
     /**
-     * Confirm a sign-up: the workspace is created on the free trial.
+     * Confirm a sign-up: the workspace is created on the free trial, and the owner is emailed where to
+     * sign in and the address customers write to (`support_email`).
      *
      * @unauthenticated
      *
-     * @response array{data: array{slug: string, name: string, email: string}}
+     * @response array{data: array{slug: string, name: string, email: string, support_email: string}}
      */
     public function verify(Request $request, ProvisionTenant $provision): JsonResponse
     {
@@ -137,7 +141,15 @@ final readonly class SignupController
             return $signup;
         });
 
-        return new JsonResponse(['data' => ['slug' => $signup->slug, 'name' => $signup->workspace_name, 'email' => $signup->email]], 201);
+        $plan = Subscription::forTenant((string) $signup->tenant_id)?->plan;
+        Notification::route('mail', $signup->email)->notify(new WorkspaceWelcome($signup->slug, $signup->workspace_name, $plan->trial_days ?? 14));
+
+        return new JsonResponse(['data' => [
+            'slug' => $signup->slug,
+            'name' => $signup->workspace_name,
+            'email' => $signup->email,
+            'support_email' => MailIdentity::intakeAddressOf($signup->slug),
+        ]], 201);
     }
 
     private function ensureOpen(): void

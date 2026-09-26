@@ -1,6 +1,7 @@
 import axe from 'axe-core'
 import { HttpResponse, http } from 'msw'
 import { expect, test } from 'vitest'
+import { copy } from '@/copy/en'
 import { setupMswWorker } from '@/test/msw/browser'
 import { db } from '@/test/msw/data'
 import { apiUrl, problem, sessionFixture } from '@/test/msw/handlers'
@@ -106,15 +107,19 @@ test('a calendar refuses overlapping windows and saves once corrected', async ()
   })
 })
 
-test('a calendar needs a real time zone and at least one window', async () => {
+test('a calendar offers only real time zones and needs at least one window', async () => {
   signIn(['tickets.view', 'calendars.manage'])
   const { screen } = await renderApp('/acme/settings/calendars')
   await screen.getByRole('button', { name: 'Add calendar' }).click()
   await screen.getByRole('textbox', { name: 'Name' }).fill('Nowhere')
-  await screen.getByRole('combobox', { name: 'IANA time zone' }).fill('Mars/Olympus')
+  const zone = screen.getByRole('combobox', { name: 'IANA time zone' })
+  await zone.fill('Mars/Olympus')
+  await expect.element(screen.getByText(copy.timeZoneField.noResults)).toBeVisible()
+  await zone.fill('kathmandu')
+  await screen.getByRole('option', { name: /Asia\/Kathmandu\s*UTC\+05:45/ }).click()
+  await expect.element(zone).toHaveValue('Asia/Kathmandu')
   await screen.getByRole('button', { name: 'Remove Monday window 1' }).click()
   await screen.getByRole('button', { name: 'Save calendar' }).click()
-  await expect.element(screen.getByText('Enter an IANA time zone such as Asia/Kathmandu.')).toBeVisible()
   await expect.element(screen.getByText('Add at least one working window.')).toBeVisible()
 })
 

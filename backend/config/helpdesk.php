@@ -34,6 +34,9 @@ return [
         'dmarc_policy' => env('MAIL_DMARC_POLICY', 'none'),
         'dkim_selector' => env('MAIL_DKIM_SELECTOR'),
         'dkim_public_key' => env('MAIL_DKIM_PUBLIC_KEY'),
+        // Files of a public reply travel with its mail up to this many bytes in total (before base64,
+        // which adds a third): SES and Brevo refuse messages above 10 MB. Files that do not fit are named.
+        'attachments_max_bytes' => (int) env('MAIL_ATTACHMENTS_MAX_BYTES', 7 * 1024 * 1024),
 
         // Inbound email (docs/04-domain/email.md §Inbound pipeline, M3-19): `mail:fetch-inbound` reads the
         // catch-all `inbound@` mailbox of the bundled server over IMAP every minute. Off by default, because
@@ -78,6 +81,14 @@ return [
         'pass_cookie' => env('PLATFORM_PASS_COOKIE', 'shp_platform_pass'),
         'pass_minutes' => (int) env('PLATFORM_PASS_MINUTES', 480),
         'pass_handoff_seconds' => 60,
+        // Self sign-up throttles (ADR-0025 §8). 0 turns a limit off: local development and rehearsed
+        // demos do; production keeps the defaults.
+        'signup_limits' => [
+            'per_ip_hour' => (int) env('SIGNUP_LIMIT_PER_IP_HOUR', 5),
+            'per_email_hour' => (int) env('SIGNUP_LIMIT_PER_EMAIL_HOUR', 3),
+            'address_per_minute' => (int) env('SIGNUP_LIMIT_ADDRESS_PER_MINUTE', 30),
+            'verify_per_minute' => (int) env('SIGNUP_LIMIT_VERIFY_PER_MINUTE', 10),
+        ],
     ],
 
     // On-prem single-tenant mode: every request runs in this tenant (slug).

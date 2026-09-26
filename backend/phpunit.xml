@@ -52,6 +52,11 @@
         <server name="TENANCY_SINGLE_TENANT" value="" force="true"/>
         <server name="APP_MAINTENANCE_DRIVER" value="file" force="true"/>
         <server name="BCRYPT_ROUNDS" value="4" force="true"/>
+        <!-- The production sign-up limits, whatever backend/.env turns off for local demos. -->
+        <server name="SIGNUP_LIMIT_PER_IP_HOUR" value="5" force="true"/>
+        <server name="SIGNUP_LIMIT_PER_EMAIL_HOUR" value="3" force="true"/>
+        <server name="SIGNUP_LIMIT_ADDRESS_PER_MINUTE" value="30" force="true"/>
+        <server name="SIGNUP_LIMIT_VERIFY_PER_MINUTE" value="10" force="true"/>
         <server name="BROADCAST_CONNECTION" value="null" force="true"/>
         <server name="REALTIME_ENABLED" value="false" force="true"/>
         <server name="CACHE_STORE" value="array" force="true"/>

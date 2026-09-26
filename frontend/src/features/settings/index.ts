@@ -8,6 +8,7 @@ export {
 export { AutomationSettings } from './components/automation-settings'
 export { BrandingSettings } from './components/branding-settings'
 export { GeneralSettings } from './components/general-settings'
+export { GetStartedPanel } from './components/get-started-panel'
 export { type LoadedSection, SettingsSectionScreen } from './components/settings-section-screen'
 export { ShiftEnforcementCard } from './components/shift-enforcement-card'
 export { SlaDefaultsCard } from './components/sla-defaults-card'

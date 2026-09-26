@@ -7,6 +7,7 @@ use App\Modules\Billing\Models\Subscription;
 use App\Modules\Identity\Actions\SyncPermissionCatalogue;
 use App\Modules\Platform\Models\WorkspaceSignup;
 use App\Modules\Platform\Notifications\VerifySignup;
+use App\Modules\Platform\Notifications\WorkspaceWelcome;
 use App\Modules\Platform\Support\SignupSettings;
 use App\Modules\Tenancy\Models\Tenant;
 use App\Support\Time\Clock;
@@ -58,7 +59,20 @@ it('creates nothing until the link is followed, then a workspace on the trial wi
     $token = signUp();
     expect(Tenant::findBySlug('himal'))->toBeNull();
 
-    $this->postJson('/v1/signup/verify', ['token' => $token])->assertCreated()->assertJsonPath('data.slug', 'himal');
+    $this->postJson('/v1/signup/verify', ['token' => $token])->assertCreated()
+        ->assertJsonPath('data.slug', 'himal')
+        ->assertJsonPath('data.support_email', 'support+himal@'.config('helpdesk.hosts.mail'));
+
+    // The owner is told where to sign in and which address customers write to.
+    Notification::assertSentTo(new AnonymousNotifiable, WorkspaceWelcome::class, function (WorkspaceWelcome $mail, array $channels, AnonymousNotifiable $to): bool {
+        $message = $mail->toMail($to);
+        $text = implode("\n", $message->introLines);
+
+        return ($to->routes['mail'] ?? null) === 'asha@himal.test'
+            && str_contains($text, 'support+himal@'.config('helpdesk.hosts.mail'))
+            && str_contains($text, '14-day free trial')
+            && $message->actionUrl === 'https://'.config('helpdesk.hosts.app').'/himal/login';
+    });
 
     $tenant = Tenant::findBySlug('himal');
     expect($tenant?->name)->toBe('Himal Support')
@@ -128,6 +142,8 @@ it('validates the form', function (array $overrides, string $field): void {
     'bad email' => [['email' => 'not-an-email'], 'email'],
     'reserved address' => [['slug' => 'api'], 'slug'],
     'no workspace name' => [['workspace_name' => ''], 'workspace_name'],
+    // Chromium browsers report some zones by their old names; the API takes only the current ones.
+    'old zone name' => [['timezone' => 'Asia/Katmandu'], 'timezone'],
 ]);
 
 it('limits how often one address can sign up', function (): void {
@@ -135,4 +151,11 @@ it('limits how often one address can sign up', function (): void {
         $this->postJson('/v1/signup', signupBody(['slug' => "himal-{$n}"]))->assertAccepted();
     }
     $this->postJson('/v1/signup', signupBody(['slug' => 'himal-4']))->assertTooManyRequests();
+});
+
+it('lets an operator turn the limits off with 0 (local development and demos)', function (): void {
+    config(['helpdesk.platform.signup_limits.per_ip_hour' => 0, 'helpdesk.platform.signup_limits.per_email_hour' => 0]);
+    foreach (range(1, 6) as $n) {
+        $this->postJson('/v1/signup', signupBody(['slug' => "himal-{$n}"]))->assertAccepted();
+    }
 });

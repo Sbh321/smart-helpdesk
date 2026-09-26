@@ -11,6 +11,7 @@ import { copy, fill } from '@/copy/en'
 import { SentPanel } from '@/features/auth'
 import { isApiError } from '@/lib/api/errors'
 import { useRuntimeConfig } from '@/lib/config'
+import { browserTimeZone } from '@/lib/datetime/time-zones'
 import { useServerErrors } from '@/lib/forms/use-server-errors'
 import { useDebouncedValue } from '@/lib/use-debounced-value'
 import { signupApi } from '../api'
@@ -26,14 +27,6 @@ function slugFrom(name: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 40)
     .replace(/-+$/, '')
-}
-
-function browserTimeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
-  } catch {
-    return 'UTC'
-  }
 }
 
 /**

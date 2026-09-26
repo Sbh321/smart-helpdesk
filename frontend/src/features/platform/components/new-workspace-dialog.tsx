@@ -17,6 +17,7 @@ import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 import { queryKeys } from '@/lib/api/query-keys'
 import { useRuntimeConfig } from '@/lib/config'
+import { browserTimeZone } from '@/lib/datetime/time-zones'
 import { useServerErrors } from '@/lib/forms/use-server-errors'
 import { type PlatformTenant, platform, platformPlansQuery } from '../api'
 import { planPriceText } from './plan-text'
@@ -32,14 +33,6 @@ export function slugFrom(name: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 40)
     .replace(/-+$/, '')
-}
-
-function browserTimeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
-  } catch {
-    return 'UTC'
-  }
 }
 
 /**

@@ -9,7 +9,7 @@ Decision: [ADR-0018](../adr/0018-mail-server.md). Notification content: [notific
 | Platform sender | `Acme via Smart Helpdesk <no-reply@<PLATFORM_DOMAIN>>` | invitations and notifications to agents; DKIM-signed by the mail server |
 | Tenant sender display | `Acme Support <support+acme@<PLATFORM_DOMAIN>>` | mail to contacts; name from Settings → Email; V1: verified tenant domain |
 | Ticket reply routing | `Reply-To: ticket+<ticket-uuid>@<PLATFORM_DOMAIN>` | plus-address threading |
-| New-ticket intake | `support+<tenant-slug>@<PLATFORM_DOMAIN>` | shown in Settings → Email |
+| New-ticket intake | `support+<tenant-slug>@<PLATFORM_DOMAIN>` | shown in Settings → Email, the dashboard's Get started panel, the sign-up "ready" page and the welcome mail |
 
 ## Inbound pipeline (Should-have)
 
@@ -150,6 +150,8 @@ All notification mail is queued and sent through the configured mailer: `smtp` t
 
 The comment body is user input. It is mailed as escaped text with line breaks kept, in both the HTML and the text part; it is never rendered as Markdown or HTML, so a reply cannot inject links, images or markup. The sender is the workspace's identity since M3-18 (below).
 
+**Attachments (2026-09-26).** The reply's files (its `ticket_comment` media links with role `attachment`, state `ready`) travel with the mail: images, PDF and the other upload types of `helpdesk.media.allowed_mime`. The listener passes each file's storage key, name, type and size as a `Mail\Support\MailAttachment`; the queued notification reads the bytes inside the workspace (`Tenant::run`, since media disks are rooted per tenant) and attaches them with their type. Files are taken in order up to `helpdesk.mail.attachments_max_bytes` in total (`MAIL_ATTACHMENTS_MAX_BYTES`, default 7 MiB, which base64 turns into about 9.3 MB, under the 10 MB limit of SES and Brevo); the mail lists the attached files, and names the ones that did not fit or whose object is gone ("Not attached to this email … Reply to this email if you need them."), so the reply is always sent. Tests: `tests/Feature/Mail/ReplyAttachmentsTest.php`.
+
 ### As built (M3-18): identity, headers, mail server
 
 **Senders.** Two kinds of mail, two senders, one DKIM-signed domain (`MAIL_DOMAIN`, default `PLATFORM_DOMAIN`):
@@ -186,6 +188,18 @@ MVP-SHORTCUT: `List-Unsubscribe` is `mailto:` only, without `List-Unsubscribe-Po
 Sender display name, intake address (read-only), DNS records to create with a check button (Could-have), toggle "create tickets from unknown senders", allowed domains for organisation matching (as built in M3-19: a switch that matches a new contact's domain against organisation domains; no separate domain list).
 
 **As built (M3-18).** `GET/PATCH /v1/settings/email` (`mail.manage`, owner and admin). The routes are the `Mail` module's and are registered before the generic `/settings/{section}` routes, so `settings.manage` alone does not reach them. The sender name is the `email` settings section (`sender_name`, nullable, at most 80 characters, no line breaks, quotes, angle brackets, backslash or `@`): a write bumps the settings version and is audited as `settings.updated`; null or an empty string restores `"<Workspace> Support"`. The response also carries the effective `from`, the `platform_from` of agent mail, the `intake_address`, the `reply_to_pattern`, the `mail_domain` and `dns_records` (MX, SPF, DKIM, DMARC from `Mail\Support\DnsRecords`; the DKIM record is `ready: false` until `MAIL_DKIM_SELECTOR` and `MAIL_DKIM_PUBLIC_KEY` are set from the `mail-init.sh` output). The SPA page (Settings → Email) shows the sender form with a live preview, the addresses with a copy button, and the records as a table. Not built: the DNS check button (Could-have, FR-EML-05). The unknown-sender switches and the inbound log arrived with M3-19 (§As built (M3-19)).
+
+
+**How a workspace learns its intake address (2026-09-26).** A workspace is told where its customers write in four places, so nobody has to find Settings → Email first:
+
+| Where | Who | What |
+|---|---|---|
+| Sign-up "Your workspace is ready" page | the new owner | the address with a copy button; `POST /v1/signup/verify` returns it as `support_email` (`MailIdentity::intakeAddressOf($slug)`) |
+| Welcome mail (`Platform\Notifications\WorkspaceWelcome`), sent when the sign-up link creates the workspace | the new owner | sign-in link, the trial length, the address (give it to customers or forward the old support mailbox to it), the first setup steps |
+| Dashboard → Get started panel (`features/settings/components/get-started-panel.tsx`, passed into the dashboard by the route) | `mail.manage` (owners, admins) | the address with a copy button, and links to invite the team, agents and skills, categories, SLA targets and business hours, logo and colour, API clients and webhooks, each only with the permission its page needs; hiding it is remembered per browser |
+| Settings → Email | `mail.manage` | the address, the reply-to pattern and the DNS records (above) |
+
+A workspace created from the console gets the owner invitation instead of the welcome mail; the owner sees the Get started panel on first sign-in.
 
 ## Tests
 

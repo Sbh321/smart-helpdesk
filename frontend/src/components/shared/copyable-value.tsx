@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from '@/components/ui/sonner'
 import { copy, fill } from '@/copy/en'
 
-const text = copy.apiClients
+const text = copy.copyableValue
 
 /** A read-only credential with a copy button; the input stays selectable when the clipboard is blocked. */
 export function CopyableValue({ id, label, value }: { id: string; label: string; value: string }) {

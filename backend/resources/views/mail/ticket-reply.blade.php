@@ -5,6 +5,12 @@
     <p style="color: #52606d;">{{ $senderName }} replied to ticket #{{ $ticketNumber }}: {{ $title }}</p>
     {{-- User input: escaped, line breaks kept, never rendered as Markdown or HTML. --}}
     <div style="white-space: pre-wrap;">{{ $body }}</div>
+    @if (! empty($attachedNames))
+        <p style="color: #52606d; font-size: 13px;">Attached: {{ implode(', ', $attachedNames) }}</p>
+    @endif
+    @if (! empty($omittedNames))
+        <p style="color: #52606d; font-size: 13px;">Not attached to this email (too large or no longer available): {{ implode(', ', $omittedNames) }}. Reply to this email if you need them.</p>
+    @endif
     <p style="color: #52606d; font-size: 13px;">Reply to this email to answer. Please keep the subject line.</p>
 </body>
 </html>

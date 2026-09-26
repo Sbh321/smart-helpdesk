@@ -42,7 +42,16 @@ final readonly class MailIdentity
 
     public function intakeAddress(): string
     {
-        return sprintf('support+%s@%s', $this->workspaceSlug, $this->domain);
+        return self::intakeAddressOf($this->workspaceSlug, $this->domain);
+    }
+
+    /**
+     * The intake address of a workspace without its settings, for mail sent outside it (the welcome
+     * mail after sign-up); the domain defaults to the platform's mail host.
+     */
+    public static function intakeAddressOf(string $slug, ?string $domain = null): string
+    {
+        return sprintf('support+%s@%s', $slug, $domain ?? (string) config('helpdesk.hosts.mail'));
     }
 
     /** The Reply-To of ticket mail with a placeholder for the ticket id. */

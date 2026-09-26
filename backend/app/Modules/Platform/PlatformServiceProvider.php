@@ -28,10 +28,18 @@ final class PlatformServiceProvider extends ModuleServiceProvider
         Event::listen(PaymentSubmitted::class, NotifyAdminsOfPayment::class);
 
         // Self sign-up (ADR-0025 §8): a few requests per hour per client and per address.
+        // Configurable (helpdesk.platform.signup_limits); 0 means no limit.
+        $limit = fn (string $key): int => (int) config("helpdesk.platform.signup_limits.{$key}");
         RateLimiter::for('signup', fn (Request $request): array => [
-            Limit::perHour(5)->by('signup-ip:'.$request->ip()),
-            Limit::perHour(3)->by('signup-email:'.strtolower($request->string('email')->value())),
+            $limit('per_ip_hour') > 0 ? Limit::perHour($limit('per_ip_hour'))->by('signup-ip:'.$request->ip()) : Limit::none(),
+            $limit('per_email_hour') > 0 ? Limit::perHour($limit('per_email_hour'))->by('signup-email:'.strtolower($request->string('email')->value())) : Limit::none(),
         ]);
+        RateLimiter::for('signup-address', fn (Request $request): Limit => $limit('address_per_minute') > 0
+            ? Limit::perMinute($limit('address_per_minute'))->by('signup-address:'.$request->ip())
+            : Limit::none());
+        RateLimiter::for('signup-verify', fn (Request $request): Limit => $limit('verify_per_minute') > 0
+            ? Limit::perMinute($limit('verify_per_minute'))->by('signup-verify:'.$request->ip())
+            : Limit::none());
 
         // The platform-only hosts (ADR-0024): cookies only, no session, no tenant. Split layout only.
         // MVP-SHORTCUT: single-host installs have no platform pass, so Horizon there refuses everyone and the

@@ -466,6 +466,9 @@ export const copy = {
     readyTitle: 'Your workspace is ready',
     readyBody: '{name} is on a 14-day free trial. Sign in with the email and password you chose.',
     openWorkspace: 'Sign in to {name}',
+    supportEmail: 'Your support email address',
+    supportEmailHelp:
+      'Give this address to your customers, or forward your existing support mailbox to it: every email becomes a ticket. We also emailed it to you, and it is under Settings → Email.',
     expiredTitle: 'This link cannot be used',
     startAgain: 'Sign up again',
     missingToken: 'This link is not complete. Open the link from the email again.',
@@ -1133,6 +1136,10 @@ export const copy = {
       domainInvalid: 'Enter a domain such as acme.example, without https://.',
     },
   },
+  timeZoneField: {
+    placeholder: 'Search a city or region',
+    noResults: 'No time zone matches. Try a city, such as Kathmandu.',
+  },
   combobox: {
     noResults: 'No matches',
     loading: 'Searching…',
@@ -1459,10 +1466,6 @@ export const copy = {
       "This is the only time the secret is shown. Store it in your integration's secret store; if it is lost, revoke the client and create a new one.",
     clientId: 'Client id',
     clientSecret: 'Client secret',
-    copy: 'Copy',
-    copyNamed: 'Copy {name}',
-    copied: '{name} copied.',
-    copyFailed: 'Copying failed. Select the text and copy it yourself.',
     done: 'I have stored the secret',
     empty: 'No API clients yet.',
     listLabel: 'API clients',
@@ -1489,6 +1492,37 @@ export const copy = {
       name: 'Enter a name of up to 120 characters.',
       scopes: 'Choose at least one scope.',
     },
+  },
+  /** The dashboard's first block for owners and admins: the support address and the setup pages. */
+  getStarted: {
+    title: 'Get started with {name}',
+    description: 'Where your customers write to, and the few things to set up before your team starts.',
+    hide: 'Hide this panel',
+    emailLabel: 'Your support email address',
+    emailLoading: 'Loading the address…',
+    emailFailed: 'The address could not be loaded. It is also under Settings → Email.',
+    emailHelp:
+      'Put this address on your website and in your emails, or forward your existing support mailbox to it. Every new email becomes a ticket; replies to ticket emails are added to their ticket.',
+    emailSettings: 'Email settings',
+    stepsTitle: 'Set up your workspace',
+    steps: {
+      users: { title: 'Invite your team', body: 'Add agents and managers and give each a role.' },
+      agents: {
+        title: 'Agents, skills and teams',
+        body: 'Capacity and skills decide who gets which ticket.',
+      },
+      categories: { title: 'Categories', body: 'Name your kinds of request and the skills they need.' },
+      sla: { title: 'SLA targets and business hours', body: 'Response and resolution times per priority.' },
+      branding: { title: 'Logo and colour', body: 'How your workspace and its emails look.' },
+      integrations: { title: 'Connect other systems', body: 'API clients and webhooks for your own tools.' },
+    },
+  },
+  /** A read-only value with a copy button: credentials, the support address. */
+  copyableValue: {
+    copy: 'Copy',
+    copyNamed: 'Copy {name}',
+    copied: '{name} copied.',
+    copyFailed: 'Copying failed. Select the text and copy it yourself.',
   },
   /** Machine text with a copy button (M4-11). */
   codeBlock: {

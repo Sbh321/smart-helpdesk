@@ -1880,7 +1880,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Confirm a sign-up: the workspace is created on the free trial */
+        /**
+         * Confirm a sign-up: the workspace is created on the free trial, and the owner is emailed where to
+         *     sign in and the address customers write to (`support_email`)
+         */
         post: operations["signup.verify"];
         delete?: never;
         options?: never;
@@ -9393,6 +9396,7 @@ export interface operations {
                             slug: string;
                             name: string;
                             email: string;
+                            support_email: string;
                         };
                     };
                 };

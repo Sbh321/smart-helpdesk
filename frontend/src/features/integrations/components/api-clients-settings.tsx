@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRoundIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
+import { CopyableValue } from '@/components/shared/copyable-value'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
 import { ExternalLinkButton } from '@/components/shared/external-link-button'
@@ -43,7 +44,6 @@ import {
   revokeApiClient,
 } from '../api/api-client-queries'
 import { type ApiClientFormValues, apiClientFormSchema } from '../schemas'
-import { CopyableValue } from './copyable-value'
 
 const text = copy.apiClients
 

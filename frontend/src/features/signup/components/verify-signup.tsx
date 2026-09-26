@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { CircleCheckIcon } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { CopyableValue } from '@/components/shared/copyable-value'
 import { ErrorState } from '@/components/shared/error-state'
 import { buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -50,6 +51,10 @@ export function VerifySignup({ token }: { token: string }) {
         title={text.readyTitle}
         body={fill(text.readyBody, { name: workspace.name })}
       />
+      <div className="flex flex-col gap-2">
+        <CopyableValue id="signup-support-email" label={text.supportEmail} value={workspace.support_email} />
+        <p className="text-sm text-muted-foreground">{text.supportEmailHelp}</p>
+      </div>
       <Link
         to="/$workspace/login"
         params={{ workspace: workspace.slug }}

@@ -155,10 +155,13 @@ function tileTrend(kpi: DashboardKpi, series: readonly DashboardSeries[]): (numb
 export function DashboardScreen({
   workspace,
   period,
+  intro,
   now,
 }: {
   workspace: string
   period: Period
+  /** A block above everything else; the route passes the settings feature's `GetStartedPanel`. */
+  intro?: ReactNode
   /** The live "Right now" block; the route passes the tickets feature's `TicketsRightNow`. */
   now?: ReactNode
 }) {
@@ -201,6 +204,7 @@ export function DashboardScreen({
     return (
       <div className="flex flex-col gap-6">
         {header}
+        {intro}
         {now}
         <EmptyState icon={LayoutDashboardIcon} title={text.noAccessTitle} description={text.noAccessBody} />
       </div>
@@ -211,6 +215,7 @@ export function DashboardScreen({
   return (
     <div className="flex flex-col gap-6">
       {header}
+      {intro}
       {now}
       {dashboard.isError && !data ? (
         <ErrorState

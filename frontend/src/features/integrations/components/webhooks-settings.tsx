@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRoundIcon, MoreHorizontalIcon, PlusIcon, TriangleAlertIcon, WebhookIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
+import { CopyableValue } from '@/components/shared/copyable-value'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
 import { ExternalLinkButton } from '@/components/shared/external-link-button'
@@ -56,7 +57,6 @@ import {
   webhookQueries,
 } from '../api/webhook-queries'
 import { type WebhookFormValues, webhookFormSchema } from '../schemas'
-import { CopyableValue } from './copyable-value'
 import { WebhookDeliveries } from './webhook-deliveries'
 
 const text = copy.webhooks

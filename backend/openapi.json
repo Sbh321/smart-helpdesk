@@ -9026,7 +9026,7 @@
         "/signup/verify": {
             "post": {
                 "operationId": "signup.verify",
-                "summary": "Confirm a sign-up: the workspace is created on the free trial",
+                "summary": "Confirm a sign-up: the workspace is created on the free trial, and the owner is emailed where to\nsign in and the address customers write to (`support_email`)",
                 "tags": [
                     "Sign-up"
                 ],
@@ -9068,12 +9068,16 @@
                                                 },
                                                 "email": {
                                                     "type": "string"
+                                                },
+                                                "support_email": {
+                                                    "type": "string"
                                                 }
                                             },
                                             "required": [
                                                 "slug",
                                                 "name",
-                                                "email"
+                                                "email",
+                                                "support_email"
                                             ]
                                         }
                                     },

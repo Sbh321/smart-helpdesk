@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { CodeBlock } from '@/components/shared/code-block'
+import { CopyableValue } from '@/components/shared/copyable-value'
 import { SelectFilter } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ErrorState } from '@/components/shared/error-state'
@@ -31,7 +32,6 @@ import {
   webhookQueries,
 } from '../api/webhook-queries'
 import { canRetryDelivery, type DeliveryStatus, deliveryErrorText, deliveryStatus } from '../delivery-status'
-import { CopyableValue } from './copyable-value'
 
 const text = copy.webhooks.deliveries
 const DELIVERY_STATES: readonly DeliveryState[] = ['pending', 'succeeded', 'failed', 'dead']

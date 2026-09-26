@@ -1,0 +1,205 @@
+SMART HELPDESK - DEMO FLOW (after the presentation)
+====================================================
+
+Length: about 12-15 minutes. Two presenters: one drives the browser, the other speaks.
+Order: website -> sign-up -> tickets, SLA, settings, reports -> platform admin.
+
+Everything runs on the laptop (the Docker stack), so the demo does not depend on the
+internet. The live site (https://shp.subhambhandari.com.np) can be opened at the very end
+to show that the same system is deployed on AWS.
+
+
+BEFORE THE DEMO (do this 10 minutes before)
+-------------------------------------------
+
+1. Start the stack and load the demo data:
+       just up demo
+       just demo-reset          (about 40 seconds; rebuilds the "acme" and "globex" workspaces)
+   Run demo-reset again after every rehearsal: a rehearsal creates tickets and moves the clock.
+
+2. Open these tabs / browser profiles, each already signed in (demo password: password):
+   - Tab A  Website          https://shp.localhost                          (no sign-in)
+   - Tab B  Private window   for the sign-up                                (no sign-in)
+   - Tab C  Mailpit          https://mail.shp.localhost                     (all emails land here)
+   - Tab D  Arjun  (Agent)   https://app.shp.localhost/acme   arjun@acme.test
+   - Tab E  Priya  (Manager) https://app.shp.localhost/acme   priya@acme.test
+   - Tab F  Meera  (Owner)   https://app.shp.localhost/acme   meera@acme.test
+   - Tab G  Sam (other company) https://app.shp.localhost/globex   sam@globex.test
+   - Tab H  Platform admin   https://admin.shp.localhost/platform   admin@platform.test
+
+3. A terminal open in the project folder (for "just demo-tick 30" in step 4).
+
+4. Browser zoom 125 %, light theme.
+
+5. Pick a new workspace name for the sign-up that has not been used on this laptop
+   (for example "Himal Support" -> address "himal-support"). demo-reset does not remove
+   workspaces created by sign-up, so a name used in a rehearsal will show "taken".
+
+
+STEP 1 - THE WEBSITE: WHAT THE PRODUCT IS  (about 1.5 min)
+----------------------------------------------------------
+Tab A: https://shp.localhost
+
+Show: scroll the landing page slowly (hero, how it works, features, FAQ).
+
+Say:
+- "Smart Helpdesk is a support ticket system offered as a service. One installation serves
+  many companies. Each company gets its own workspace with its own agents, customers,
+  tickets and settings, and never sees another company's data."
+- "This is called multi-tenancy. The workspace of every request comes from the signed-in
+  user, never from the web address, and the database itself filters every query by
+  workspace (row-level security)."
+- "What makes it 'smart' is that it takes four decisions automatically and explains each
+  one: priority, which agent, possible duplicates, and SLA risk."
+
+Then click "Start a free trial" (in the private window, Tab B, so it opens signed out).
+
+
+STEP 2 - SIGN UP: A NEW COMPANY CREATES ITS WORKSPACE  (about 2 min)
+--------------------------------------------------------------------
+Tab B (private window): the page "Create your workspace" opens (https://app.shp.localhost/signup).
+
+Do: fill in your name, email (any address, e.g. owner@himal.test), password twice and the
+workspace name "Himal Support". The address "himal-support" fills itself in.
+   - Type "acme" in the address field first to show "This address is taken", then put
+     "himal-support" back.
+Click "Create workspace" -> "Check your email".
+
+Tab C (Mailpit): open the verification email -> click the link.
+The workspace is created. The "Your workspace is ready" page shows the workspace's own support
+email address (support+himal-support@...) with a Copy button.
+Say: "Customers email this address, or the company forwards its old support mailbox to it, and
+every email becomes a ticket."
+Tab C (Mailpit): the welcome email has arrived too: sign-in link, the support address, first steps.
+Back in Tab B: "Sign in to Himal Support" -> sign in.
+The dashboard opens with the "Get started" panel: the support address again, and the setup steps
+(invite the team, agents and skills, categories, SLA and business hours, logo, API and webhooks).
+
+Say:
+- "Nothing is created until the email is confirmed. The new workspace starts on a free
+  trial and comes with default roles, categories, an SLA policy and a business calendar."
+- "A new company starts empty. For the rest of the demo we use a workspace that already has
+  30 days of realistic data: Acme Support."
+  (Meera, Acme's owner, sees the same Get started panel; hide it with the X before step 3 so the
+  dashboard is clear.)
+
+
+STEP 3 - CORE TICKETING WITH THE FOUR DECISIONS  (about 4 min)
+--------------------------------------------------------------
+Tab E (Priya, Manager): Dashboard.
+Say: "This is what a support manager sees: open and unassigned tickets, tickets close to their
+SLA deadline, and the trends of the last 30 days." (Each number is a link to that list.)
+
+Tab D (Arjun, Agent): Tickets -> New ticket.
+Type:
+   Title:        Cannot login after password reset
+   Description:  After the password reset the portal login fails with ERR-401 and I cannot log in.
+-> The duplicate panel suggests ticket #1031 with the shared words, BEFORE saving.
+Say: "Duplicate detection: the words of the new ticket are compared with recent open tickets
+(Jaccard similarity). One outage no longer becomes ten parallel tickets."
+
+Continue: Contact "Laura Schmidt" (Umbrella Health, enterprise customer), category
+"Account access", impact 2, urgency 3 -> Create. The new ticket (#1121) opens.
+Show:
+- Priority P2 with "Why this priority?": one sentence plus a bar per factor;
+  "Show the calculation" opens the exact table.
+  Say: "Priority is a weighted score of impact, urgency, customer tier and waiting time."
+- Assigned to Chen Wei, with the reason. Say: "Assignment picks the eligible agent with the
+  lowest load for their capacity, and only agents with the right skill, on shift and
+  available."
+- The two SLA timers in the header (first response and resolution).
+
+Tab E (Priya): open ticket #1099 -> Assignment -> the ranking and the agents left out, each
+with a reason (Elena away, Grace offline, Farid at capacity, missing skill).
+
+Tab D (Arjun), on #1121: add an internal note, then a public reply.
+Tab C (Mailpit): the customer's email "[#1121] Cannot login after password reset" has arrived.
+Say: "Internal notes stay inside the team; the public reply is emailed to the customer, and if
+the customer answers that email, the answer is added to the ticket."
+
+
+STEP 4 - SLA: PAUSE, WARNING AND BREACH  (about 2 min)
+------------------------------------------------------
+Tab D (Arjun), #1121: set the status to Pending -> the resolution timer shows "paused".
+Say: "While we wait for the customer, the SLA clock stops, and the deadline moves by the
+paused time." Then set it back to In progress.
+
+Tab E (Priya): open #1104 "Cannot add new team members" (P1, warning, due soon).
+Terminal:  just demo-tick 30      (moves the clock 30 minutes forward)
+Refresh: #1104 is now "Breached"; the bell shows the breach notification.
+Say: "A scheduler checks the timers every minute: first a warning, then a breach, and each
+notification is sent only once."
+
+
+STEP 5 - SETTINGS: THE ALGORITHMS ARE CONFIGURABLE  (about 1.5 min)
+-------------------------------------------------------------------
+Tab F (Meera, Owner): Settings.
+- Priority automation: change a weight (impact 0.40 -> 0.30, tier 0.15 -> 0.25) and press
+  Preview: the example scores change live. Do not save.
+  Say: "Administrators tune the algorithms through forms, not code."
+- SLA policies: the targets per priority and the business calendar (working hours, holidays).
+Say: "Settings are permission-based: Priya, the manager, cannot open these pages; Meera, the
+owner, can."
+
+
+STEP 6 - REPORTS (only two or three)  (about 1.5 min)
+-----------------------------------------------------
+Tab E (Priya): Reports.
+- Ticket volume -> click one day's count -> the list of tickets behind that number.
+- SLA compliance: the share of tickets that met their targets.
+- Open ticket #1031 -> History -> view it "as of" a few days ago.
+Say: "Every change to a record is captured, so we can show any ticket as it was at a past
+moment, and the backlog on any past date."
+
+
+STEP 7 - A FEW OTHER THINGS  (about 1 min, pick two)
+----------------------------------------------------
+- Workspace separation: Tab G (Sam, Globex): paste the URL of an Acme ticket -> "not found".
+- Ctrl+K: search a ticket by number or jump to any page.
+- Account menu -> dark theme.
+- Settings -> Media library: upload by drag and drop, open a file in the preview (lightbox).
+- API documentation: https://docs.shp.localhost (the REST API that other systems use).
+
+
+STEP 8 - THE PLATFORM ADMINISTRATOR  (about 2 min)
+--------------------------------------------------
+Tab H: https://admin.shp.localhost/platform (the platform super admin, above all workspaces).
+
+- Dashboard: number of workspaces and users, new sign-ups, revenue, trends.
+- Workspaces: "Himal Support" from step 2 is in the list, on the Free trial. Open it:
+  details, owner, subscription. Show "New workspace" (an admin can also create one).
+- Payments: Acme's payment is "Being checked". Open it -> the uploaded bank receipt opens in
+  the viewer -> Approve. Acme's paid period is extended.
+  Say: "There is no online payment gateway: a workspace pays by bank transfer or eSewa,
+  uploads the receipt, and a platform admin verifies it. If a workspace does not pay, it
+  gets a grace period and then becomes read-only."
+- Plans (Free trial, Standard) and Admins (invite another platform admin).
+- Monitoring / Platform docs buttons: tools only platform admins can open.
+
+Close (say): "So one installation serves many companies, each company's support team gets
+automatic, explained decisions, and the platform owner manages workspaces and payments from
+one console. The same system is deployed on AWS." (Optionally open the live site.)
+
+
+IF SOMETHING GOES WRONG
+-----------------------
+- A page is slow or blank: refresh; the app falls back to refreshing every 30 seconds.
+- Sign-up says the address is taken: use another workspace name.
+- Numbers in steps 3-4 differ (e.g. not #1121, no breach): demo-reset was not run after the
+  last rehearsal; skip to the next step and mention it.
+- The API documentation page needs the internet; if offline, skip it.
+- Laptop problem: use the screenshots in the report appendix.
+
+
+QUESTIONS THE PANEL MAY ASK (short answers)
+-------------------------------------------
+- Why rule-based algorithms and not machine learning? A new installation has no labelled
+  history, and every decision must be explained; the algorithms sit behind interfaces so a
+  stronger one can replace them later.
+- How is one company's data kept from another? The workspace comes from the session, every
+  table has the workspace id, and PostgreSQL row-level security filters every query.
+- What happens when no agent is eligible? The ticket stays unassigned and managers are notified.
+- Does a duplicate get deleted? No; the agent decides. A confirmed duplicate is closed and
+  linked to the original.
+- How is it deployed? Docker Compose on one AWS virtual machine, set up with OpenTofu and
+  Ansible, with HTTPS from Caddy.
