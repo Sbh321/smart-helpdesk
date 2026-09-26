@@ -75,9 +75,8 @@
   --info: var(--blue-700);
   --info-foreground: var(--neutral-0);
   --border: var(--neutral-200);
-  --input: var(
-    --neutral-500
-  ); /* WCAG 1.4.11: control boundary needs 3:1; neutral-300 gave 1.4:1 (checkbox, switch, selected toggle) */
+  /* WCAG 1.4.11: control boundary needs 3:1; neutral-300 gave 1.4:1 (checkbox, switch, selected toggle) */
+  --input: var(--neutral-500);
   /* Text fields, selects, comboboxes and outline buttons: a soft grey edge that darkens on hover and on
      focus, with a neutral halo instead of the brand ring. Their label and surface identify them, so the
      edge is not the only cue (the 3:1 --input stays on controls where it is). */
