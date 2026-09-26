@@ -22,6 +22,13 @@ artifact) is the authority for shapes; this page is the human summary.
   the chart draws by default; the parts of a `stacked_bar`) and `period_applies`. `chart` may now be
   `stacked_bar` (SLA compliance, assignment behaviour, duplicates). Additive.
 
+**Documentation**
+
+- The reference introduction now explains both ways to authenticate step by step: API clients (client
+  id and secret → `POST /oauth/token` → `Authorization: Bearer …`, renewal, scopes, idempotency, limits)
+  and the web app session (CSRF cookie, login, `X-XSRF-TOKEN`, logout), with `curl` examples. The
+  `session` and `oauth2` security schemes say what to send. No request or response shape changed.
+
 ## 1.0.0 — 2026-09-21
 
 First release of the MVP surface: 147 operations, 29 of them open to API clients.

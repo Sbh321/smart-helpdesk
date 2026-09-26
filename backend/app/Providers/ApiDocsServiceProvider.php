@@ -64,7 +64,7 @@ final class ApiDocsServiceProvider extends ServiceProvider
                 $openApi->secure(
                     SecurityScheme::apiKey('cookie', (string) config('session.cookie'))
                         ->as('session')
-                        ->setDescription('SPA session (Sanctum). Call `GET /sanctum/csrf-cookie` first and send the `XSRF-TOKEN` cookie value as `X-XSRF-TOKEN` on unsafe methods.'),
+                        ->setDescription('Web app session (Sanctum). Call `GET /sanctum/csrf-cookie`, then `POST /v1/auth/login` with workspace, email and password; the browser then sends the session cookie on every request. Send the `XSRF-TOKEN` cookie value as the `X-XSRF-TOKEN` header on POST, PUT, PATCH and DELETE. See the introduction for the full steps.'),
                 );
                 // API clients: OAuth 2.0 client credentials (docs/07-api/authentication.md §3).
                 $openApi->secure(
@@ -77,7 +77,7 @@ final class ApiDocsServiceProvider extends ServiceProvider
                             }
                         })
                         ->as('oauth2')
-                        ->setDescription('API client access token from `POST /oauth/token` (client credentials, 1 hour). Only endpoints open to API clients accept it.'),
+                        ->setDescription('API client. Exchange the client id and secret for an access token at `POST /oauth/token` (client credentials, valid 1 hour), then send `Authorization: Bearer <access_token>` on every request. The id and secret never go to `/v1`. Only endpoints marked open to API clients accept the token, within its scopes. See the introduction for the full steps.'),
                 );
 
                 $problem = $openApi->components->addSchema(self::PROBLEM_SCHEMA, Schema::fromType(self::problemDetailsType()));
