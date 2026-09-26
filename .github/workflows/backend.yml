@@ -41,15 +41,6 @@ jobs:
       DB_OWNER_PASSWORD: secret
       REDIS_HOST: 127.0.0.1
 
-    env:
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_USERNAME: helpdesk_app
-      DB_PASSWORD: secret
-      DB_OWNER_USERNAME: helpdesk_owner
-      DB_OWNER_PASSWORD: secret
-      REDIS_HOST: 127.0.0.1
-
     steps:
       - uses: actions/checkout@v4
 
@@ -137,15 +128,6 @@ jobs:
         ports: ['6379:6379']
         options: >-
           --health-cmd "valkey-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
-
-    env:
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_USERNAME: helpdesk_app
-      DB_PASSWORD: secret
-      DB_OWNER_USERNAME: helpdesk_owner
-      DB_OWNER_PASSWORD: secret
-      REDIS_HOST: 127.0.0.1
 
     env:
       DB_HOST: 127.0.0.1
