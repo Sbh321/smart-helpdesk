@@ -36,6 +36,13 @@ green, and the backend commands are the ones used in development.
 
 ### backend.yml
 
+As built (2026-09-26), the workflow has two jobs that run side by side. `checks` runs composer validate and
+audit, Pint, PHPStan, the migration round trip and the OpenAPI drift check. `test` is a matrix of four jobs.
+Each runs `vendor/bin/pest --shard=N/4` with pcov against its own Postgres and Valkey services and uploads
+`backend-coverage-N`. Pest's built-in sharding needs no new dependency (paratest would). Before the split, one
+job ran all ~2 000 tests in about 11 minutes, and a push took 13–19 minutes. The sketch below is the original
+single-job design.
+
 ```yaml
 name: backend
 on:

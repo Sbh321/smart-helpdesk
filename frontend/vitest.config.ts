@@ -22,6 +22,9 @@ export default mergeConfig(
             name: 'browser',
             include: ['src/**/*.browser.test.tsx'],
             setupFiles: ['./src/test/setup-browser.ts'],
+            // expect.poll/expect.element give up after 1s by default; a busy CI runner rendering a page of 50+
+            // rows can take longer, which failed entity-360's "load older" check. Passing polls still return early.
+            expect: { poll: { timeout: 5000 } },
             browser: {
               enabled: true,
               headless: true,
